@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, JSON, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy import inspect
 from datetime import datetime
 import os
 
@@ -26,4 +27,6 @@ class LinUCBSnapshot(Base):
     b = Column(JSON)  # dx1
 
 def init_db():
-    Base.metadata.create_all(engine)
+    engine = get_engine()
+    if not inspect(engine).has_table("events"):
+        Base.metadata.create_all(engine)
