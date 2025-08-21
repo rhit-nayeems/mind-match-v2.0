@@ -1,0 +1,25 @@
+services:
+  backend:
+    build: ./backend
+    container_name: mindmatch-backend
+    environment:
+      - TMDB_BEARER=${TMDB_BEARER}              # TMDb v4 bearer (set in .env at project root)
+      - MOVIES_DB=/app/app/datasets/movies_core.db   # where the SQLite catalog lives in the container
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/app/datasets:/app/app/datasets
+      - ./backend/scripts:/app/scripts          # mount the ingest script
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    container_name: mindmatch-frontend
+    environment:
+      - VITE_API_BASE=http://backend:8000       # frontend talks to backend by service name
+    depends_on:
+      - backend
+    # If your frontend Dockerfile runs `npm run preview`, Vite serves on 4173:
+    ports:
+      - "4173:4173"
