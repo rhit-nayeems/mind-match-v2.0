@@ -99,22 +99,29 @@ def _dedupe(cands: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return out
 
 
+
 def _get_recently_seen_ids(session_id: str, lookback_days: int = 14) -> Set[str]:
     """Gather movie_ids the session has recently been shown/interacted with."""
-    cutoff = time.time() - lookback_days * 86400
+    cutoff_ts = time.time() - lookback_days * 86400
     dbs = SessionLocal()
     try:
-        q = (
-            dbs.query(Event)
-            .filter(Event.session_id == session_id)
-            .filter(Event.ts >= cutoff)  # ts in seconds since epoch; adjust if your model differs
-        )
+        q = dbs.query(Event).filter(Event.session_id == session_id)
+
+        # Handle either float 'ts' or datetime 'at'
+        if hasattr(Event, "ts"):
+            q = q.filter(Event.ts >= cutoff_ts)
+        elif hasattr(Event, "at"):
+            from datetime import datetime, timezone
+            cutoff_dt = datetime.fromtimestamp(cutoff_ts, tz=timezone.utc)
+            q = q.filter(Event.at >= cutoff_dt)
+
         ids = {str(e.movie_id) for e in q.all() if e.movie_id}
         return ids
     except Exception:
         return set()
     finally:
         dbs.close()
+
 
 
 def _mmr_diversify(
@@ -194,7 +201,6 @@ def recommend():
         return jsonify({"error": "Catalog not ready. Run the TMDb ingest to create movies.db."}), 503
 
     # 3) fetch a generous candidate set from the big catalog
-    #    (increase prefilter if you ingest far more rows)
     try:
         raw_cands = top_matches(
             user_traits,
@@ -228,18 +234,41 @@ def recommend():
                 pass
         enriched.append(m)
 
-    # 6) record "shown" events for bandit / history
+    # 6) record "shown" events for bandit / history (handles 'ts' or 'at')
     try:
         dbs = SessionLocal()
-        now = time.time()
+        now_ts = time.time()
+        from datetime import datetime, timezone
+        now_dt = datetime.now(timezone.utc)
+
         for m in enriched:
             mid = str(m.get("id"))
-            ev = Event(session_id=session_id, movie_id=mid, type="shown", reward=0.0, ts=now, features={"user_traits": user_traits, "movie_traits": m.get("traits", {})})
+            ts_kwargs = {}
+            if hasattr(Event, "ts"):
+                ts_kwargs["ts"] = now_ts
+            elif hasattr(Event, "at"):
+                ts_kwargs["at"] = now_dt
+
+            ev = Event(
+                session_id=session_id,
+                movie_id=mid,
+                type="shown",
+                reward=0.0,
+                features={
+                    "user_traits": user_traits,
+                    "movie_traits": m.get("traits", {})
+                },
+                **ts_kwargs,
+            )
             dbs.add(ev)
         dbs.commit()
-        dbs.close()
     except Exception:
         pass
+    finally:
+        try:
+            dbs.close()
+        except Exception:
+            pass
 
     return jsonify({
         "profile": {"traits": user_traits, "summary": profile_summary},
@@ -263,7 +292,24 @@ def event():
 
     dbs = SessionLocal()
     try:
-        ev = Event(session_id=session_id, movie_id=str(movie_id), type=etype, reward=reward, features=feats)
+        # add a timestamp regardless of whether model has 'ts' or 'at'
+        ts_kwargs = {}
+        now_ts = time.time()
+        from datetime import datetime, timezone
+        now_dt = datetime.now(timezone.utc)
+        if hasattr(Event, "ts"):
+            ts_kwargs["ts"] = now_ts
+        elif hasattr(Event, "at"):
+            ts_kwargs["at"] = now_dt
+
+        ev = Event(
+            session_id=session_id,
+            movie_id=str(movie_id),
+            type=etype,
+            reward=reward,
+            features=feats,
+            **ts_kwargs,
+        )
         dbs.add(ev); dbs.commit()
 
         # Optional LinUCB online update
