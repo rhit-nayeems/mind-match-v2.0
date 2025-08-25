@@ -29,7 +29,7 @@ export default function Landing() {
         className="mt-4 text-slate-300 max-w-xl"
       >
         Discover movies that match your mood and personality. Answer a few quick questions and get
-        film picks that feel made just for you.
+        films our AI-powered tool selects to feel like they were made just for you.
       </motion.p>
 
       <Link to="/quiz" className="mt-10 btn">Start Quiz</Link>
