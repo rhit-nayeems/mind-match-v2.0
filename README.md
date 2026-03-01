@@ -73,3 +73,4 @@ Returns user profile + 6 recommendations with `links.imdb`, `links.tmdb`, `links
 - TMDb attribution: “This product uses the TMDB API but is not endorsed or certified by TMDB.”
 - To scale the catalog, add a TMDb Discover loader and persist movies (easy to add later).
 - Bandit state persists to SQLite; for production, point `DB_URL` at Postgres.
+
