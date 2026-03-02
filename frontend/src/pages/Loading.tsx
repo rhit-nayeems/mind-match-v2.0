@@ -10,19 +10,26 @@ export default function Loading() {
     const answers = loc.state?.answers ?? (saved ? JSON.parse(saved) : null)
 
     if (!answers) {
-      // No answers at all → send the user back to the quiz
       nav('/quiz')
       return
     }
 
-    // Small delay to show the loader, then go to results carrying answers
-    const t = setTimeout(() => nav('/results', { state: { answers } }), 500)
+    const t = setTimeout(() => nav('/results', { state: { answers } }), 550)
     return () => clearTimeout(t)
   }, [])
 
   return (
-    <div className="h-80 grid place-items-center">
-      <div className="animate-pulse text-slate-300">Finding movies for your mood… 🎬</div>
+    <div className="grid min-h-[60vh] place-items-center">
+      <div className="surface w-full max-w-xl p-8 text-center">
+        <div className="code-label text-zinc-400">running recommendation graph</div>
+        <h1 className="headline mt-3 text-2xl text-zinc-100">Finding your best matches</h1>
+        <p className="mt-2 text-sm text-zinc-400">Generating candidates and reranking for diversity.</p>
+
+        <div className="mt-6 h-2 overflow-hidden rounded-full border border-white/15 bg-white/5">
+          <div className="pulse-soft h-full w-1/2 rounded-full bg-white" />
+        </div>
+      </div>
     </div>
   )
 }
+

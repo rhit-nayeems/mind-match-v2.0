@@ -1,38 +1,105 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { ArrowRight, Radar, Sparkles, ScanLine } from 'lucide-react'
+
+const featureCards = [
+  {
+    icon: Radar,
+    label: 'Trait Vectoring',
+    text: 'Maps your responses into a 9-dimensional movie preference signature.',
+  },
+  {
+    icon: Sparkles,
+    label: 'Hybrid Ranking',
+    text: 'Fuses profile alignment, text signals, and adaptive reranking.',
+  },
+  {
+    icon: ScanLine,
+    label: 'Precision Pass',
+    text: 'Runs adaptive follow-up questions to reduce ambiguity before matching.',
+  },
+]
 
 export default function Landing() {
   return (
-    <div className="flex flex-col items-center text-center py-20">
-      <motion.h1
-        initial={{ opacity: 0, y: 10 }}
+    <div className="py-10 md:py-16">
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-4xl md:text-5xl font-bold"
+        transition={{ duration: 0.55 }}
+        className="surface overflow-hidden"
       >
-        MindMatch — Find tonight’s movie in 60 seconds
-      </motion.h1>
+        <div className="grid gap-8 p-7 md:grid-cols-[1.1fr_0.9fr] md:p-10">
+          <div>
+            <span className="outline-chip">psychology x cinema intelligence</span>
+            <h1 className="headline mt-5 text-4xl leading-tight text-zinc-100 md:text-6xl">
+              Stop scrolling.
+              <br />
+              Start matching.
+            </h1>
+            <p className="mt-5 max-w-xl text-base text-zinc-300 md:text-lg">
+              MindMatch is a black-box-free recommender that profiles your long-term taste and current mood,
+              then returns films that feel deliberate instead of random.
+            </p>
 
-      <motion.h2
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.5 }}
-        className="mt-3 text-lg md:text-xl text-slate-200"
-      >
-        Stop scrolling. Start watching.
-      </motion.h2>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link to="/quiz" className="btn-neo">
+                Run Match Sequence
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <span className="btn-ghost">~2 minute adaptive quiz</span>
+            </div>
+          </div>
 
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="mt-4 text-slate-300 max-w-xl"
-      >
-        Discover movies that match your mood and personality. Answer a few quick questions and get
-        films our AI-powered tool selects to feel like they were made just for you.
-      </motion.p>
+          <div className="surface-soft grid gap-4 p-4">
+            <div className="rounded-xl border border-white/15 bg-black/35 p-4">
+              <div className="code-label text-zinc-400">runtime profile</div>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-zinc-300">
+                {['depth', 'novelty', 'comfort', 'energy', 'mood', 'humor'].map((k, i) => (
+                  <div key={k} className="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1.5">
+                    <div className="uppercase text-[10px] text-zinc-500">{k}</div>
+                    <div className="mt-1 h-1.5 rounded-full bg-white/10">
+                      <div
+                        className="h-full rounded-full bg-white"
+                        style={{ width: `${50 + ((i * 11) % 38)}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-xl border border-white/15 bg-white/[0.03] p-4">
+              <div className="code-label text-zinc-400">signal path</div>
+              <p className="mt-2 text-sm text-zinc-300">
+                quiz vectors ? weighted similarity ? diversity rerank ? curated top matches
+              </p>
+            </div>
+          </div>
+        </div>
+      </motion.section>
 
-      <Link to="/quiz" className="mt-10 btn">Start Quiz</Link>
+      <section className="mt-8 grid gap-4 md:grid-cols-3">
+        {featureCards.map((item, idx) => {
+          const Icon = item.icon
+          return (
+            <motion.article
+              key={item.label}
+              initial={{ opacity: 0, y: 8 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.06, duration: 0.45 }}
+              className="surface-soft p-5"
+            >
+              <div className="mb-3 inline-flex rounded-lg border border-white/20 bg-white/10 p-2 text-white">
+                <Icon className="h-4 w-4" />
+              </div>
+              <h2 className="headline text-lg text-zinc-100">{item.label}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">{item.text}</p>
+            </motion.article>
+          )
+        })}
+      </section>
     </div>
   )
 }
+

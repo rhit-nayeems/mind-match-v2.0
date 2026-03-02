@@ -250,13 +250,12 @@ export default function Quiz() {
       <div
         key={qid}
         className={[
-          "rounded-2xl p-4 border transition-colors",
-          "bg-slate-800/40 border-slate-700/60",
-          isMissing ? "ring-2 ring-amber-400/70" : "",
+          "rounded-2xl border p-5 transition-colors bg-white/[0.03] border-white/15",
+          isMissing ? "ring-2 ring-white/60" : "",
         ].join(" ")}
       >
-        <div className="mb-3 font-medium text-slate-100">{text}</div>
-        <div className="flex flex-wrap gap-3">
+        <div className="mb-3 text-base font-medium text-zinc-100">{text}</div>
+        <div className="flex flex-wrap gap-2.5">
           {choices.map((c: any) => {
             const checked = responses[qid] === c.id;
             const inputId = `${qid}__${c.id}`;
@@ -281,12 +280,12 @@ export default function Quiz() {
                     }
                   }}
                   className={[
-                    "px-3 py-2 rounded-xl cursor-pointer border select-none outline-none",
+                    "cursor-pointer select-none rounded-xl border px-3 py-2 outline-none",
                     checked
-                      ? "bg-indigo-600 text-white border-indigo-500"
-                      : "bg-slate-700/40 text-slate-200 border-slate-600/60 hover:bg-slate-700/60",
-                    "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900",
-                    "peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-slate-900",
+                      ? "border-white bg-white text-black shadow-[0_0_0_1px_rgba(255,255,255,.35)]"
+                      : "border-white/15 bg-black/35 text-zinc-200 hover:bg-white/10",
+                    "focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
+                    "peer-focus-visible:ring-2 peer-focus-visible:ring-white/70 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-black",
                   ].join(" ")}
                 >
                   {c.label}
@@ -296,77 +295,76 @@ export default function Quiz() {
           })}
         </div>
 
-        {isMissing && <div className="mt-3 text-sm text-amber-300">Please select an option.</div>}
+        {isMissing && <div className="mt-3 text-sm text-zinc-200">Please select an option.</div>}
       </div>
     );
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 pb-24 pt-6">
-      <div ref={topRef} />
+    <div className="mx-auto max-w-4xl px-2 pb-24 pt-4 md:px-4">
+      <div className="surface p-5 md:p-7">
+        <div ref={topRef} />
 
-      <div
-        role="progressbar"
-        aria-label="Quiz progress"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(progress)}
-        className="w-full h-3 rounded-full bg-slate-800 border border-slate-700 overflow-hidden mb-6"
-      >
+        <div className="mb-5 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
+          <span className="outline-chip">adaptive quiz</span>
+          <span className="outline-chip">
+            {stage === "core" ? "phase 1 / core profile" : "phase 2 / precision pass"}
+          </span>
+        </div>
+
         <div
-          className="h-full bg-gradient-to-r from-indigo-500 via-fuchsia-400 to-cyan-300 transition-all"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+          role="progressbar"
+          aria-label="Quiz progress"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress)}
+          className="mb-6 h-2.5 w-full overflow-hidden rounded-full border border-white/20 bg-white/5"
+        >
+          <div className="h-full bg-white transition-all" style={{ width: `${progress}%` }} />
+        </div>
 
-      <h1 className="text-2xl font-semibold text-slate-100 mb-2">MindMatch: Discover Movies That Match Your Mind</h1>
-      <p className="text-slate-300 mb-2">
-        Tell us about your personality and how you feel <em>today</em>.
-      </p>
-      <p className="text-xs uppercase tracking-wide text-slate-400 mb-6">
-        {stage === "core" ? "Phase 1: Core profile" : "Phase 2: Precision follow-up"}
-      </p>
+        <h1 className="headline mb-2 text-2xl text-zinc-100 md:text-3xl">Calibrate Your Movie DNA</h1>
+        <p className="mb-6 max-w-2xl text-zinc-300">
+          Answer a short sequence about your taste profile and how you feel tonight.
+        </p>
 
-      <div className="space-y-4">{currentQs.map((q) => renderQ(q.id, q.text, q.choices))}</div>
+        <div className="space-y-4">{currentQs.map((q) => renderQ(q.id, q.text, q.choices))}</div>
 
-      <div className="sticky bottom-0 left-0 right-0 mt-6">
-        <div className="backdrop-blur supports-[backdrop-filter]:bg-slate-900/70 bg-slate-900/95 border-t border-slate-700/60 px-4 py-3 rounded-t-2xl">
-          <div className="max-w-3xl mx-auto flex items-center justify-between">
-            <button
-              type="button"
-              onClick={onBack}
-              disabled={page === 0}
-              className={`px-4 py-2 rounded-xl border ${
-                page === 0
-                  ? "bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed"
-                  : "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
-              }`}
-            >
-              &larr; Back
-            </button>
-
-            {page < totalPages - 1 ? (
+        <div className="sticky bottom-0 left-0 right-0 mt-6">
+          <div className="rounded-2xl border border-white/15 bg-black/80 px-4 py-3 backdrop-blur">
+            <div className="mx-auto flex max-w-4xl items-center justify-between">
               <button
                 type="button"
-                onClick={onNext}
-                className="px-5 py-2 rounded-2xl font-medium bg-indigo-600 hover:bg-indigo-500 text-white"
-              >
-                Next &rarr;
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onPrimaryAction}
-                disabled={submitting}
-                className={`px-5 py-2 rounded-2xl font-medium ${
-                  submitting
-                    ? "bg-slate-700 text-slate-400 cursor-not-allowed"
-                    : "bg-indigo-600 hover:bg-indigo-500 text-white"
+                onClick={onBack}
+                disabled={page === 0}
+                className={`rounded-xl border px-4 py-2 ${
+                  page === 0
+                    ? "cursor-not-allowed border-white/10 bg-white/[0.03] text-zinc-600"
+                    : "border-white/20 bg-white/[0.06] text-zinc-200 hover:bg-white/[0.14]"
                 }`}
               >
-                {stage === "core" ? "Refine Preferences" : submitting ? "Working..." : "See My Matches"}
+                &larr; Back
               </button>
-            )}
+
+              {page < totalPages - 1 ? (
+                <button type="button" onClick={onNext} className="btn-neo px-5 py-2">
+                  Next &rarr;
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onPrimaryAction}
+                  disabled={submitting}
+                  className={`rounded-2xl px-5 py-2 font-medium ${
+                    submitting
+                      ? "cursor-not-allowed border border-white/10 bg-white/[0.05] text-zinc-500"
+                      : "btn-neo"
+                  }`}
+                >
+                  {stage === "core" ? "Refine Preferences" : submitting ? "Working..." : "See My Matches"}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

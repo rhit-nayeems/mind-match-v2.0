@@ -1,14 +1,257 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root { height: 100%; }
-body { @apply bg-slate-950 text-slate-100; }
-.gradient { background: radial-gradient(1200px 500px at 20% 0%, rgba(99,102,241,0.15), transparent 60%), radial-gradient(800px 400px at 80% 20%, rgba(16,185,129,0.12), transparent 60%); }
-.card { @apply rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur; }
-.btn { @apply px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 transition disabled:opacity-50; }
+:root {
+  --mm-bg: #050505;
+  --mm-bg-soft: #0c0c0c;
+  --mm-panel: rgba(255, 255, 255, 0.04);
+  --mm-panel-strong: rgba(255, 255, 255, 0.08);
+  --mm-border: rgba(255, 255, 255, 0.14);
+  --mm-border-strong: rgba(255, 255, 255, 0.35);
+  --mm-text: #f5f5f5;
+  --mm-muted: #a7a7a7;
+}
 
-.glass { backdrop-filter: blur(10px); background: rgba(15, 23, 42, 0.45); border: 1px solid rgba(148,163,184,0.18); }
-@keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
-.skeleton { position: relative; overflow: hidden; background: #0f172a; border-radius: 0.75rem; }
-.skeleton::after { content: ""; position: absolute; inset: 0; background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); background-size: 1000px 100%; animation: shimmer 1.6s infinite; }
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 20% -10%, #141414 0%, var(--mm-bg) 40%, #000 100%);
+  color: var(--mm-text);
+  font-family: "Space Grotesk", "Helvetica Neue", sans-serif;
+  letter-spacing: 0.01em;
+}
+
+.gradient {
+  background: transparent;
+}
+
+.card,
+.glass,
+.surface,
+.surface-soft {
+  border: 1px solid var(--mm-border);
+  background: var(--mm-panel);
+  backdrop-filter: blur(10px);
+}
+
+.surface {
+  border-radius: 20px;
+  box-shadow: 0 22px 46px rgba(0, 0, 0, 0.45);
+}
+
+.surface-soft {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.btn,
+.btn-neo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.65rem 1.2rem;
+  border: 1px solid var(--mm-border-strong);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
+  color: var(--mm-text);
+  font-weight: 600;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.btn:hover,
+.btn-neo:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.42);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.btn:disabled,
+.btn-neo:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  border-radius: 999px;
+  border: 1px solid var(--mm-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--mm-text);
+  padding: 0.6rem 1.1rem;
+  transition: border-color 220ms ease, background 220ms ease;
+}
+
+.btn-ghost:hover {
+  border-color: var(--mm-border-strong);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.headline {
+  font-family: "Space Grotesk", "Helvetica Neue", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.code-label,
+.outline-chip {
+  font-family: "IBM Plex Mono", "Consolas", monospace;
+  font-size: 0.73rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.outline-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--mm-border);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  color: #d8d8d8;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tech-shell {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.tech-shell > * {
+  position: relative;
+  z-index: 2;
+}
+
+.tech-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tech-grid {
+  position: absolute;
+  inset: -5%;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 1) 25%, rgba(0, 0, 0, 0.16) 75%, transparent 100%);
+  opacity: 0.18;
+}
+
+.tech-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(38px);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.02) 68%, transparent 80%);
+  animation: orb-drift 14s ease-in-out infinite alternate;
+}
+
+.tech-orb.a {
+  width: 42vw;
+  height: 42vw;
+  min-width: 260px;
+  min-height: 260px;
+  top: -14vw;
+  left: -9vw;
+}
+
+.tech-orb.b {
+  width: 34vw;
+  height: 34vw;
+  min-width: 220px;
+  min-height: 220px;
+  bottom: -10vw;
+  right: -8vw;
+  animation-duration: 18s;
+  animation-delay: 0.9s;
+}
+
+.tech-scan {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.09), transparent);
+  opacity: 0.08;
+  transform: translateY(-100%);
+  animation: scan 9s linear infinite;
+}
+
+.tech-noise {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.08) 1px, transparent 0);
+  background-size: 3px 3px;
+  opacity: 0.035;
+}
+
+@keyframes orb-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(18px, -26px, 0) scale(1.08);
+  }
+}
+
+@keyframes scan {
+  0% {
+    transform: translateY(-120%);
+  }
+  100% {
+    transform: translateY(120%);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 0.46;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.pulse-soft {
+  animation: pulse-soft 2.6s ease-in-out infinite;
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.75rem;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+  background-size: 1000px 100%;
+  animation: shimmer 1.6s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .tech-grid {
+    background-size: 36px 36px;
+  }
+}
+
