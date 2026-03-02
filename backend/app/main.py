@@ -1,4 +1,4 @@
-﻿from collections import defaultdict
+from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import json
@@ -13,7 +13,7 @@ from .traits import answers_to_traits, summarize_traits
 from .bandit import LinUCB, features
 from .db import Event, SessionLocal, init_db
 from .tmdb import enrich_movie_by_title_year
-from app.catalog_db import count_rows, resolve_db_path, top_matches
+from app.catalog_db import count_rows, count_total_rows, resolve_catalog_limit, resolve_db_path, top_matches
 
 bp = Blueprint("main", __name__)
 
@@ -24,6 +24,7 @@ LINUCB = LinUCB(d=27, alpha=0.6)
 MOVIE_PATH = Path(__file__).parent / "datasets" / "movies.json"
 TRAIT_ORDER = ["energy", "mood", "depth", "optimism", "novelty", "comfort", "intensity", "humor", "darkness"]
 INTERACTION_TYPES = {"click", "save", "finish", "dismiss"}
+ALGO_TAG = "hybrid_cosine_text_feedback_mmr_v4_top500"
 
 
 def _safe_float(v: Any, default: float = 0.0) -> float:
@@ -61,10 +62,13 @@ def health():
     path_exists = os.path.exists(db_path)
 
     rows = None
+    total_rows = None
     import_error = None
+    active_limit = resolve_catalog_limit()
     if path_exists:
         try:
             rows = count_rows()
+            total_rows = count_total_rows()
         except Exception as e:
             import_error = str(e)
     else:
@@ -75,8 +79,10 @@ def health():
         "catalog_import_ok": bool(path_exists and import_error is None),
         "catalog_import_error": import_error,
         "catalog_rows": rows,
+        "catalog_total_rows": total_rows,
+        "catalog_active_limit": active_limit,
         "db_path": db_path.replace("\\", "/"),
-        "algo": "hybrid_cosine_text_feedback_mmr_v3",
+        "algo": ALGO_TAG,
     }
 
 
@@ -244,11 +250,16 @@ def _rank_score(
     movie_comfort = _clamp01(_safe_float(mt.get("comfort", 0.5), 0.5))
 
     pop_norm = min(1.0, _safe_float(m.get("popularity", 0.0), 0.0) / 300.0)
-    discovery_bonus = 0.04 * user_novelty * (1.0 - pop_norm)
-    novelty_bonus = 0.05 * user_novelty * movie_novelty * (0.5 + 0.5 * _clamp01(overall_conf))
-    comfort_bonus = 0.03 * user_comfort * movie_comfort
+    vote_count = max(0.0, _safe_float(m.get("vote_count", 0.0), 0.0))
+    vote_count_norm = min(1.0, math.log1p(vote_count) / math.log(5000.0))
 
-    return base + discovery_bonus + novelty_bonus + comfort_bonus + session_adjustment
+    # Favor known mainstream titles a bit, while preserving user novelty intent.
+    popularity_bias = 0.03 * (0.65 * pop_norm + 0.35 * vote_count_norm)
+    discovery_bonus = 0.025 * user_novelty * (1.0 - pop_norm)
+    novelty_bonus = 0.045 * user_novelty * movie_novelty * (0.5 + 0.5 * _clamp01(overall_conf))
+    comfort_bonus = 0.028 * user_comfort * movie_comfort
+
+    return base + popularity_bias + discovery_bonus + novelty_bonus + comfort_bonus + session_adjustment
 
 
 def _adaptive_lambda(user_traits: Dict[str, float], overall_conf: float, seen_count: int) -> float:
@@ -358,11 +369,16 @@ def recommend():
     if not os.path.exists(db_path):
         return jsonify({"error": f"Catalog not ready. Expected DB at: {db_path}"}), 503
 
+    active_rows = max(1, count_rows())
+    candidate_limit = max(40, min(140, int(active_rows * 0.30)))
+    prefilter_n = max(candidate_limit, min(active_rows, int(active_rows * 0.85)))
+    rerank_pool_size = max(24, min(96, int(candidate_limit * 0.75)))
+
     try:
         raw_cands = top_matches(
             user_traits,
-            limit=140,
-            prefilter=4000,
+            limit=candidate_limit,
+            prefilter=prefilter_n,
             include_scores=True,
             query_text=context.get("query_text") if isinstance(context.get("query_text"), str) else None,
             personality_traits=personality_traits,
@@ -403,6 +419,7 @@ def recommend():
             _safe_float(x.get("rank_score"), 0.0),
             _safe_float(x.get("match"), 0.0),
             _safe_float(x.get("popularity"), 0.0),
+            _safe_float(x.get("vote_count"), 0.0),
         ),
         reverse=True,
     )
@@ -411,7 +428,7 @@ def recommend():
     adaptive_lambda = _adaptive_lambda(user_traits, overall_conf, seen_count=len(seen))
 
     reranked = _mmr_diversify(
-        scored[:100],
+        scored[:rerank_pool_size],
         user_traits=user_traits,
         k=6,
         lambda_=adaptive_lambda,
@@ -470,11 +487,15 @@ def recommend():
         {
             "profile": {"traits": user_traits, "summary": profile_summary},
             "recommendations": enriched,
-            "algo_used": "hybrid_cosine_text_feedback_mmr_v3",
+            "algo_used": ALGO_TAG,
             "algo_meta": {
                 "weights": {k: round(v, 4) for k, v in weights.items()},
                 "mmr_lambda": round(adaptive_lambda, 4),
                 "confidence": round(overall_conf, 4),
+                "active_catalog_rows": active_rows,
+                "candidate_limit": candidate_limit,
+                "prefilter": prefilter_n,
+                "rerank_pool": rerank_pool_size,
             },
             "session_id": session_id,
         }

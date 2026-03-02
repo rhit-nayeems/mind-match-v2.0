@@ -1,4 +1,4 @@
-﻿"""DB helpers for the ingested movie catalog."""
+"""DB helpers for the ingested movie catalog."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 
 TRAITS = ["darkness", "energy", "mood", "depth", "optimism", "novelty", "comfort", "intensity", "humor"]
+DEFAULT_CATALOG_MAX_MOVIES = 500
 
 _TRAIT_QUERY_HINTS: Dict[str, List[str]] = {
     "darkness": ["dark", "noir", "bleak", "mystery", "gritty"],
@@ -37,6 +38,7 @@ _DEFAULT_DB_CANDIDATES = [
 _CACHE: Dict[str, Any] = {
     "db_path": None,
     "mtime": None,
+    "max_movies": None,
     "records": [],
     "tfidf_vectorizer": None,
     "tfidf_matrix": None,
@@ -52,6 +54,18 @@ def resolve_db_path() -> str:
         if candidate.exists():
             return str(candidate)
     return str(_DEFAULT_DB_CANDIDATES[0])
+
+
+def resolve_catalog_limit() -> int:
+    """Max number of movies loaded into the active catalog cache."""
+    raw = (os.environ.get("CATALOG_MAX_MOVIES") or "").strip()
+    if not raw:
+        return DEFAULT_CATALOG_MAX_MOVIES
+    try:
+        limit = int(raw)
+    except Exception:
+        return DEFAULT_CATALOG_MAX_MOVIES
+    return limit if limit > 0 else DEFAULT_CATALOG_MAX_MOVIES
 
 
 def _connect() -> sqlite3.Connection:
@@ -132,19 +146,27 @@ def _rebuild_cache_if_needed() -> None:
         raise FileNotFoundError(f"Catalog DB not found at: {db_path}")
 
     mtime = os.path.getmtime(db_path)
-    if _CACHE["db_path"] == db_path and _CACHE["mtime"] == mtime:
+    max_movies = resolve_catalog_limit()
+    if (
+        _CACHE["db_path"] == db_path
+        and _CACHE["mtime"] == mtime
+        and _CACHE["max_movies"] == max_movies
+    ):
         return
 
     with _connect() as conn:
         cur = conn.cursor()
-        cur.execute(
-            """
+        query = """
             SELECT tmdb_id, title, year, overview, poster_url, genres, keywords, director,
                    vote_average, vote_count, popularity, providers, traits
             FROM movies
-            ORDER BY popularity DESC
-            """
-        )
+            ORDER BY popularity DESC, vote_count DESC
+        """
+        params: tuple[Any, ...] = ()
+        if max_movies > 0:
+            query += "\nLIMIT ?"
+            params = (max_movies,)
+        cur.execute(query, params)
         rows = cur.fetchall()
 
     records: List[Dict[str, Any]] = []
@@ -187,6 +209,7 @@ def _rebuild_cache_if_needed() -> None:
 
     _CACHE["db_path"] = db_path
     _CACHE["mtime"] = mtime
+    _CACHE["max_movies"] = max_movies
     _CACHE["records"] = records
     _CACHE["tfidf_vectorizer"] = vectorizer
     _CACHE["tfidf_matrix"] = matrix
@@ -219,9 +242,18 @@ def _derive_query_text(
 
 
 def count_rows() -> int:
-    """Return the number of movies in the catalog."""
+    """Return the number of movies in the active (possibly limited) catalog."""
     _rebuild_cache_if_needed()
     return len(_CACHE["records"])
+
+
+def count_total_rows() -> int:
+    """Return the total number of movies present in the DB table."""
+    with _connect() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM movies")
+        row = cur.fetchone()
+    return int(row[0]) if row else 0
 
 
 def hybrid_candidates(

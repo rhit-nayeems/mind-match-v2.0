@@ -1,10 +1,11 @@
-﻿services:
+services:
   backend:
     build: ./backend
     container_name: mindmatch-backend
     environment:
       - TMDB_BEARER=${TMDB_BEARER}
       - MOVIES_DB=/app/app/datasets/movies_core.db
+      - CATALOG_MAX_MOVIES=${CATALOG_MAX_MOVIES:-500}
       - PYTHONUNBUFFERED=1
     volumes:
       - ./backend/app:/app/app
@@ -23,3 +24,5 @@
       - backend
     ports:
       - "4173:4173"
+
+

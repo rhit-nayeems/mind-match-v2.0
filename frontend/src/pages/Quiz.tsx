@@ -1,12 +1,18 @@
 // frontend/src/pages/Quiz.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { QUESTIONS, Responses, answersToTraitContext } from "../data/questions";
+import {
+  DEFAULT_ADAPTIVE_PER_GROUP,
+  Question,
+  Responses,
+  answersToTraitContext,
+  buildAdaptiveQuizQuestions,
+  buildCoreQuizQuestions,
+} from "../data/questions";
 import { postRecommend } from "../lib/api";
 
 const PAGE_SIZE_PER_GROUP = 2;
-
-const APP_STATE_VERSION = "2026-03-02-1";
+const APP_STATE_VERSION = "2026-03-02-2";
 const VERSION_KEY = "mm_version";
 
 function ensureSessionId(): string {
@@ -56,15 +62,27 @@ export default function Quiz() {
   const navigate = useNavigate();
   const loc = useLocation() as any;
 
+  const [coreQuestions] = useState<Question[]>(() =>
+    buildCoreQuizQuestions({ personalityCount: 4, todayCount: 4 })
+  );
+  const [adaptiveQuestions, setAdaptiveQuestions] = useState<Question[]>([]);
+  const [stage, setStage] = useState<"core" | "adaptive">("core");
+
   const [responses, setResponses] = useState<Responses>({});
   const [page, setPage] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
   const topRef = useRef<HTMLDivElement>(null);
 
-  const pages = useMemo(() => buildPages(QUESTIONS), []);
+  const quizQuestions = useMemo(() => [...coreQuestions, ...adaptiveQuestions], [coreQuestions, adaptiveQuestions]);
+  const pages = useMemo(() => buildPages(quizQuestions), [quizQuestions]);
   const totalPages = pages.length;
   const currentQs = pages[page] ?? [];
+
+  const projectedTotalPages =
+    stage === "core"
+      ? totalPages + Math.ceil(DEFAULT_ADAPTIVE_PER_GROUP / PAGE_SIZE_PER_GROUP)
+      : totalPages;
 
   useEffect(() => {
     ensureSessionId();
@@ -81,6 +99,8 @@ export default function Quiz() {
       setResponses({});
       setPage(0);
       setMissingIds(new Set());
+      setAdaptiveQuestions([]);
+      setStage("core");
       return;
     }
 
@@ -98,6 +118,8 @@ export default function Quiz() {
       setResponses({});
       setPage(0);
       setMissingIds(new Set());
+      setAdaptiveQuestions([]);
+      setStage("core");
 
       if (loc?.state?.reset || search.get("fresh") === "1") {
         const url = window.location.pathname;
@@ -114,6 +136,8 @@ export default function Quiz() {
     setResponses({});
     setPage(0);
     setMissingIds(new Set());
+    setAdaptiveQuestions([]);
+    setStage("core");
     return;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -123,10 +147,7 @@ export default function Quiz() {
   }, [page]);
 
   function choose(qid: string, cid: string) {
-    setResponses((prev) => {
-      const next = { ...prev, [qid]: cid };
-      return next;
-    });
+    setResponses((prev) => ({ ...prev, [qid]: cid }));
 
     if (missingIds.has(qid)) {
       const next = new Set(missingIds);
@@ -161,16 +182,36 @@ export default function Quiz() {
     setPage((p) => Math.min(totalPages - 1, p + 1));
   }
 
-  async function onSubmit() {
+  function startAdaptivePhase() {
+    const generated = buildAdaptiveQuizQuestions(responses, coreQuestions, {
+      personalityCount: DEFAULT_ADAPTIVE_PER_GROUP,
+      todayCount: DEFAULT_ADAPTIVE_PER_GROUP,
+    });
+
+    if (!generated.length) return false;
+
+    const nextPages = buildPages([...coreQuestions, ...generated]).length;
+    setAdaptiveQuestions(generated);
+    setStage("adaptive");
+    setMissingIds(new Set());
+    setPage((p) => Math.min(p + 1, Math.max(0, nextPages - 1)));
+    return true;
+  }
+
+  async function onPrimaryAction() {
     if (!pageComplete(page)) {
       setMissingIds(computeMissingOnPage(page));
       return;
     }
 
+    if (stage === "core") {
+      if (startAdaptivePhase()) return;
+    }
+
     try {
       setSubmitting(true);
 
-      const traitContext = answersToTraitContext(responses);
+      const traitContext = answersToTraitContext(responses, quizQuestions);
       const vector = traitContext.blendedArray;
       const requestContext = {
         personality_traits: traitContext.personality,
@@ -192,7 +233,7 @@ export default function Quiz() {
       try {
         await postRecommend(vector, sid, requestContext);
       } catch {
-        // Results page will retry.
+        // Results page retries if needed.
       }
 
       navigate("/results", { state: { answers: vector, context: requestContext } });
@@ -201,7 +242,7 @@ export default function Quiz() {
     }
   }
 
-  const progress = ((page + 1) / totalPages) * 100;
+  const progress = ((page + 1) / Math.max(1, projectedTotalPages)) * 100;
 
   const renderQ = (qid: string, text: string, choices: any[]) => {
     const isMissing = missingIds.has(qid);
@@ -279,8 +320,11 @@ export default function Quiz() {
       </div>
 
       <h1 className="text-2xl font-semibold text-slate-100 mb-2">MindMatch: Discover Movies That Match Your Mind</h1>
-      <p className="text-slate-300 mb-6">
+      <p className="text-slate-300 mb-2">
         Tell us about your personality and how you feel <em>today</em>.
+      </p>
+      <p className="text-xs uppercase tracking-wide text-slate-400 mb-6">
+        {stage === "core" ? "Phase 1: Core profile" : "Phase 2: Precision follow-up"}
       </p>
 
       <div className="space-y-4">{currentQs.map((q) => renderQ(q.id, q.text, q.choices))}</div>
@@ -312,7 +356,7 @@ export default function Quiz() {
             ) : (
               <button
                 type="button"
-                onClick={onSubmit}
+                onClick={onPrimaryAction}
                 disabled={submitting}
                 className={`px-5 py-2 rounded-2xl font-medium ${
                   submitting
@@ -320,7 +364,7 @@ export default function Quiz() {
                     : "bg-indigo-600 hover:bg-indigo-500 text-white"
                 }`}
               >
-                {submitting ? "Working..." : "See My Matches"}
+                {stage === "core" ? "Refine Preferences" : submitting ? "Working..." : "See My Matches"}
               </button>
             )}
           </div>
