@@ -89,16 +89,24 @@ export default function Results() {
       setData(res as ResultsData)
       setSelectedIdx(0)
 
-      setTimeout(() => {
-        confetti({
-          particleCount: 48,
-          spread: 58,
-          origin: { y: 0.68 },
-          colors: ['#f5f5f5', '#d4d4d8', '#a1a1aa'],
-          scalar: 0.76,
-          ticks: 160,
-        })
-      }, 180)
+      const allowConfetti =
+        typeof window !== 'undefined' &&
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+        window.innerWidth >= 900
+
+      if (allowConfetti) {
+        setTimeout(() => {
+          confetti({
+            particleCount: 22,
+            spread: 48,
+            origin: { y: 0.72 },
+            colors: ['#f5f5f5', '#d4d4d8', '#a1a1aa'],
+            scalar: 0.66,
+            ticks: 120,
+            disableForReducedMotion: true,
+          })
+        }, 200)
+      }
     })()
   }, [])
 
@@ -245,7 +253,7 @@ export default function Results() {
                   keys={TRAITS as unknown as string[]}
                   user={userOrdered}
                   movie={movieOrdered}
-                  size={430}
+                  size={360}
                 />
               </div>
 
@@ -367,4 +375,5 @@ function toPoints(
     })
     .join(' ')
 }
+
 

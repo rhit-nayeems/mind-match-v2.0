@@ -39,12 +39,11 @@ body {
 .surface-soft {
   border: 1px solid var(--mm-border);
   background: var(--mm-panel);
-  backdrop-filter: blur(10px);
 }
 
 .surface {
   border-radius: 20px;
-  box-shadow: 0 22px 46px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.38);
 }
 
 .surface-soft {
@@ -70,7 +69,7 @@ body {
 .btn:hover,
 .btn-neo:hover {
   transform: translateY(-1px);
-  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.42);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.32);
   border-color: rgba(255, 255, 255, 0.7);
 }
 
@@ -121,7 +120,7 @@ body {
 .tech-shell {
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .tech-shell > * {
@@ -130,7 +129,7 @@ body {
 }
 
 .tech-bg {
-  position: absolute;
+  position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
@@ -138,28 +137,27 @@ body {
 
 .tech-grid {
   position: absolute;
-  inset: -5%;
+  inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 52px 52px;
-  mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 1) 25%, rgba(0, 0, 0, 0.16) 75%, transparent 100%);
-  opacity: 0.18;
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 62px 62px;
+  opacity: 0.14;
 }
 
 .tech-orb {
   position: absolute;
   border-radius: 999px;
-  filter: blur(38px);
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.02) 68%, transparent 80%);
-  animation: orb-drift 14s ease-in-out infinite alternate;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02) 62%, transparent 82%);
+  animation: orb-drift 26s ease-in-out infinite alternate;
+  will-change: transform;
 }
 
 .tech-orb.a {
   width: 42vw;
   height: 42vw;
-  min-width: 260px;
-  min-height: 260px;
+  min-width: 240px;
+  min-height: 240px;
   top: -14vw;
   left: -9vw;
 }
@@ -167,29 +165,28 @@ body {
 .tech-orb.b {
   width: 34vw;
   height: 34vw;
-  min-width: 220px;
-  min-height: 220px;
+  min-width: 200px;
+  min-height: 200px;
   bottom: -10vw;
   right: -8vw;
-  animation-duration: 18s;
-  animation-delay: 0.9s;
+  animation-duration: 32s;
 }
 
 .tech-scan {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.09), transparent);
-  opacity: 0.08;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  opacity: 0.05;
   transform: translateY(-100%);
-  animation: scan 9s linear infinite;
+  animation: scan 18s linear infinite;
 }
 
 .tech-noise {
   position: absolute;
   inset: 0;
   background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.08) 1px, transparent 0);
-  background-size: 3px 3px;
-  opacity: 0.035;
+  background-size: 4px 4px;
+  opacity: 0.02;
 }
 
 @keyframes orb-drift {
@@ -197,7 +194,7 @@ body {
     transform: translate3d(0, 0, 0) scale(1);
   }
   100% {
-    transform: translate3d(18px, -26px, 0) scale(1.08);
+    transform: translate3d(14px, -16px, 0) scale(1.04);
   }
 }
 
@@ -221,7 +218,7 @@ body {
 }
 
 .pulse-soft {
-  animation: pulse-soft 2.6s ease-in-out infinite;
+  animation: pulse-soft 3.2s ease-in-out infinite;
 }
 
 .skeleton {
@@ -235,9 +232,9 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
   background-size: 1000px 100%;
-  animation: shimmer 1.6s infinite;
+  animation: shimmer 2.3s infinite;
 }
 
 @keyframes shimmer {
@@ -249,9 +246,41 @@ body {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+  .tech-orb.b,
+  .tech-scan {
+    display: none;
+  }
+
   .tech-grid {
-    background-size: 36px 36px;
+    opacity: 0.1;
   }
 }
 
+@media (max-width: 768px) {
+  .tech-grid {
+    background-size: 46px 46px;
+    opacity: 0.08;
+  }
+
+  .tech-orb {
+    display: none;
+  }
+
+  .tech-noise {
+    opacity: 0.012;
+  }
+
+  .surface {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.26);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tech-orb,
+  .tech-scan,
+  .pulse-soft,
+  .skeleton::after {
+    animation: none !important;
+  }
+}
