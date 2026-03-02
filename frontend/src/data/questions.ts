@@ -116,155 +116,155 @@ function traitCoverageCounts(questions: Question[]): TraitVector {
 }
 
 const PERSONALITY_CORE_POOL: Question[] = [
-  q("p_story", "What storytelling usually hooks you?", "personality", "core", ["depth", "energy", "humor"], [
-    { id: "p_story_1", label: "Layered character studies", deltas: { depth: 0.44, mood: 0.14, intensity: 0.08 } },
-    { id: "p_story_2", label: "Balanced and heartfelt", deltas: { depth: 0.2, comfort: 0.22, optimism: 0.08 } },
-    { id: "p_story_3", label: "Straightforward fun", deltas: { humor: 0.3, energy: 0.2, depth: -0.2 } },
-    { id: "p_story_4", label: "Pure spectacle", deltas: { energy: 0.36, intensity: 0.28, depth: -0.26 } },
+  q("p_story", "What kind of movie pulls you in right away?", "personality", "core", ["depth", "energy", "humor"], [
+    { id: "p_story_1", label: "Character-driven stories with depth", deltas: { depth: 0.44, mood: 0.14, intensity: 0.08 } },
+    { id: "p_story_2", label: "Something balanced and heartfelt", deltas: { depth: 0.2, comfort: 0.22, optimism: 0.08 } },
+    { id: "p_story_3", label: "Fun and easy to follow", deltas: { humor: 0.3, energy: 0.2, depth: -0.2 } },
+    { id: "p_story_4", label: "Big, flashy spectacle", deltas: { energy: 0.36, intensity: 0.28, depth: -0.26 } },
   ]),
-  q("p_risk", "How adventurous are your tastes long-term?", "personality", "core", ["novelty", "comfort"], [
-    { id: "p_risk_1", label: "Mostly familiar", deltas: { comfort: 0.44, novelty: -0.38 } },
-    { id: "p_risk_2", label: "A little experimentation", deltas: { comfort: 0.16, novelty: 0.1 } },
-    { id: "p_risk_3", label: "Fresh angles often", deltas: { novelty: 0.34, mood: 0.08 } },
-    { id: "p_risk_4", label: "Bold and unusual", deltas: { novelty: 0.5, intensity: 0.1, comfort: -0.28 } },
+  q("p_risk", "How adventurous are your movie tastes in general?", "personality", "core", ["novelty", "comfort"], [
+    { id: "p_risk_1", label: "I usually stick with familiar picks", deltas: { comfort: 0.44, novelty: -0.38 } },
+    { id: "p_risk_2", label: "I branch out once in a while", deltas: { comfort: 0.16, novelty: 0.1 } },
+    { id: "p_risk_3", label: "I like trying fresh takes often", deltas: { novelty: 0.34, mood: 0.08 } },
+    { id: "p_risk_4", label: "I like bold, unusual picks", deltas: { novelty: 0.5, intensity: 0.1, comfort: -0.28 } },
   ]),
-  q("p_tone", "Which tonal lane sounds most like you?", "personality", "core", ["darkness", "optimism", "mood"], [
+  q("p_tone", "What tone do you usually gravitate toward?", "personality", "core", ["darkness", "optimism", "mood"], [
     { id: "p_tone_1", label: "Hopeful and warm", deltas: { optimism: 0.42, darkness: -0.32, comfort: 0.18 } },
-    { id: "p_tone_2", label: "Balanced light/shadow", deltas: { mood: 0.24, depth: 0.1 } },
-    { id: "p_tone_3", label: "Melancholic and moody", deltas: { darkness: 0.26, mood: 0.3, optimism: -0.12 } },
-    { id: "p_tone_4", label: "Dark and heavy", deltas: { darkness: 0.5, intensity: 0.14, optimism: -0.32 } },
+    { id: "p_tone_2", label: "A mix of light and dark", deltas: { mood: 0.24, depth: 0.1 } },
+    { id: "p_tone_3", label: "Moody and a little melancholic", deltas: { darkness: 0.26, mood: 0.3, optimism: -0.12 } },
+    { id: "p_tone_4", label: "Dark and emotionally heavy", deltas: { darkness: 0.5, intensity: 0.14, optimism: -0.32 } },
   ]),
-  q("p_pace", "How do you feel about pacing?", "personality", "core", ["energy", "intensity", "depth"], [
+  q("p_pace", "What pacing feels right for you most of the time?", "personality", "core", ["energy", "intensity", "depth"], [
     { id: "p_pace_1", label: "Slow burn", deltas: { depth: 0.26, mood: 0.2, energy: -0.2 } },
-    { id: "p_pace_2", label: "Moderate with depth", deltas: { depth: 0.2, energy: 0.04 } },
-    { id: "p_pace_3", label: "Fast and dynamic", deltas: { energy: 0.3, intensity: 0.16, depth: -0.12 } },
-    { id: "p_pace_4", label: "Relentless high-stakes", deltas: { intensity: 0.42, energy: 0.24, comfort: -0.16 } },
+    { id: "p_pace_2", label: "Steady pace with some depth", deltas: { depth: 0.2, energy: 0.04 } },
+    { id: "p_pace_3", label: "Fast and energetic", deltas: { energy: 0.3, intensity: 0.16, depth: -0.12 } },
+    { id: "p_pace_4", label: "High-stakes all the way", deltas: { intensity: 0.42, energy: 0.24, comfort: -0.16 } },
   ]),
-  q("p_humor", "How important is humor in your mix?", "personality", "core", ["humor", "optimism", "darkness"], [
-    { id: "p_humor_1", label: "Not essential", deltas: { humor: -0.2, depth: 0.18, darkness: 0.12 } },
-    { id: "p_humor_2", label: "A touch is good", deltas: { humor: 0.14, mood: 0.08 } },
-    { id: "p_humor_3", label: "Often needed", deltas: { humor: 0.34, optimism: 0.18, darkness: -0.1 } },
-    { id: "p_humor_4", label: "Make me laugh hard", deltas: { humor: 0.5, optimism: 0.2, depth: -0.16 } },
+  q("p_humor", "How much humor do you usually want?", "personality", "core", ["humor", "optimism", "darkness"], [
+    { id: "p_humor_1", label: "Not a priority", deltas: { humor: -0.2, depth: 0.18, darkness: 0.12 } },
+    { id: "p_humor_2", label: "A little is enough", deltas: { humor: 0.14, mood: 0.08 } },
+    { id: "p_humor_3", label: "I usually want some", deltas: { humor: 0.34, optimism: 0.18, darkness: -0.1 } },
+    { id: "p_humor_4", label: "I want it genuinely funny", deltas: { humor: 0.5, optimism: 0.2, depth: -0.16 } },
   ]),
-  q("p_ambiguity", "Do you enjoy morally complex characters?", "personality", "core", ["depth", "darkness", "comfort"], [
-    { id: "p_ambiguity_1", label: "Prefer clear heroes", deltas: { comfort: 0.3, depth: -0.2, darkness: -0.16 } },
-    { id: "p_ambiguity_2", label: "Some gray area", deltas: { depth: 0.14, mood: 0.1 } },
-    { id: "p_ambiguity_3", label: "Complexity is a plus", deltas: { depth: 0.34, darkness: 0.16 } },
-    { id: "p_ambiguity_4", label: "Ambiguity is essential", deltas: { depth: 0.48, darkness: 0.2, comfort: -0.18 } },
+  q("p_ambiguity", "How do you feel about morally messy characters?", "personality", "core", ["depth", "darkness", "comfort"], [
+    { id: "p_ambiguity_1", label: "I prefer clear heroes and villains", deltas: { comfort: 0.3, depth: -0.2, darkness: -0.16 } },
+    { id: "p_ambiguity_2", label: "Some gray area is great", deltas: { depth: 0.14, mood: 0.1 } },
+    { id: "p_ambiguity_3", label: "Moral complexity is a plus", deltas: { depth: 0.34, darkness: 0.16 } },
+    { id: "p_ambiguity_4", label: "I want lots of moral ambiguity", deltas: { depth: 0.48, darkness: 0.2, comfort: -0.18 } },
   ]),
 ];
 const TODAY_CORE_POOL: Question[] = [
-  q("t_energy", "What is your energy level for tonight's movie?", "today", "core", ["energy", "intensity", "comfort"], [
-    { id: "t_energy_1", label: "Low, I need calm", deltas: { energy: -0.32, comfort: 0.34, intensity: -0.2 } },
-    { id: "t_energy_2", label: "Steady and relaxed", deltas: { energy: -0.1, comfort: 0.2, mood: 0.1 } },
-    { id: "t_energy_3", label: "Engaged and alert", deltas: { energy: 0.22, intensity: 0.1 } },
-    { id: "t_energy_4", label: "Amped up", deltas: { energy: 0.42, intensity: 0.2, comfort: -0.14 } },
+  q("t_energy", "What is your energy like tonight?", "today", "core", ["energy", "intensity", "comfort"], [
+    { id: "t_energy_1", label: "Low energy, keep it calm", deltas: { energy: -0.32, comfort: 0.34, intensity: -0.2 } },
+    { id: "t_energy_2", label: "Relaxed but still present", deltas: { energy: -0.1, comfort: 0.2, mood: 0.1 } },
+    { id: "t_energy_3", label: "I am alert and engaged", deltas: { energy: 0.22, intensity: 0.1 } },
+    { id: "t_energy_4", label: "I am fully hyped", deltas: { energy: 0.42, intensity: 0.2, comfort: -0.14 } },
   ]),
-  q("t_emotion", "How heavy can the emotional tone be right now?", "today", "core", ["intensity", "comfort", "depth"], [
+  q("t_emotion", "How emotionally heavy are you okay with tonight?", "today", "core", ["intensity", "comfort", "depth"], [
     { id: "t_emotion_1", label: "Keep it light", deltas: { comfort: 0.36, humor: 0.2, intensity: -0.22 } },
     { id: "t_emotion_2", label: "Some emotion is fine", deltas: { mood: 0.2, comfort: 0.1 } },
-    { id: "t_emotion_3", label: "I can handle heavy themes", deltas: { depth: 0.24, intensity: 0.24 } },
-    { id: "t_emotion_4", label: "I want intense", deltas: { intensity: 0.46, darkness: 0.12, comfort: -0.18 } },
+    { id: "t_emotion_3", label: "I can handle heavier themes", deltas: { depth: 0.24, intensity: 0.24 } },
+    { id: "t_emotion_4", label: "Bring on the intensity", deltas: { intensity: 0.46, darkness: 0.12, comfort: -0.18 } },
   ]),
-  q("t_attention", "How much concentration do you want to spend?", "today", "core", ["depth", "comfort"], [
-    { id: "t_attention_1", label: "Minimal effort", deltas: { comfort: 0.34, depth: -0.28, humor: 0.14 } },
-    { id: "t_attention_2", label: "Light focus", deltas: { depth: -0.06, comfort: 0.16 } },
-    { id: "t_attention_3", label: "Moderate focus", deltas: { depth: 0.2, mood: 0.08 } },
-    { id: "t_attention_4", label: "High focus is okay", deltas: { depth: 0.44, intensity: 0.1, comfort: -0.16 } },
+  q("t_attention", "How much focus do you want to spend tonight?", "today", "core", ["depth", "comfort"], [
+    { id: "t_attention_1", label: "Very low effort", deltas: { comfort: 0.34, depth: -0.28, humor: 0.14 } },
+    { id: "t_attention_2", label: "Light focus only", deltas: { depth: -0.06, comfort: 0.16 } },
+    { id: "t_attention_3", label: "I can focus a fair amount", deltas: { depth: 0.2, mood: 0.08 } },
+    { id: "t_attention_4", label: "I am good with full focus", deltas: { depth: 0.44, intensity: 0.1, comfort: -0.16 } },
   ]),
-  q("t_outlook", "Which emotional direction sounds best tonight?", "today", "core", ["optimism", "darkness", "mood"], [
+  q("t_outlook", "What emotional direction sounds best tonight?", "today", "core", ["optimism", "darkness", "mood"], [
     { id: "t_outlook_1", label: "Uplifting and hopeful", deltas: { optimism: 0.44, darkness: -0.34, comfort: 0.14 } },
-    { id: "t_outlook_2", label: "Balanced", deltas: { mood: 0.18 } },
+    { id: "t_outlook_2", label: "Somewhere in the middle", deltas: { mood: 0.18 } },
     { id: "t_outlook_3", label: "Moody and reflective", deltas: { darkness: 0.18, mood: 0.26 } },
     { id: "t_outlook_4", label: "Dark and edgy", deltas: { darkness: 0.44, intensity: 0.16, optimism: -0.22 } },
   ]),
-  q("t_comfort", "Do you want familiarity or discovery right now?", "today", "core", ["comfort", "novelty"], [
-    { id: "t_comfort_1", label: "Very familiar", deltas: { comfort: 0.46, novelty: -0.4 } },
-    { id: "t_comfort_2", label: "Mostly familiar", deltas: { comfort: 0.24, novelty: -0.12 } },
-    { id: "t_comfort_3", label: "Some novelty", deltas: { novelty: 0.2, comfort: 0.06 } },
+  q("t_comfort", "Do you want comfort or discovery tonight?", "today", "core", ["comfort", "novelty"], [
+    { id: "t_comfort_1", label: "Very familiar choices", deltas: { comfort: 0.46, novelty: -0.4 } },
+    { id: "t_comfort_2", label: "I usually stick with familiar picks", deltas: { comfort: 0.24, novelty: -0.12 } },
+    { id: "t_comfort_3", label: "A little something new", deltas: { novelty: 0.2, comfort: 0.06 } },
     { id: "t_comfort_4", label: "Surprise me", deltas: { novelty: 0.46, comfort: -0.2, intensity: 0.08 } },
   ]),
-  q("t_pacing", "What pacing feels best tonight?", "today", "core", ["energy", "intensity", "depth"], [
+  q("t_pacing", "What pace sounds best tonight?", "today", "core", ["energy", "intensity", "depth"], [
     { id: "t_pacing_1", label: "Slow and atmospheric", deltas: { mood: 0.24, depth: 0.16, energy: -0.18 } },
     { id: "t_pacing_2", label: "Even and steady", deltas: { comfort: 0.14, mood: 0.12 } },
-    { id: "t_pacing_3", label: "Fast-moving", deltas: { energy: 0.28, intensity: 0.14 } },
+    { id: "t_pacing_3", label: "Fast moving", deltas: { energy: 0.28, intensity: 0.14 } },
     { id: "t_pacing_4", label: "Maximum adrenaline", deltas: { intensity: 0.44, energy: 0.24, depth: -0.2 } },
   ]),
 ];
 
 const PERSONALITY_ADAPTIVE_POOL: Question[] = [
-  q("pa_endings", "Which ending style usually satisfies you most?", "personality", "adaptive", ["optimism", "darkness", "comfort"], [
-    { id: "pa_endings_1", label: "Clear, uplifting closure", deltas: { optimism: 0.42, comfort: 0.24, darkness: -0.22 } },
+  q("pa_endings", "What kind of ending usually works best for you?", "personality", "adaptive", ["optimism", "darkness", "comfort"], [
+    { id: "pa_endings_1", label: "Clear and uplifting", deltas: { optimism: 0.42, comfort: 0.24, darkness: -0.22 } },
     { id: "pa_endings_2", label: "Bittersweet", deltas: { mood: 0.24, depth: 0.14 } },
-    { id: "pa_endings_3", label: "Open-ended", deltas: { depth: 0.34, novelty: 0.12, comfort: -0.12 } },
+    { id: "pa_endings_3", label: "Open ending", deltas: { depth: 0.34, novelty: 0.12, comfort: -0.12 } },
     { id: "pa_endings_4", label: "Dark and unsettling", deltas: { darkness: 0.46, intensity: 0.14, optimism: -0.3 } },
   ]),
-  q("pa_dialogue", "What kind of dialogue draws you in?", "personality", "adaptive", ["depth", "humor", "mood"], [
+  q("pa_dialogue", "What kind of dialogue do you enjoy most?", "personality", "adaptive", ["depth", "humor", "mood"], [
     { id: "pa_dialogue_1", label: "Sharp and witty", deltas: { humor: 0.34, optimism: 0.12, depth: 0.1 } },
     { id: "pa_dialogue_2", label: "Natural and grounded", deltas: { mood: 0.26, depth: 0.16 } },
     { id: "pa_dialogue_3", label: "Poetic and introspective", deltas: { depth: 0.4, mood: 0.2 } },
-    { id: "pa_dialogue_4", label: "Minimal, visual-first", deltas: { mood: 0.22, novelty: 0.2, humor: -0.1 } },
+    { id: "pa_dialogue_4", label: "Less dialogue, more visual storytelling", deltas: { mood: 0.22, novelty: 0.2, humor: -0.1 } },
   ]),
-  q("pa_world", "How much world-building do you enjoy?", "personality", "adaptive", ["novelty", "depth", "comfort"], [
-    { id: "pa_world_1", label: "Keep it realistic", deltas: { comfort: 0.24, novelty: -0.24, depth: 0.1 } },
-    { id: "pa_world_2", label: "A few imaginative elements", deltas: { novelty: 0.14, mood: 0.1 } },
+  q("pa_world", "How much world-building do you like?", "personality", "adaptive", ["novelty", "depth", "comfort"], [
+    { id: "pa_world_1", label: "Keep it grounded in reality", deltas: { comfort: 0.24, novelty: -0.24, depth: 0.1 } },
+    { id: "pa_world_2", label: "A little imagination is great", deltas: { novelty: 0.14, mood: 0.1 } },
     { id: "pa_world_3", label: "Rich fictional worlds", deltas: { novelty: 0.34, depth: 0.18 } },
     { id: "pa_world_4", label: "Strange and concept-heavy", deltas: { novelty: 0.5, depth: 0.22, comfort: -0.2 } },
   ]),
-  q("pa_tension", "What level of tension do you prefer?", "personality", "adaptive", ["intensity", "darkness", "comfort"], [
-    { id: "pa_tension_1", label: "Very low", deltas: { comfort: 0.34, intensity: -0.3, darkness: -0.14 } },
-    { id: "pa_tension_2", label: "Mild suspense", deltas: { intensity: 0.1, mood: 0.12 } },
+  q("pa_tension", "How tense do you want things to feel?", "personality", "adaptive", ["intensity", "darkness", "comfort"], [
+    { id: "pa_tension_1", label: "Very little tension", deltas: { comfort: 0.34, intensity: -0.3, darkness: -0.14 } },
+    { id: "pa_tension_2", label: "A little suspense", deltas: { intensity: 0.1, mood: 0.12 } },
     { id: "pa_tension_3", label: "Strong suspense", deltas: { intensity: 0.32, darkness: 0.16 } },
-    { id: "pa_tension_4", label: "Edge-of-seat", deltas: { intensity: 0.48, darkness: 0.24, comfort: -0.2 } },
+    { id: "pa_tension_4", label: "Edge-of-your-seat", deltas: { intensity: 0.48, darkness: 0.24, comfort: -0.2 } },
   ]),
-  q("pa_visual", "Which visual approach attracts you most?", "personality", "adaptive", ["mood", "novelty", "intensity"], [
-    { id: "pa_visual_1", label: "Natural and unobtrusive", deltas: { comfort: 0.2, novelty: -0.16, mood: 0.16 } },
-    { id: "pa_visual_2", label: "Elegant and cinematic", deltas: { mood: 0.3, depth: 0.1 } },
-    { id: "pa_visual_3", label: "Kinetic and stylish", deltas: { mood: 0.24, intensity: 0.24, energy: 0.14 } },
-    { id: "pa_visual_4", label: "Experimental", deltas: { novelty: 0.46, mood: 0.22, comfort: -0.12 } },
+  q("pa_visual", "What visual style usually gets you?", "personality", "adaptive", ["mood", "novelty", "intensity"], [
+    { id: "pa_visual_1", label: "Natural and subtle", deltas: { comfort: 0.2, novelty: -0.16, mood: 0.16 } },
+    { id: "pa_visual_2", label: "Polished and cinematic", deltas: { mood: 0.3, depth: 0.1 } },
+    { id: "pa_visual_3", label: "Stylish and high-energy", deltas: { mood: 0.24, intensity: 0.24, energy: 0.14 } },
+    { id: "pa_visual_4", label: "Experimental and unconventional", deltas: { novelty: 0.46, mood: 0.22, comfort: -0.12 } },
   ]),
-  q("pa_sentiment", "How sentimental are your movie preferences?", "personality", "adaptive", ["comfort", "optimism", "depth"], [
-    { id: "pa_sentiment_1", label: "Not sentimental", deltas: { depth: 0.2, comfort: -0.16, optimism: -0.08 } },
-    { id: "pa_sentiment_2", label: "A little", deltas: { comfort: 0.12, mood: 0.1 } },
-    { id: "pa_sentiment_3", label: "Quite sentimental", deltas: { comfort: 0.3, optimism: 0.16 } },
+  q("pa_sentiment", "How sentimental are your movie tastes?", "personality", "adaptive", ["comfort", "optimism", "depth"], [
+    { id: "pa_sentiment_1", label: "Not very sentimental", deltas: { depth: 0.2, comfort: -0.16, optimism: -0.08 } },
+    { id: "pa_sentiment_2", label: "A little sentimental", deltas: { comfort: 0.12, mood: 0.1 } },
+    { id: "pa_sentiment_3", label: "Pretty sentimental", deltas: { comfort: 0.3, optimism: 0.16 } },
     { id: "pa_sentiment_4", label: "Very sentimental", deltas: { comfort: 0.44, optimism: 0.22, depth: -0.12 } },
   ]),
 ];
 const TODAY_ADAPTIVE_POOL: Question[] = [
-  q("ta_time", "How much time do you want to invest tonight?", "today", "adaptive", ["energy", "depth", "comfort"], [
+  q("ta_time", "How much time do you want to give this tonight?", "today", "adaptive", ["energy", "depth", "comfort"], [
     { id: "ta_time_1", label: "Short and easy", deltas: { energy: 0.1, comfort: 0.24, depth: -0.18 } },
-    { id: "ta_time_2", label: "Standard length", deltas: { mood: 0.12 } },
+    { id: "ta_time_2", label: "Regular movie length", deltas: { mood: 0.12 } },
     { id: "ta_time_3", label: "Long and immersive", deltas: { depth: 0.26, mood: 0.18 } },
-    { id: "ta_time_4", label: "Epic commitment", deltas: { depth: 0.42, intensity: 0.14, comfort: -0.14 } },
+    { id: "ta_time_4", label: "I am down for something long", deltas: { depth: 0.42, intensity: 0.14, comfort: -0.14 } },
   ]),
-  q("ta_headspace", "What does your headspace need right now?", "today", "adaptive", ["comfort", "depth", "intensity"], [
-    { id: "ta_headspace_1", label: "Relief and softness", deltas: { comfort: 0.42, intensity: -0.26, optimism: 0.12 } },
-    { id: "ta_headspace_2", label: "Steady engagement", deltas: { mood: 0.18, depth: 0.08 } },
-    { id: "ta_headspace_3", label: "Introspection", deltas: { depth: 0.34, mood: 0.18 } },
-    { id: "ta_headspace_4", label: "Emotional release", deltas: { intensity: 0.4, depth: 0.2, comfort: -0.16 } },
+  q("ta_headspace", "What does your head need tonight?", "today", "adaptive", ["comfort", "depth", "intensity"], [
+    { id: "ta_headspace_1", label: "Something soothing", deltas: { comfort: 0.42, intensity: -0.26, optimism: 0.12 } },
+    { id: "ta_headspace_2", label: "Something engaging, not too intense", deltas: { mood: 0.18, depth: 0.08 } },
+    { id: "ta_headspace_3", label: "Something reflective", deltas: { depth: 0.34, mood: 0.18 } },
+    { id: "ta_headspace_4", label: "Something emotionally intense", deltas: { intensity: 0.4, depth: 0.2, comfort: -0.16 } },
   ]),
-  q("ta_shift", "Should this movie change your mood or match it?", "today", "adaptive", ["optimism", "darkness", "mood"], [
-    { id: "ta_shift_1", label: "Lift me up", deltas: { optimism: 0.42, darkness: -0.26, humor: 0.12 } },
-    { id: "ta_shift_2", label: "Gently improve it", deltas: { optimism: 0.24, comfort: 0.14 } },
-    { id: "ta_shift_3", label: "Match my vibe", deltas: { mood: 0.28 } },
-    { id: "ta_shift_4", label: "Lean into darkness", deltas: { darkness: 0.44, optimism: -0.24, intensity: 0.1 } },
+  q("ta_shift", "Do you want this movie to match your mood or shift it?", "today", "adaptive", ["optimism", "darkness", "mood"], [
+    { id: "ta_shift_1", label: "Lift my mood", deltas: { optimism: 0.42, darkness: -0.26, humor: 0.12 } },
+    { id: "ta_shift_2", label: "Gently nudge it up", deltas: { optimism: 0.24, comfort: 0.14 } },
+    { id: "ta_shift_3", label: "Match how I already feel", deltas: { mood: 0.28 } },
+    { id: "ta_shift_4", label: "Lean into darker feelings", deltas: { darkness: 0.44, optimism: -0.24, intensity: 0.1 } },
   ]),
-  q("ta_sensory", "How sensory-intense should it feel tonight?", "today", "adaptive", ["intensity", "mood", "energy"], [
+  q("ta_sensory", "How hard should it hit you visually tonight?", "today", "adaptive", ["intensity", "mood", "energy"], [
     { id: "ta_sensory_1", label: "Soft and subtle", deltas: { intensity: -0.24, mood: 0.2, comfort: 0.16 } },
-    { id: "ta_sensory_2", label: "Moderate style", deltas: { mood: 0.2 } },
+    { id: "ta_sensory_2", label: "Stylish but moderate", deltas: { mood: 0.2 } },
     { id: "ta_sensory_3", label: "Stylish and punchy", deltas: { intensity: 0.24, energy: 0.12, mood: 0.16 } },
-    { id: "ta_sensory_4", label: "Overwhelmingly cinematic", deltas: { intensity: 0.44, energy: 0.18, comfort: -0.16 } },
+    { id: "ta_sensory_4", label: "Big, immersive, and intense", deltas: { intensity: 0.44, energy: 0.18, comfort: -0.16 } },
   ]),
-  q("ta_theme", "How complex should themes be tonight?", "today", "adaptive", ["depth", "comfort", "darkness"], [
-    { id: "ta_theme_1", label: "Keep themes simple", deltas: { comfort: 0.26, depth: -0.22 } },
-    { id: "ta_theme_2", label: "Some depth", deltas: { depth: 0.14, comfort: 0.12 } },
-    { id: "ta_theme_3", label: "Substantial themes", deltas: { depth: 0.34, mood: 0.14 } },
-    { id: "ta_theme_4", label: "Existential/heavy", deltas: { depth: 0.48, darkness: 0.16, comfort: -0.18 } },
+  q("ta_theme", "How deep do you want the themes tonight?", "today", "adaptive", ["depth", "comfort", "darkness"], [
+    { id: "ta_theme_1", label: "Keep it simple", deltas: { comfort: 0.26, depth: -0.22 } },
+    { id: "ta_theme_2", label: "Some depth is good", deltas: { depth: 0.14, comfort: 0.12 } },
+    { id: "ta_theme_3", label: "Give me meaningful themes", deltas: { depth: 0.34, mood: 0.14 } },
+    { id: "ta_theme_4", label: "Go deep and existential", deltas: { depth: 0.48, darkness: 0.16, comfort: -0.18 } },
   ]),
-  q("ta_discovery", "How much novelty do you want tonight specifically?", "today", "adaptive", ["novelty", "comfort"], [
+  q("ta_discovery", "How new or different should tonight's pick feel?", "today", "adaptive", ["novelty", "comfort"], [
     { id: "ta_discovery_1", label: "Almost none", deltas: { comfort: 0.42, novelty: -0.36 } },
-    { id: "ta_discovery_2", label: "A little", deltas: { comfort: 0.16, novelty: 0.06 } },
-    { id: "ta_discovery_3", label: "Quite a bit", deltas: { novelty: 0.32, comfort: -0.08 } },
+    { id: "ta_discovery_2", label: "A little new", deltas: { comfort: 0.16, novelty: 0.06 } },
+    { id: "ta_discovery_3", label: "Quite a bit of novelty", deltas: { novelty: 0.32, comfort: -0.08 } },
     { id: "ta_discovery_4", label: "Maximum novelty", deltas: { novelty: 0.5, comfort: -0.22, intensity: 0.08 } },
   ]),
 ];
@@ -479,4 +479,7 @@ export function answersToTraitContext(responses: Responses, questionSet?: Questi
 export function answersToTraitVector(responses: Responses, questionSet?: Question[]): number[] {
   return answersToTraitContext(responses, questionSet).blendedArray;
 }
+
+
+
 
