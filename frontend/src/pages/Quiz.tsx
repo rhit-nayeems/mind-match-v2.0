@@ -1,15 +1,14 @@
-// frontend/src/pages/Quiz.tsx
-import { useEffect, useMemo, useState, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { QUESTIONS, Responses, answersToTraitVector } from "../data/questions";
+﻿// frontend/src/pages/Quiz.tsx
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { QUESTIONS, Responses, answersToTraitContext } from "../data/questions";
 import { postRecommend } from "../lib/api";
 
-const RESP_KEY = "mm_responses";   // per-question autosave
-const PAGE_KEY = "mm_page";        // last page index
-const PAGE_SIZE_PER_GROUP = 2;     // 2 personality + 2 today per page
+const RESP_KEY = "mm_responses";
+const PAGE_KEY = "mm_page";
+const PAGE_SIZE_PER_GROUP = 2;
 
-// 🚦 bump this whenever you change questions/flow so stale state is auto-cleared
-const APP_STATE_VERSION = "2025-08-20-1";
+const APP_STATE_VERSION = "2026-03-02-1";
 const VERSION_KEY = "mm_version";
 
 function ensureSessionId(): string {
@@ -22,7 +21,6 @@ function ensureSessionId(): string {
   return sid;
 }
 
-// Split questions by group, keeping original order
 function splitByGroup<T extends { choices: { group: string }[] }>(qs: T[]) {
   const personality: T[] = [];
   const today: T[] = [];
@@ -34,8 +32,6 @@ function splitByGroup<T extends { choices: { group: string }[] }>(qs: T[]) {
   return { personality, today };
 }
 
-// Build pages: each page gets 2 personality + 2 today (in order)
-// Falls back gracefully if counts aren't perfectly even.
 function buildPages<T extends { choices: { group: string }[] }>(qs: T[]) {
   const { personality, today } = splitByGroup(qs);
   const pages: T[][] = [];
@@ -43,6 +39,7 @@ function buildPages<T extends { choices: { group: string }[] }>(qs: T[]) {
     Math.ceil(personality.length / PAGE_SIZE_PER_GROUP),
     Math.ceil(today.length / PAGE_SIZE_PER_GROUP)
   );
+
   for (let i = 0; i < steps; i++) {
     const sliceP = personality.slice(
       i * PAGE_SIZE_PER_GROUP,
@@ -67,20 +64,18 @@ export default function Quiz() {
   const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
   const topRef = useRef<HTMLDivElement>(null);
 
-  // Build pages (2+2) deterministically
   const pages = useMemo(() => buildPages(QUESTIONS), []);
   const totalPages = pages.length;
   const currentQs = pages[page] ?? [];
 
-  // Session + version guard + reset flag + restore
   useEffect(() => {
     ensureSessionId();
 
-    // 1) Auto-clear saved quiz when app schema/flow version changes
     const storedVer = localStorage.getItem(VERSION_KEY);
     if (storedVer !== APP_STATE_VERSION) {
       try {
         localStorage.removeItem("mm_answers");
+        localStorage.removeItem("mm_context");
         localStorage.removeItem(RESP_KEY);
         localStorage.removeItem(PAGE_KEY);
         localStorage.setItem(VERSION_KEY, APP_STATE_VERSION);
@@ -88,34 +83,31 @@ export default function Quiz() {
       setResponses({});
       setPage(0);
       setMissingIds(new Set());
-      return; // fresh start for this load
+      return;
     }
 
-    // 2) Force-fresh start if navigated from Results "Take Quiz Again" or URL has ?fresh=1
     const search = new URLSearchParams(window.location.search);
-    const reset =
-      (loc?.state && loc.state.reset === true) ||
-      search.get("fresh") === "1";
+    const reset = (loc?.state && loc.state.reset === true) || search.get("fresh") === "1";
 
     if (reset) {
       try {
-        localStorage.removeItem("mm_answers"); // vector used by Results
-        localStorage.removeItem(RESP_KEY);     // per-question autosave
-        localStorage.removeItem(PAGE_KEY);     // last page idx
+        localStorage.removeItem("mm_answers");
+        localStorage.removeItem("mm_context");
+        localStorage.removeItem(RESP_KEY);
+        localStorage.removeItem(PAGE_KEY);
         localStorage.setItem(VERSION_KEY, APP_STATE_VERSION);
       } catch {}
       setResponses({});
       setPage(0);
       setMissingIds(new Set());
-      // strip the reset hint so back/forward doesn't keep wiping
+
       if (loc?.state?.reset || search.get("fresh") === "1") {
-        const url = window.location.pathname; // remove query string
+        const url = window.location.pathname;
         window.history.replaceState({}, document.title, url);
       }
       return;
     }
 
-    // 3) Restore saved state (filtered to current QUESTION ids)
     try {
       const raw = localStorage.getItem(RESP_KEY);
       const saved = raw ? (JSON.parse(raw) as Responses) : {};
@@ -135,18 +127,22 @@ export default function Quiz() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Scroll to top on page change + persist page index
   useEffect(() => {
-    try { localStorage.setItem(PAGE_KEY, String(page)); } catch {}
+    try {
+      localStorage.setItem(PAGE_KEY, String(page));
+    } catch {}
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [page]);
 
   function choose(qid: string, cid: string) {
     setResponses((prev) => {
       const next = { ...prev, [qid]: cid };
-      try { localStorage.setItem(RESP_KEY, JSON.stringify(next)); } catch {}
+      try {
+        localStorage.setItem(RESP_KEY, JSON.stringify(next));
+      } catch {}
       return next;
     });
+
     if (missingIds.has(qid)) {
       const next = new Set(missingIds);
       next.delete(qid);
@@ -185,21 +181,42 @@ export default function Quiz() {
       setMissingIds(computeMissingOnPage(page));
       return;
     }
+
     try {
       setSubmitting(true);
-      const vector = answersToTraitVector(responses); // 9 numbers (0..1)
-      try { localStorage.setItem("mm_answers", JSON.stringify(vector)); } catch {}
+
+      const traitContext = answersToTraitContext(responses);
+      const vector = traitContext.blendedArray;
+      const requestContext = {
+        personality_traits: traitContext.personality,
+        mood_traits: traitContext.mood,
+        confidence: {
+          overall: traitContext.confidence.overall,
+          personality: traitContext.confidence.personality,
+          mood: traitContext.confidence.mood,
+          per_trait: traitContext.confidence.per_trait,
+        },
+      };
+
+      try {
+        localStorage.setItem("mm_answers", JSON.stringify(vector));
+        localStorage.setItem("mm_context", JSON.stringify(requestContext));
+      } catch {}
 
       const sid = localStorage.getItem("mm_session") || "";
-      try { await postRecommend(vector, sid); } catch { /* Results will retry if needed */ }
+      try {
+        await postRecommend(vector, sid, requestContext);
+      } catch {
+        // Results page will retry.
+      }
 
-      navigate("/results", { state: { answers: vector } });
+      navigate("/results", { state: { answers: vector, context: requestContext } });
     } finally {
       setSubmitting(false);
     }
   }
 
-  const progress = ((page + 1) / totalPages) * 100; // bar only; no numbers
+  const progress = ((page + 1) / totalPages) * 100;
 
   const renderQ = (qid: string, text: string, choices: any[]) => {
     const isMissing = missingIds.has(qid);
@@ -209,7 +226,7 @@ export default function Quiz() {
         className={[
           "rounded-2xl p-4 border transition-colors",
           "bg-slate-800/40 border-slate-700/60",
-          isMissing ? "ring-2 ring-amber-400/70" : ""
+          isMissing ? "ring-2 ring-amber-400/70" : "",
         ].join(" ")}
       >
         <div className="mb-3 font-medium text-slate-100">{text}</div>
@@ -219,7 +236,6 @@ export default function Quiz() {
             const inputId = `${qid}__${c.id}`;
             return (
               <div key={c.id} className="inline-flex">
-                {/* Native radio for keyboard + focus ring */}
                 <input
                   id={inputId}
                   className="peer sr-only"
@@ -244,7 +260,7 @@ export default function Quiz() {
                       ? "bg-indigo-600 text-white border-indigo-500"
                       : "bg-slate-700/40 text-slate-200 border-slate-600/60 hover:bg-slate-700/60",
                     "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900",
-                    "peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-slate-900"
+                    "peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-slate-900",
                   ].join(" ")}
                 >
                   {c.label}
@@ -254,19 +270,15 @@ export default function Quiz() {
           })}
         </div>
 
-        {isMissing && (
-          <div className="mt-3 text-sm text-amber-300">
-            Please select an option.
-          </div>
-        )}
+        {isMissing && <div className="mt-3 text-sm text-amber-300">Please select an option.</div>}
       </div>
     );
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 pb-24 pt-6"> {/* pb-24 for sticky footer space */}
+    <div className="max-w-3xl mx-auto px-4 pb-24 pt-6">
       <div ref={topRef} />
-      {/* Accessible progress bar (no numbers shown) */}
+
       <div
         role="progressbar"
         aria-label="Quiz progress"
@@ -281,18 +293,13 @@ export default function Quiz() {
         />
       </div>
 
-      <h1 className="text-2xl font-semibold text-slate-100 mb-2">
-        MindMatch: Discover Movies That Match Your Mind
-      </h1>
+      <h1 className="text-2xl font-semibold text-slate-100 mb-2">MindMatch: Discover Movies That Match Your Mind</h1>
       <p className="text-slate-300 mb-6">
         Tell us about your personality and how you feel <em>today</em>.
       </p>
 
-      <div className="space-y-4">
-        {currentQs.map((q) => renderQ(q.id, q.text, q.choices))}
-      </div>
+      <div className="space-y-4">{currentQs.map((q) => renderQ(q.id, q.text, q.choices))}</div>
 
-      {/* Sticky footer controls for mobile comfort */}
       <div className="sticky bottom-0 left-0 right-0 mt-6">
         <div className="backdrop-blur supports-[backdrop-filter]:bg-slate-900/70 bg-slate-900/95 border-t border-slate-700/60 px-4 py-3 rounded-t-2xl">
           <div className="max-w-3xl mx-auto flex items-center justify-between">
@@ -306,7 +313,7 @@ export default function Quiz() {
                   : "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
               }`}
             >
-              ← Back
+              &larr; Back
             </button>
 
             {page < totalPages - 1 ? (
@@ -315,7 +322,7 @@ export default function Quiz() {
                 onClick={onNext}
                 className="px-5 py-2 rounded-2xl font-medium bg-indigo-600 hover:bg-indigo-500 text-white"
               >
-                Next →
+                Next &rarr;
               </button>
             ) : (
               <button
@@ -337,3 +344,5 @@ export default function Quiz() {
     </div>
   );
 }
+
+

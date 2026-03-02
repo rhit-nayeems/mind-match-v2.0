@@ -1,58 +1,358 @@
-# app/catalog_db.py
-"""
-Lightweight DB layer around the ingested SQLite file and a recommender.
-"""
+﻿"""DB helpers for the ingested movie catalog."""
+
 from __future__ import annotations
-import os, json, sqlite3, math
-from typing import Dict, Any, List, Tuple
 
-DB_PATH = os.environ.get("MOVIES_DB", os.path.join(os.path.dirname(__file__), "data", "movies.db"))
+import json
+import math
+import os
+import sqlite3
+from pathlib import Path
+from typing import Any, Dict, List
 
-TRAITS = ["darkness","energy","mood","depth","optimism","novelty","comfort","intensity","humor"]
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import linear_kernel
+
+TRAITS = ["darkness", "energy", "mood", "depth", "optimism", "novelty", "comfort", "intensity", "humor"]
+
+_TRAIT_QUERY_HINTS: Dict[str, List[str]] = {
+    "darkness": ["dark", "noir", "bleak", "mystery", "gritty"],
+    "energy": ["fast", "adventure", "dynamic", "chase", "action"],
+    "mood": ["atmospheric", "moody", "night", "emotional", "cinematic"],
+    "depth": ["thoughtful", "philosophical", "character", "reflective", "complex"],
+    "optimism": ["uplifting", "hopeful", "warm", "heartwarming", "joy"],
+    "novelty": ["original", "experimental", "weird", "fresh", "surprising"],
+    "comfort": ["cozy", "comforting", "gentle", "feel-good", "family"],
+    "intensity": ["intense", "thriller", "edge", "high-stakes", "tension"],
+    "humor": ["funny", "comedy", "witty", "laugh", "satire"],
+}
+
+_HERE = Path(__file__).resolve().parent
+_DEFAULT_DB_CANDIDATES = [
+    _HERE / "datasets" / "movies_core.db",
+    _HERE / "datasets" / "movies.db",
+    _HERE / "data" / "movies.db",
+]
+
+_CACHE: Dict[str, Any] = {
+    "db_path": None,
+    "mtime": None,
+    "records": [],
+    "tfidf_vectorizer": None,
+    "tfidf_matrix": None,
+}
+
+
+def resolve_db_path() -> str:
+    """Resolve the catalog DB path with env override and sensible local defaults."""
+    env_path = os.environ.get("MOVIES_DB")
+    if env_path:
+        return env_path
+    for candidate in _DEFAULT_DB_CANDIDATES:
+        if candidate.exists():
+            return str(candidate)
+    return str(_DEFAULT_DB_CANDIDATES[0])
+
 
 def _connect() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
+    db_path = resolve_db_path()
+    if not os.path.exists(db_path):
+        raise FileNotFoundError(f"Catalog DB not found at: {db_path}")
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
-def _cosine(a: List[float], b: List[float]) -> float:
-    num = sum(x*y for x,y in zip(a,b))
-    da = math.sqrt(sum(x*x for x in a)) or 1e-9
-    db = math.sqrt(sum(y*y for y in b)) or 1e-9
-    return num / (da*db)
 
-def top_matches(user_traits: Dict[str, float], limit: int = 6, prefilter: int = 200) -> List[Dict[str, Any]]:
-    """
-    Returns top-N movies by cosine similarity in trait space.
-    prefilter: how many most-popular rows to scan (for large DBs increase or use a vector index).
-    """
-    uvec = [float(user_traits.get(k, 0.0)) for k in TRAITS]
+def _as_float(v: Any, default: float = 0.0) -> float:
+    try:
+        return float(v)
+    except Exception:
+        return default
+
+
+def _json_load(v: Any, default: Any) -> Any:
+    if v is None:
+        return default
+    if isinstance(v, (dict, list)):
+        return v
+    try:
+        return json.loads(v)
+    except Exception:
+        return default
+
+
+def _json_list(v: Any) -> List[str]:
+    raw = _json_load(v, [])
+    if not isinstance(raw, list):
+        return []
+    out: List[str] = []
+    for item in raw:
+        if item is None:
+            continue
+        s = str(item).strip()
+        if s:
+            out.append(s)
+    return out
+
+
+def _json_obj(v: Any) -> Dict[str, Any]:
+    raw = _json_load(v, {})
+    return raw if isinstance(raw, dict) else {}
+
+
+def _cosine(a: List[float], b: List[float]) -> float:
+    num = sum(x * y for x, y in zip(a, b))
+    da = math.sqrt(sum(x * x for x in a)) or 1e-9
+    db = math.sqrt(sum(y * y for y in b)) or 1e-9
+    return num / (da * db)
+
+
+def _safe_trait_map(raw: Any) -> Dict[str, float]:
+    obj = _json_obj(raw)
+    clean: Dict[str, float] = {}
+    for k in TRAITS:
+        clean[k] = max(0.0, min(1.0, _as_float(obj.get(k, 0.0), 0.0)))
+    return clean
+
+
+def _build_doc(rec: Dict[str, Any]) -> str:
+    parts = [
+        rec.get("title", ""),
+        rec.get("synopsis", ""),
+        " ".join(rec.get("genre", [])),
+        " ".join(rec.get("keywords", [])),
+        rec.get("director", ""),
+    ]
+    return " ".join(p for p in parts if p).strip()
+
+
+def _rebuild_cache_if_needed() -> None:
+    db_path = resolve_db_path()
+    if not os.path.exists(db_path):
+        raise FileNotFoundError(f"Catalog DB not found at: {db_path}")
+
+    mtime = os.path.getmtime(db_path)
+    if _CACHE["db_path"] == db_path and _CACHE["mtime"] == mtime:
+        return
+
     with _connect() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT tmdb_id, title, year, overview, poster_url, genres, keywords, director, vote_average, vote_count, popularity, providers, traits FROM movies ORDER BY popularity DESC LIMIT ?", (prefilter,))
+        cur.execute(
+            """
+            SELECT tmdb_id, title, year, overview, poster_url, genres, keywords, director,
+                   vote_average, vote_count, popularity, providers, traits
+            FROM movies
+            ORDER BY popularity DESC
+            """
+        )
         rows = cur.fetchall()
 
-    scored = []
-    for r in rows:
-        traits = json.loads(r["traits"] or "{}")
-        mvec = [float(traits.get(k, 0.0)) for k in TRAITS]
-        score = _cosine(uvec, mvec)
-        scored.append((score, r))
+    records: List[Dict[str, Any]] = []
+    docs: List[str] = []
 
-    scored.sort(key=lambda x: x[0], reverse=True)
-    out = []
-    for score, r in scored[:limit]:
-        out.append({
+    for idx, r in enumerate(rows):
+        traits = _safe_trait_map(r["traits"])
+        genres = _json_list(r["genres"])
+        keywords = _json_list(r["keywords"])
+        providers = _json_obj(r["providers"])
+
+        rec = {
+            "_idx": idx,
             "id": r["tmdb_id"],
             "title": r["title"],
             "year": r["year"],
             "posterUrl": r["poster_url"],
             "synopsis": r["overview"],
-            "traits": json.loads(r["traits"] or "{}"),
-            "match": round(score, 4),
-            "genre": json.loads(r["genres"] or "[]"),
+            "traits": traits,
+            "genre": genres,
+            "keywords": keywords,
             "director": r["director"],
             "rating": "NR",
-            "where_to_watch": json.loads(r["providers"] or "{}").get("US", []),
-        })
-    return out
+            "where_to_watch": providers.get("US", []),
+            "providers": providers,
+            "vote_average": _as_float(r["vote_average"], 0.0),
+            "vote_count": int(_as_float(r["vote_count"], 0.0)),
+            "popularity": _as_float(r["popularity"], 0.0),
+        }
+        rec["doc"] = _build_doc(rec)
+        docs.append(rec["doc"] or rec["title"] or "movie")
+        records.append(rec)
+
+    if docs:
+        vectorizer = TfidfVectorizer(max_features=20000, ngram_range=(1, 2), stop_words="english")
+        matrix = vectorizer.fit_transform(docs)
+    else:
+        vectorizer = None
+        matrix = None
+
+    _CACHE["db_path"] = db_path
+    _CACHE["mtime"] = mtime
+    _CACHE["records"] = records
+    _CACHE["tfidf_vectorizer"] = vectorizer
+    _CACHE["tfidf_matrix"] = matrix
+
+
+def _top_traits(traits: Dict[str, float], n: int = 3) -> List[str]:
+    ordered = sorted(TRAITS, key=lambda k: float(traits.get(k, 0.0)), reverse=True)
+    return ordered[:n]
+
+
+def _derive_query_text(
+    user_traits: Dict[str, float],
+    personality_traits: Dict[str, float] | None = None,
+    mood_traits: Dict[str, float] | None = None,
+) -> str:
+    terms: List[str] = []
+
+    for k in _top_traits(user_traits, n=3):
+        terms.extend(_TRAIT_QUERY_HINTS.get(k, [k])[:3])
+
+    if personality_traits:
+        for k in _top_traits(personality_traits, n=2):
+            terms.extend(_TRAIT_QUERY_HINTS.get(k, [k])[:2])
+
+    if mood_traits:
+        for k in _top_traits(mood_traits, n=2):
+            terms.extend(_TRAIT_QUERY_HINTS.get(k, [k])[:2])
+
+    return " ".join(terms).strip()
+
+
+def count_rows() -> int:
+    """Return the number of movies in the catalog."""
+    _rebuild_cache_if_needed()
+    return len(_CACHE["records"])
+
+
+def hybrid_candidates(
+    user_traits: Dict[str, float],
+    limit: int = 80,
+    prefilter: int = 3000,
+    query_text: str | None = None,
+    personality_traits: Dict[str, float] | None = None,
+    mood_traits: Dict[str, float] | None = None,
+    trait_pool: int = 800,
+    text_pool: int = 800,
+    trait_weight: float = 0.78,
+    text_weight: float = 0.22,
+) -> List[Dict[str, Any]]:
+    """Hybrid retrieval from trait-space + text-space, then weighted fusion."""
+    _rebuild_cache_if_needed()
+
+    records: List[Dict[str, Any]] = _CACHE["records"]
+    if not records:
+        return []
+
+    pre_n = max(limit, min(prefilter, len(records)))
+    pool = records[:pre_n]
+
+    uvec = [float(user_traits.get(k, 0.0)) for k in TRAITS]
+
+    trait_scores: Dict[int, float] = {}
+    for rec in pool:
+        mvec = [float(rec["traits"].get(k, 0.0)) for k in TRAITS]
+        score = _cosine(uvec, mvec)
+        trait_scores[int(rec["_idx"])] = score
+
+    trait_ranked = sorted(
+        trait_scores.items(),
+        key=lambda x: (x[1], _as_float(records[x[0]].get("popularity"), 0.0)),
+        reverse=True,
+    )
+    trait_top = dict(trait_ranked[: max(limit, trait_pool)])
+
+    text_scores: Dict[int, float] = {}
+    vectorizer = _CACHE["tfidf_vectorizer"]
+    matrix = _CACHE["tfidf_matrix"]
+
+    if vectorizer is not None and matrix is not None:
+        q = (query_text or "").strip()
+        if not q:
+            q = _derive_query_text(
+                user_traits,
+                personality_traits=personality_traits,
+                mood_traits=mood_traits,
+            )
+        if q:
+            pool_idx = np.array([int(rec["_idx"]) for rec in pool], dtype=np.int32)
+            qv = vectorizer.transform([q])
+            sims = linear_kernel(qv, matrix[pool_idx]).ravel()
+            order = np.argsort(sims)[::-1][: max(limit, text_pool)]
+            for j in order:
+                gidx = int(pool_idx[int(j)])
+                text_scores[gidx] = float(sims[int(j)])
+
+    selected_ids = set(trait_top.keys()) | set(text_scores.keys())
+    if not selected_ids:
+        selected_ids = {int(rec["_idx"]) for rec in pool[:limit]}
+
+    tw = max(0.0, float(trait_weight))
+    xw = max(0.0, float(text_weight))
+    denom = tw + xw or 1.0
+    tw /= denom
+    xw /= denom
+
+    out: List[Dict[str, Any]] = []
+    for idx in selected_ids:
+        rec = records[idx]
+        trait_s = float(trait_top.get(idx, 0.0))
+        text_s = float(text_scores.get(idx, 0.0))
+        fused = tw * trait_s + xw * text_s
+
+        out.append(
+            {
+                "id": rec["id"],
+                "title": rec["title"],
+                "year": rec["year"],
+                "posterUrl": rec["posterUrl"],
+                "synopsis": rec["synopsis"],
+                "traits": rec["traits"],
+                "match": round(fused, 4),
+                "trait_score": round(trait_s, 6),
+                "text_score": round(text_s, 6),
+                "genre": rec["genre"],
+                "director": rec["director"],
+                "rating": rec["rating"],
+                "where_to_watch": rec["where_to_watch"],
+                "providers": rec["providers"],
+                "popularity": rec["popularity"],
+                "vote_average": rec["vote_average"],
+                "vote_count": rec["vote_count"],
+            }
+        )
+
+    out.sort(
+        key=lambda m: (
+            float(m.get("match", 0.0)),
+            float(m.get("trait_score", 0.0)),
+            float(m.get("text_score", 0.0)),
+            float(m.get("popularity", 0.0)),
+        ),
+        reverse=True,
+    )
+    return out[:limit]
+
+
+def top_matches(
+    user_traits: Dict[str, float],
+    limit: int = 6,
+    prefilter: int = 200,
+    include_scores: bool = False,
+    query_text: str | None = None,
+    personality_traits: Dict[str, float] | None = None,
+    mood_traits: Dict[str, float] | None = None,
+) -> List[Dict[str, Any]]:
+    """
+    Backward-compatible entrypoint used by the Flask app.
+
+    include_scores is a compatibility argument retained for older callers.
+    """
+    del include_scores
+    return hybrid_candidates(
+        user_traits=user_traits,
+        limit=limit,
+        prefilter=prefilter,
+        query_text=query_text,
+        personality_traits=personality_traits,
+        mood_traits=mood_traits,
+    )

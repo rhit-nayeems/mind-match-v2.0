@@ -1,17 +1,19 @@
-from flask import Blueprint, request, jsonify
+﻿from collections import defaultdict
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
-import json, os, math, time, random
-from typing import Dict, List, Any, Iterable, Set, Tuple
+import json
+import math
+import os
+import re
+from typing import Any, Dict, Iterable, List, Set, Tuple
+
+from flask import Blueprint, jsonify, request
 
 from .traits import answers_to_traits, summarize_traits
-from .recommenders import hybrid_score  # kept for compatibility (not used here)
-from .retrieval import Retriever, traits_to_prompt  # kept for compatibility
 from .bandit import LinUCB, features
-from .db import init_db, SessionLocal, Event
+from .db import Event, SessionLocal, init_db
 from .tmdb import enrich_movie_by_title_year
-
-# Big catalog search (SQLite)
-from app.catalog_db import top_matches  # expects MOVIES_DB env var to point to the .db
+from app.catalog_db import count_rows, resolve_db_path, top_matches
 
 bp = Blueprint("main", __name__)
 
@@ -20,10 +22,23 @@ RETRIEVER = None
 LINUCB = LinUCB(d=27, alpha=0.6)
 
 MOVIE_PATH = Path(__file__).parent / "datasets" / "movies.json"
+TRAIT_ORDER = ["energy", "mood", "depth", "optimism", "novelty", "comfort", "intensity", "humor", "darkness"]
+INTERACTION_TYPES = {"click", "save", "finish", "dismiss"}
+
+
+def _safe_float(v: Any, default: float = 0.0) -> float:
+    try:
+        return float(v)
+    except Exception:
+        return default
+
+
+def _clamp01(v: float) -> float:
+    return 0.0 if v < 0.0 else 1.0 if v > 1.0 else float(v)
 
 
 def init_app(app):
-    """Initialize bandit DB and tiny JSON fallback index used by Retriever (still loaded)."""
+    """Initialize app DB and optional tiny JSON fallback index."""
     global MOVIES, RETRIEVER
     init_db()
     try:
@@ -31,66 +46,67 @@ def init_app(app):
             MOVIES = json.load(f)
     except Exception:
         MOVIES = []
-    RETRIEVER = Retriever(MOVIES) if MOVIES else None
+
+    try:
+        from .retrieval import Retriever
+
+        RETRIEVER = Retriever(MOVIES) if MOVIES else None
+    except Exception:
+        RETRIEVER = None
 
 
 @bp.get("/health")
 def health():
-    # Optional: expose whether the big catalog exists
-    db_path = os.environ.get("MOVIES_DB", "/app/app/datasets/movies.db")
-    ok = os.path.exists(db_path)
-    import_error = None
+    db_path = resolve_db_path()
+    path_exists = os.path.exists(db_path)
+
     rows = None
-    try:
-        # catalog_db.health() may exist; otherwise ignore
-        from app.catalog_db import count_rows
-        rows = count_rows()  # returns int
-    except Exception as e:
-        import_error = str(e) if not ok else None
+    import_error = None
+    if path_exists:
+        try:
+            rows = count_rows()
+        except Exception as e:
+            import_error = str(e)
+    else:
+        import_error = f"Catalog DB not found at {db_path}"
+
     return {
         "status": "ok",
-        "catalog_import_ok": bool(ok),
+        "catalog_import_ok": bool(path_exists and import_error is None),
         "catalog_import_error": import_error,
         "catalog_rows": rows,
         "db_path": db_path.replace("\\", "/"),
+        "algo": "hybrid_cosine_text_feedback_mmr_v3",
     }
 
 
-# -------------------------- RERANKING / DIVERSITY HELPERS --------------------------
-
 def _vec_from_movie(m: Dict[str, Any]) -> List[float]:
-    """Return the 9-trait vector from a movie dict (robust to schema)."""
     t = m.get("traits") or m.get("vector") or {}
-    if isinstance(t, list):  # already list
-        v = t
+    if isinstance(t, list):
+        v = [float(x) for x in t]
     else:
-        # ensure fixed order aligned with your 9 traits
-        order = ["energy","mood","depth","optimism","novelty","comfort","intensity","humor","darkness"]
-        v = [float(t.get(k, 0.5)) for k in order]
-    # clamp to [0,1]
-    return [0.0 if x < 0 else 1.0 if x > 1 else float(x) for x in v]
+        v = [float(t.get(k, 0.5)) for k in TRAIT_ORDER]
+    return [_clamp01(x) for x in v]
 
 
 def _vec_from_user(traits: Dict[str, float]) -> List[float]:
-    order = ["energy","mood","depth","optimism","novelty","comfort","intensity","humor","darkness"]
-    return [float(traits.get(k, 0.5)) for k in order]
+    return [_clamp01(_safe_float(traits.get(k, 0.5), 0.5)) for k in TRAIT_ORDER]
 
 
 def _cosine(a: List[float], b: List[float]) -> float:
-    num = sum(x*y for x, y in zip(a, b))
-    da = math.sqrt(sum(x*x for x in a)) or 1e-9
-    db = math.sqrt(sum(y*y for y in b)) or 1e-9
+    num = sum(x * y for x, y in zip(a, b))
+    da = math.sqrt(sum(x * x for x in a)) or 1e-9
+    db = math.sqrt(sum(y * y for y in b)) or 1e-9
     return num / (da * db)
 
 
 def _dedupe(cands: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Remove duplicates by tmdb_id and by (title_lower, year)."""
     seen_ids: Set[Any] = set()
     seen_keys: Set[Tuple[str, Any]] = set()
-    out = []
+    out: List[Dict[str, Any]] = []
     for m in cands:
         key_id = m.get("tmdb_id") or m.get("id")
-        key_ty = (str(m.get("title","")).strip().lower(), m.get("year"))
+        key_ty = (str(m.get("title", "")).strip().lower(), m.get("year"))
         if key_id in seen_ids or key_ty in seen_keys:
             continue
         seen_ids.add(key_id)
@@ -99,29 +115,148 @@ def _dedupe(cands: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return out
 
 
+def _title_root(title: str) -> str:
+    toks = re.findall(r"[a-z0-9]+", (title or "").lower())
+    stop = {"the", "a", "an", "and", "of", "to", "part", "movie", "film"}
+    toks = [t for t in toks if t not in stop]
+    return " ".join(toks[:2]) if toks else ""
+
 
 def _get_recently_seen_ids(session_id: str, lookback_days: int = 14) -> Set[str]:
-    """Gather movie_ids the session has recently been shown/interacted with."""
-    cutoff_ts = time.time() - lookback_days * 86400
+    cutoff_dt = datetime.now(timezone.utc) - timedelta(days=lookback_days)
     dbs = SessionLocal()
     try:
         q = dbs.query(Event).filter(Event.session_id == session_id)
-
-        # Handle either float 'ts' or datetime 'at'
-        if hasattr(Event, "ts"):
-            q = q.filter(Event.ts >= cutoff_ts)
-        elif hasattr(Event, "at"):
-            from datetime import datetime, timezone
-            cutoff_dt = datetime.fromtimestamp(cutoff_ts, tz=timezone.utc)
-            q = q.filter(Event.at >= cutoff_dt)
-
-        ids = {str(e.movie_id) for e in q.all() if e.movie_id}
-        return ids
+        q = q.filter(Event.ts >= cutoff_dt)
+        return {str(e.movie_id) for e in q.all() if e.movie_id}
     except Exception:
         return set()
     finally:
         dbs.close()
 
+
+def _get_feedback_priors(movie_ids: List[str], lookback_days: int = 180) -> Dict[str, float]:
+    if not movie_ids:
+        return {}
+    ids = [str(x) for x in movie_ids if x is not None]
+    if not ids:
+        return {}
+
+    cutoff_dt = datetime.now(timezone.utc) - timedelta(days=lookback_days)
+    sums = defaultdict(float)
+    counts = defaultdict(int)
+
+    dbs = SessionLocal()
+    try:
+        rows = (
+            dbs.query(Event)
+            .filter(Event.movie_id.in_(ids))
+            .filter(Event.ts >= cutoff_dt)
+            .filter(Event.type.in_(tuple(INTERACTION_TYPES)))
+            .all()
+        )
+        for e in rows:
+            mid = str(e.movie_id)
+            sums[mid] += _safe_float(e.reward, 0.0)
+            counts[mid] += 1
+    except Exception:
+        return {mid: 0.5 for mid in ids}
+    finally:
+        dbs.close()
+
+    prior_mean = 0.1
+    prior_strength = 5.0
+    priors: Dict[str, float] = {}
+    for mid in ids:
+        c = counts[mid]
+        s = sums[mid]
+        posterior = (s + prior_mean * prior_strength) / (c + prior_strength)
+        # reward range approx [-0.2, 1.0] -> [0,1]
+        priors[mid] = _clamp01((posterior + 0.2) / 1.2)
+    return priors
+
+
+def _get_session_adjustments(session_id: str, lookback_days: int = 45) -> Dict[str, float]:
+    cutoff_dt = datetime.now(timezone.utc) - timedelta(days=lookback_days)
+    dbs = SessionLocal()
+    out = defaultdict(float)
+    try:
+        rows = (
+            dbs.query(Event)
+            .filter(Event.session_id == session_id)
+            .filter(Event.ts >= cutoff_dt)
+            .filter(Event.type.in_(tuple(INTERACTION_TYPES)))
+            .all()
+        )
+        for e in rows:
+            mid = str(e.movie_id)
+            etype = str(e.type or "")
+            if etype == "dismiss":
+                out[mid] -= 0.12
+            elif etype == "click":
+                out[mid] += 0.02
+            elif etype == "save":
+                out[mid] += 0.07
+            elif etype == "finish":
+                out[mid] += 0.10
+    except Exception:
+        return {}
+    finally:
+        dbs.close()
+
+    return {mid: max(-0.20, min(0.20, adj)) for mid, adj in out.items()}
+
+
+def _blend_weights(overall_conf: float) -> Dict[str, float]:
+    conf = _clamp01(overall_conf)
+    trait_w = 0.58 + 0.24 * conf
+    text_w = 0.30 - 0.12 * conf
+    feedback_w = 0.12
+    total = trait_w + text_w + feedback_w
+    return {
+        "trait": trait_w / total,
+        "text": text_w / total,
+        "feedback": feedback_w / total,
+    }
+
+
+def _rank_score(
+    m: Dict[str, Any],
+    user_traits: Dict[str, float],
+    overall_conf: float,
+    feedback_score: float,
+    session_adjustment: float,
+    weights: Dict[str, float],
+) -> float:
+    trait_score = _safe_float(m.get("trait_score", m.get("match", 0.0)), 0.0)
+    text_score = _safe_float(m.get("text_score", 0.0), 0.0)
+
+    base = (
+        weights["trait"] * trait_score
+        + weights["text"] * text_score
+        + weights["feedback"] * _clamp01(feedback_score)
+    )
+
+    mt = m.get("traits") or {}
+    user_novelty = _clamp01(_safe_float(user_traits.get("novelty", 0.5), 0.5))
+    user_comfort = _clamp01(_safe_float(user_traits.get("comfort", 0.5), 0.5))
+    movie_novelty = _clamp01(_safe_float(mt.get("novelty", 0.5), 0.5))
+    movie_comfort = _clamp01(_safe_float(mt.get("comfort", 0.5), 0.5))
+
+    pop_norm = min(1.0, _safe_float(m.get("popularity", 0.0), 0.0) / 300.0)
+    discovery_bonus = 0.04 * user_novelty * (1.0 - pop_norm)
+    novelty_bonus = 0.05 * user_novelty * movie_novelty * (0.5 + 0.5 * _clamp01(overall_conf))
+    comfort_bonus = 0.03 * user_comfort * movie_comfort
+
+    return base + discovery_bonus + novelty_bonus + comfort_bonus + session_adjustment
+
+
+def _adaptive_lambda(user_traits: Dict[str, float], overall_conf: float, seen_count: int) -> float:
+    novelty = _clamp01(_safe_float(user_traits.get("novelty", 0.5), 0.5))
+    conf = _clamp01(overall_conf)
+    lam = 0.84 - 0.34 * novelty + 0.06 * (1.0 - conf)
+    lam -= min(seen_count, 15) * 0.004
+    return max(0.45, min(0.88, lam))
 
 
 def _mmr_diversify(
@@ -132,52 +267,72 @@ def _mmr_diversify(
     seen_ids: Set[str] | None = None,
     seen_penalty: float = 0.08,
 ) -> List[Dict[str, Any]]:
-    """
-    Maximal Marginal Relevance: pick k items maximizing a blend of
-    (a) relevance to the user and (b) dissimilarity to already-chosen items.
-    Also subtract a small penalty for items seen recently in this session.
-    """
     if not cands:
         return []
 
     u = _vec_from_user(user_traits)
-    # Precompute item vectors + base score (use provided match or cosine)
     enriched = []
     for m in cands:
         v = _vec_from_movie(m)
-        base = float(m.get("match", _cosine(u, v)))
-        # small jitter to break ties predictably yet vary slightly
-        base += random.uniform(-0.002, 0.002)
+        base = _safe_float(m.get("rank_score", m.get("match", _cosine(u, v))), 0.0)
         if seen_ids and str(m.get("id")) in seen_ids:
             base -= seen_penalty
         enriched.append((m, v, base))
 
     picked: List[Tuple[Dict[str, Any], List[float], float]] = []
+    picked_roots: Set[str] = set()
     rest = enriched[:]
 
     while rest and len(picked) < k:
         best_idx = 0
-        best_score = -1e9
+        best_key = (-1e9, -1e9, "")
+
         for i, (m, v, base) in enumerate(rest):
             if not picked:
-                mmr = base
+                div = 1.0
             else:
-                # similarity to the already-picked set = max cosine
                 sim = max(_cosine(v, pv) for _, pv, _ in picked)
-                mmr = lambda_ * base - (1.0 - lambda_) * sim
-            if mmr > best_score:
-                best_score = mmr
+                div = 1.0 - sim
+
+            root = _title_root(str(m.get("title", "")))
+            franchise_penalty = 0.06 if root and root in picked_roots else 0.0
+
+            mmr = lambda_ * base + (1.0 - lambda_) * div - franchise_penalty
+            tie_title = str(m.get("title", ""))
+            key = (mmr, base, tie_title)
+            if key > best_key:
+                best_key = key
                 best_idx = i
-        picked.append(rest.pop(best_idx))
+
+        chosen = rest.pop(best_idx)
+        picked.append(chosen)
+        root = _title_root(str(chosen[0].get("title", "")))
+        if root:
+            picked_roots.add(root)
 
     result = []
     for m, _, base in picked:
-        # expose the reranked score as match (0..1-ish), clamped
         m_out = dict(m)
-        m_out["match"] = round(max(0.0, min(1.0, base)), 4)
+        m_out["rank_score"] = round(base, 6)
         result.append(m_out)
+
     return result
-# -------------------------------------------------------------------------------
+
+
+def _calibrate_matches(items: List[Dict[str, Any]]) -> None:
+    if not items:
+        return
+
+    scores = [_safe_float(m.get("rank_score", m.get("match", 0.0)), 0.0) for m in items]
+    mu = sum(scores) / len(scores)
+    var = sum((s - mu) ** 2 for s in scores) / max(1, len(scores))
+    sd = math.sqrt(var) or 1e-6
+
+    for m, s in zip(items, scores):
+        z = (s - mu) / sd
+        p = 1.0 / (1.0 + math.exp(-1.25 * z))
+        calibrated = 0.30 + 0.68 * p
+        m["match"] = round(_clamp01(calibrated), 4)
 
 
 @bp.post("/recommend")
@@ -185,47 +340,88 @@ def recommend():
     data = request.get_json(silent=True) or {}
     answers = data.get("answers")
 
-    # same validation as before
     if not isinstance(answers, list) or len(answers) != 9:
         return jsonify({"error": "expected 'answers' as 9-length array"}), 400
 
     session_id = data.get("session_id") or request.headers.get("X-Session-ID") or "anon"
 
-    # 1) derive the user's 9-trait vector + summary
+    context = data.get("context") if isinstance(data.get("context"), dict) else {}
+    personality_traits = context.get("personality_traits") if isinstance(context.get("personality_traits"), dict) else {}
+    mood_traits = context.get("mood_traits") if isinstance(context.get("mood_traits"), dict) else {}
+    confidence = context.get("confidence") if isinstance(context.get("confidence"), dict) else {}
+    overall_conf = _clamp01(_safe_float(confidence.get("overall", 0.75), 0.75))
+
     user_traits = answers_to_traits(answers)
     profile_summary = summarize_traits(user_traits)
 
-    # 2) ensure the large catalog exists (no fallback)
-    db_path = os.environ.get("MOVIES_DB", "/app/app/datasets/movies.db")
+    db_path = resolve_db_path()
     if not os.path.exists(db_path):
-        return jsonify({"error": "Catalog not ready. Run the TMDb ingest to create movies.db."}), 503
+        return jsonify({"error": f"Catalog not ready. Expected DB at: {db_path}"}), 503
 
-    # 3) fetch a generous candidate set from the big catalog
     try:
         raw_cands = top_matches(
             user_traits,
-            limit=80,            # get a wider pool to diversify from
-            prefilter=3000,      # widen the SQL first-pass
-            include_scores=True  # if supported: keep base 'match' on items
+            limit=140,
+            prefilter=4000,
+            include_scores=True,
+            query_text=context.get("query_text") if isinstance(context.get("query_text"), str) else None,
+            personality_traits=personality_traits,
+            mood_traits=mood_traits,
         )
-    except TypeError:
-        # older top_matches signature
-        raw_cands = top_matches(user_traits, limit=80, prefilter=3000)
+    except Exception as e:
+        return jsonify({"error": f"Catalog query failed: {e}"}), 503
 
-    # 4) clean + diversify + novelty penalty
     deduped = _dedupe(raw_cands)
-    seen = _get_recently_seen_ids(session_id, lookback_days=21)
-    reranked = _mmr_diversify(
-        deduped,
-        user_traits=user_traits,
-        k=6,
-        lambda_=0.72,      # 0.7–0.8 is a nice balance; higher = prioritize relevance
-        seen_ids=seen,
-        seen_penalty=0.10  # nudge repeats down
+
+    movie_ids = [str(m.get("id")) for m in deduped if m.get("id") is not None]
+    feedback_priors = _get_feedback_priors(movie_ids)
+    session_adjustments = _get_session_adjustments(session_id)
+    weights = _blend_weights(overall_conf)
+
+    scored: List[Dict[str, Any]] = []
+    for m in deduped:
+        mid = str(m.get("id"))
+        feedback_score = feedback_priors.get(mid, 0.5)
+        session_adjustment = session_adjustments.get(mid, 0.0)
+        rank_score = _rank_score(
+            m,
+            user_traits=user_traits,
+            overall_conf=overall_conf,
+            feedback_score=feedback_score,
+            session_adjustment=session_adjustment,
+            weights=weights,
+        )
+
+        m2 = dict(m)
+        m2["feedback_score"] = round(feedback_score, 6)
+        m2["session_adjustment"] = round(session_adjustment, 6)
+        m2["rank_score"] = round(rank_score, 6)
+        scored.append(m2)
+
+    scored.sort(
+        key=lambda x: (
+            _safe_float(x.get("rank_score"), 0.0),
+            _safe_float(x.get("match"), 0.0),
+            _safe_float(x.get("popularity"), 0.0),
+        ),
+        reverse=True,
     )
 
-    # 5) (optional) fill in posters if missing
-    enriched = []
+    seen = _get_recently_seen_ids(session_id, lookback_days=21)
+    adaptive_lambda = _adaptive_lambda(user_traits, overall_conf, seen_count=len(seen))
+
+    reranked = _mmr_diversify(
+        scored[:100],
+        user_traits=user_traits,
+        k=6,
+        lambda_=adaptive_lambda,
+        seen_ids=seen,
+        seen_penalty=0.08 + 0.07 * (1.0 - overall_conf),
+    )
+
+    _calibrate_matches(reranked)
+
+    enriched: List[Dict[str, Any]] = []
     for m in reranked:
         if not m.get("posterUrl"):
             try:
@@ -234,93 +430,101 @@ def recommend():
                 pass
         enriched.append(m)
 
-    # 6) record "shown" events for bandit / history (handles 'ts' or 'at')
+    dbs = None
     try:
         dbs = SessionLocal()
-        now_ts = time.time()
-        from datetime import datetime, timezone
         now_dt = datetime.now(timezone.utc)
 
         for m in enriched:
-            mid = str(m.get("id"))
-            ts_kwargs = {}
-            if hasattr(Event, "ts"):
-                ts_kwargs["ts"] = now_ts
-            elif hasattr(Event, "at"):
-                ts_kwargs["at"] = now_dt
-
             ev = Event(
                 session_id=session_id,
-                movie_id=mid,
+                movie_id=str(m.get("id")),
                 type="shown",
                 reward=0.0,
+                ts=now_dt,
                 features={
                     "user_traits": user_traits,
-                    "movie_traits": m.get("traits", {})
+                    "personality_traits": personality_traits,
+                    "mood_traits": mood_traits,
+                    "confidence": confidence,
+                    "movie_traits": m.get("traits", {}),
+                    "scores": {
+                        "trait": m.get("trait_score"),
+                        "text": m.get("text_score"),
+                        "feedback": m.get("feedback_score"),
+                        "rank": m.get("rank_score"),
+                        "match": m.get("match"),
+                    },
                 },
-                **ts_kwargs,
             )
             dbs.add(ev)
         dbs.commit()
     except Exception:
-        pass
+        if dbs is not None:
+            dbs.rollback()
     finally:
-        try:
+        if dbs is not None:
             dbs.close()
-        except Exception:
-            pass
 
-    return jsonify({
-        "profile": {"traits": user_traits, "summary": profile_summary},
-        "recommendations": enriched,
-        "algo_used": "tmdb_cosine_mmr_v2",
-        "session_id": session_id
-    })
+    return jsonify(
+        {
+            "profile": {"traits": user_traits, "summary": profile_summary},
+            "recommendations": enriched,
+            "algo_used": "hybrid_cosine_text_feedback_mmr_v3",
+            "algo_meta": {
+                "weights": {k: round(v, 4) for k, v in weights.items()},
+                "mmr_lambda": round(adaptive_lambda, 4),
+                "confidence": round(overall_conf, 4),
+            },
+            "session_id": session_id,
+        }
+    )
 
 
 @bp.post("/event")
 def event():
     data = request.get_json(silent=True) or {}
     session_id = data.get("session_id") or request.headers.get("X-Session-ID") or "anon"
-    movie_id = data.get("movie_id"); etype = data.get("type")
+    movie_id = data.get("movie_id")
+    etype = str(data.get("type") or "").strip().lower()
     feats = data.get("features") or {}
+
     reward_map = {"click": 0.2, "save": 0.6, "finish": 1.0, "dismiss": -0.2}
-    reward = float(data.get("reward", reward_map.get(etype, 0.0)))
+    default_reward = reward_map.get(etype, 0.0)
+    try:
+        reward = float(data.get("reward", default_reward))
+    except (TypeError, ValueError):
+        reward = float(default_reward)
 
     if not movie_id:
         return jsonify({"error": "movie_id required"}), 400
 
     dbs = SessionLocal()
     try:
-        # add a timestamp regardless of whether model has 'ts' or 'at'
-        ts_kwargs = {}
-        now_ts = time.time()
-        from datetime import datetime, timezone
         now_dt = datetime.now(timezone.utc)
-        if hasattr(Event, "ts"):
-            ts_kwargs["ts"] = now_ts
-        elif hasattr(Event, "at"):
-            ts_kwargs["at"] = now_dt
 
         ev = Event(
             session_id=session_id,
             movie_id=str(movie_id),
             type=etype,
             reward=reward,
+            ts=now_dt,
             features=feats,
-            **ts_kwargs,
         )
-        dbs.add(ev); dbs.commit()
+        dbs.add(ev)
+        dbs.commit()
 
-        # Optional LinUCB online update
         try:
-            user = feats.get("user_traits"); movie = feats.get("movie_traits")
+            user = feats.get("user_traits")
+            movie = feats.get("movie_traits")
             if user and movie:
-                import numpy as np
                 x = features(user, movie)
                 LINUCB.update(dbs, str(movie_id), x, reward)
         except Exception:
             pass
+    except Exception as e:
+        dbs.rollback()
+        return jsonify({"error": f"failed to record event: {e}"}), 500
     finally:
         dbs.close()
 

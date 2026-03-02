@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 scripts/tmdb_ingest.py
 ------------------------------------
@@ -7,7 +7,7 @@ and pre-compute MindMatch trait vectors.
 
 Usage:
   export TMDB_BEARER="<<your v4 token>>"
-  python scripts/tmdb_ingest.py --pages 50 --min_votes 200 --out ./app/data/movies.db
+  python scripts/tmdb_ingest.py --pages 50 --min_votes 200 --out ./app/datasets/movies_core.db
 
 Notes:
 - Uses TMDb "discover" to pull popular, reasonably rated films (no adult).
@@ -167,14 +167,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--pages", type=int, default=50, help="How many discover pages to pull (20/pg).")
     ap.add_argument("--min_votes", type=int, default=200, help="Minimum TMDb vote_count to filter spam.")
-    ap.add_argument("--out", type=str, default="./app/data/movies.db", help="SQLite DB path.")
+    ap.add_argument("--out", type=str, default="./app/datasets/movies_core.db", help="SQLite DB path.")
     args = ap.parse_args()
 
     db_path = Path(args.out)
     conn = ensure_db(db_path)
 
     ids = discover_pages(pages=args.pages, min_votes=args.min_votes)
-    print(f"Discovered {len(ids)} TMDb IDs; enriching…")
+    print(f"Discovered {len(ids)} TMDb IDs; enrichingâ€¦")
 
     for i, mid in enumerate(ids, 1):
         try:
@@ -185,9 +185,10 @@ def main():
         except Exception as e:
             print(f"[{i}/{len(ids)}] Failed id={mid}: {e}", file=sys.stderr)
         if i % 20 == 0:
-            print(f"…{i} done")
+            print(f"â€¦{i} done")
 
     print("Ingest complete:", db_path)
 
 if __name__ == "__main__":
     main()
+

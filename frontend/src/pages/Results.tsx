@@ -1,4 +1,4 @@
-// frontend/src/pages/Results.tsx
+﻿// frontend/src/pages/Results.tsx
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import confetti from 'canvas-confetti'
@@ -16,7 +16,7 @@ const clamp01 = (v: any) => {
   if (!isFinite(n)) return 0
   return Math.max(0, Math.min(1, n > 1 ? n / 100 : n))
 }
-const pct = (v?: number) => v == null ? '—' : `${Math.round((v > 1 ? v : v*100))}%`
+const pct = (v?: number) => v == null ? 'â€”' : `${Math.round((v > 1 ? v : v*100))}%`
 
 export default function Results() {
   const loc = useLocation() as any
@@ -37,6 +37,7 @@ export default function Results() {
   function handleRetake() {
     try {
       localStorage.removeItem('mm_answers')   // 9-number vector used by Results
+      localStorage.removeItem('mm_context')   // rich context used by backend ranker
       localStorage.removeItem('mm_responses') // per-question autosave used by Quiz
       localStorage.removeItem('mm_page')      // last quiz page index
     } catch {}
@@ -47,14 +48,21 @@ export default function Results() {
   // Always run hooks in the same order: fetch inside effect, no early return
   useEffect(() => {
     const saved = localStorage.getItem('mm_answers')
+    const savedCtx = localStorage.getItem('mm_context')
     const answers: number[] = loc.state?.answers ?? (saved ? JSON.parse(saved) : null)
+    let context: any = loc.state?.context
+    if (!context && savedCtx) {
+      try { context = JSON.parse(savedCtx) } catch {}
+    }
     if (!answers) {
-      // still don’t return early; just navigate after render
       setTimeout(() => nav('/quiz'), 0)
       return
     }
+    if (context) {
+      try { localStorage.setItem('mm_context', JSON.stringify(context)) } catch {}
+    }
     ;(async () => {
-      const res = await postRecommend(answers, localStorage.getItem('mm_session') || '')
+      const res = await postRecommend(answers, localStorage.getItem('mm_session') || '', context)
       setData(res as any)
       setSelectedIdx(0)
       setTimeout(() => {
@@ -101,14 +109,14 @@ export default function Results() {
           </p>
 
           <p className="mt-4 max-w-3xl mx-auto text-slate-300 leading-relaxed">
-            {data?.profile?.summary ?? 'Loading your summary…'}
+            {data?.profile?.summary ?? 'Loading your summaryâ€¦'}
           </p>
           <div className="mt-6">
             <button
               onClick={handleRetake}
               className="rounded-xl px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 font-semibold"
             >
-              ↻ Take Quiz Again
+              â†» Take Quiz Again
             </button>
           </div>
         </div>
@@ -156,9 +164,9 @@ export default function Results() {
                           <h3 className="text-base md:text-lg font-semibold line-clamp-1">{m.title}</h3>
 
                           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-300">
-                            {m.year && <span>📅 {m.year}</span>}
+                            {m.year && <span>ðŸ“… {m.year}</span>}
                             {m.rating && <span className="px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700">{m.rating}</span>}
-                            {m.director && <span>👤 {m.director}</span>}
+                            {m.director && <span>ðŸ‘¤ {m.director}</span>}
                           </div>
 
                           {m.synopsis && <p className="mt-2 text-sm text-slate-300 line-clamp-2">{m.synopsis}</p>}
@@ -201,10 +209,10 @@ export default function Results() {
               <div className="flex items-center justify-between">
                 <div className="min-w-0">
                   <div className="text-sm text-slate-300">Selected</div>
-                  <div className="font-semibold truncate">{selected?.title ?? '—'}</div>
+                  <div className="font-semibold truncate">{selected?.title ?? 'â€”'}</div>
                 </div>
                 <div className="text-violet-300 text-sm">
-                  ⭐ {selected?.match != null ? pct(selected.match) : '—'} Match
+                  â­ {selected?.match != null ? pct(selected.match) : 'â€”'} Match
                 </div>
               </div>
 
@@ -280,7 +288,7 @@ function InlineRadar({
       height={size}
       role="img"
       aria-label="Trait radar chart"
-      style={{ overflow: 'visible' }}  // safety (shouldn’t be needed now)
+      style={{ overflow: 'visible' }}  // safety (shouldnâ€™t be needed now)
     >
       {/* rings */}
       {[0.25, 0.5, 0.75, 1].map((p) => (
@@ -296,7 +304,7 @@ function InlineRadar({
       {pointsMovie && <polygon points={pointsMovie} fill="#f59e0b38" stroke="#f59e0b" strokeWidth="2" />}
       <polygon points={pointsUser} fill="#6ea8fe40" stroke="#6ea8fe" strokeWidth="2" />
 
-      {/* labels — perfectly symmetric & edge-safe */}
+      {/* labels â€” perfectly symmetric & edge-safe */}
       {spokes.map((s) => {
         const lx = cx + Math.cos(s.angle) * labelR
         const ly = cy + Math.sin(s.angle) * labelR
@@ -306,7 +314,7 @@ function InlineRadar({
         const isTop   = !isLeft && !isRight && ly < cy
         const isBottom= !isLeft && !isRight && ly > cy
 
-        // “Anchor” determines which edge of the text sits at (x, y)
+        // â€œAnchorâ€ determines which edge of the text sits at (x, y)
         const anchor: 'start'|'end'|'middle' = isLeft ? 'end' : isRight ? 'start' : 'middle'
 
         // Vertical baseline adjustments to keep optical balance
@@ -354,3 +362,5 @@ function toPoints(
     return `${x},${y}`
   }).join(' ')
 }
+
+

@@ -1,10 +1,9 @@
-# backend/app/db.py
+﻿# backend/app/db.py
 import os
+from pathlib import Path
 from datetime import datetime, timezone
 
-from sqlalchemy import (
-    create_engine, Column, Integer, Float, String, DateTime, Index
-)
+from sqlalchemy import create_engine, Column, Integer, Float, String, DateTime, Index
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.exc import OperationalError
 
@@ -20,17 +19,30 @@ Base = declarative_base()
 _engine = None
 SessionLocal = sessionmaker(autocommit=False, autoflush=False)
 
-def _db_url():
+
+def _db_url() -> str:
     """
-    Use BANDIT_DB_URL if provided; otherwise a local SQLite file.
-    Render will mount your app at /app, so this is a safe default path.
+    Resolve the bandit/event DB URL.
+
+    Priority:
+    1) BANDIT_DB_URL
+    2) DB_URL (backward-compatible with older docs/config)
+    3) sqlite path from BANDIT_DB_PATH
+    4) project-local default backend/app/datasets/bandit.db
     """
-    url = os.environ.get("BANDIT_DB_URL")
+    url = os.environ.get("BANDIT_DB_URL") or os.environ.get("DB_URL")
     if url:
         return url
-    path = os.environ.get("BANDIT_DB_PATH", "/app/app/datasets/bandit.db")
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+
+    path = os.environ.get("BANDIT_DB_PATH")
+    if not path:
+        path = str(Path(__file__).resolve().parent / "datasets" / "bandit.db")
+
+    parent = os.path.dirname(path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
     return f"sqlite:///{path}"
+
 
 def get_engine():
     """Create and cache the engine; safe to call multiple times."""
@@ -69,6 +81,7 @@ class LinUCBSnapshot(Base):
     If your bandit code writes different field names, you can extend this class,
     but these are the usual suspects (per-arm matrix/vector and timestamp).
     """
+
     __tablename__ = "linucb_snapshots"
     id = Column(Integer, primary_key=True)
     movie_id = Column(String, index=True)
@@ -83,9 +96,8 @@ def init_db():
     """Create tables if needed; tolerate first-boot races."""
     eng = get_engine()
     try:
-        # checkfirst=True avoids 'table already exists' explosions on Render
+        # checkfirst=True avoids 'table already exists' explosions on concurrent boot
         Base.metadata.create_all(eng, checkfirst=True)
     except OperationalError as e:
-        # Harmless if two processes raced to create tables
         if "already exists" not in str(e).lower():
             raise

@@ -1,8 +1,21 @@
-// frontend/src/lib/api.ts
+﻿// frontend/src/lib/api.ts
+
+export type RecommendContext = {
+  personality_traits?: Record<string, number>;
+  mood_traits?: Record<string, number>;
+  confidence?: {
+    overall?: number;
+    personality?: number;
+    mood?: number;
+    per_trait?: Record<string, number>;
+  };
+  query_text?: string;
+};
 
 type RecommendBody = {
-  answers: number[];              // 9 numbers in 0..1
+  answers: number[];
   session_id?: string;
+  context?: RecommendContext;
 };
 
 function normalize(base: string) {
@@ -10,19 +23,16 @@ function normalize(base: string) {
 }
 
 function detectApiBase(): string {
-  // 1) Prefer env if it's a real, reachable host (NOT "backend")
   const envBase = (import.meta as any).env?.VITE_API_BASE as string | undefined;
   if (envBase && !/\/\/backend(?::|\/|$)/i.test(envBase)) {
     return normalize(envBase);
   }
 
-  // 2) Otherwise talk to the backend published on the host
   const { protocol, hostname } = window.location;
   const proto = protocol || "http:";
   if (hostname === "localhost" || hostname === "127.0.0.1") {
     return `${proto}//localhost:8000`;
   }
-  // e.g., hitting by LAN IP or custom host
   return `${proto}//${hostname}:8000`;
 }
 
@@ -37,9 +47,10 @@ async function json<T>(res: Response): Promise<T> {
   }
 }
 
-export async function postRecommend(answers: number[], sessionId?: string) {
+export async function postRecommend(answers: number[], sessionId?: string, context?: RecommendContext) {
   const body: RecommendBody = { answers };
   if (sessionId) body.session_id = sessionId;
+  if (context) body.context = context;
 
   const res = await fetch(`${API_BASE}/recommend`, {
     method: "POST",
