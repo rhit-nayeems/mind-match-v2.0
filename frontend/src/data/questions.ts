@@ -122,11 +122,11 @@ const PERSONALITY_CORE_POOL: Question[] = [
     { id: "p_story_3", label: "Fun and easy to follow", deltas: { humor: 0.3, energy: 0.2, depth: -0.2 } },
     { id: "p_story_4", label: "Big, flashy spectacle", deltas: { energy: 0.36, intensity: 0.28, depth: -0.26 } },
   ]),
-  q("p_risk", "How adventurous are your movie tastes in general?", "personality", "core", ["novelty", "comfort"], [
-    { id: "p_risk_1", label: "I usually stick with familiar picks", deltas: { comfort: 0.44, novelty: -0.38 } },
-    { id: "p_risk_2", label: "I branch out once in a while", deltas: { comfort: 0.16, novelty: 0.1 } },
-    { id: "p_risk_3", label: "I like trying fresh takes often", deltas: { novelty: 0.34, mood: 0.08 } },
-    { id: "p_risk_4", label: "I like bold, unusual picks", deltas: { novelty: 0.5, intensity: 0.1, comfort: -0.28 } },
+  q("p_risk", "When you choose movies in general, how much do you chase new territory?", "personality", "core", ["novelty", "comfort"], [
+    { id: "p_risk_1", label: "I mostly stick to known favorites", deltas: { comfort: 0.44, novelty: -0.38 } },
+    { id: "p_risk_2", label: "I branch out occasionally", deltas: { comfort: 0.16, novelty: 0.1 } },
+    { id: "p_risk_3", label: "I often look for fresh takes", deltas: { novelty: 0.34, mood: 0.08 } },
+    { id: "p_risk_4", label: "I want bold, offbeat picks", deltas: { novelty: 0.5, intensity: 0.1, comfort: -0.28 } },
   ]),
   q("p_tone", "What tone do you usually gravitate toward?", "personality", "core", ["darkness", "optimism", "mood"], [
     { id: "p_tone_1", label: "Hopeful and warm", deltas: { optimism: 0.42, darkness: -0.32, comfort: 0.18 } },
@@ -172,23 +172,23 @@ const TODAY_CORE_POOL: Question[] = [
     { id: "t_attention_3", label: "I can focus a fair amount", deltas: { depth: 0.2, mood: 0.08 } },
     { id: "t_attention_4", label: "I am good with full focus", deltas: { depth: 0.44, intensity: 0.1, comfort: -0.16 } },
   ]),
-  q("t_outlook", "What emotional direction sounds best tonight?", "today", "core", ["optimism", "darkness", "mood"], [
-    { id: "t_outlook_1", label: "Uplifting and hopeful", deltas: { optimism: 0.44, darkness: -0.34, comfort: 0.14 } },
-    { id: "t_outlook_2", label: "Somewhere in the middle", deltas: { mood: 0.18 } },
-    { id: "t_outlook_3", label: "Moody and reflective", deltas: { darkness: 0.18, mood: 0.26 } },
-    { id: "t_outlook_4", label: "Dark and edgy", deltas: { darkness: 0.44, intensity: 0.16, optimism: -0.22 } },
+  q("t_outlook", "What should this movie do to your mood tonight?", "today", "core", ["optimism", "darkness", "mood"], [
+    { id: "t_outlook_1", label: "Help me feel better", deltas: { optimism: 0.44, darkness: -0.34, comfort: 0.14 } },
+    { id: "t_outlook_2", label: "Keep me balanced", deltas: { mood: 0.18 } },
+    { id: "t_outlook_3", label: "Let me stay reflective", deltas: { darkness: 0.18, mood: 0.26 } },
+    { id: "t_outlook_4", label: "I can handle darker vibes", deltas: { darkness: 0.44, intensity: 0.16, optimism: -0.22 } },
   ]),
-  q("t_comfort", "Do you want comfort or discovery tonight?", "today", "core", ["comfort", "novelty"], [
-    { id: "t_comfort_1", label: "Very familiar choices", deltas: { comfort: 0.46, novelty: -0.4 } },
-    { id: "t_comfort_2", label: "I usually stick with familiar picks", deltas: { comfort: 0.24, novelty: -0.12 } },
-    { id: "t_comfort_3", label: "A little something new", deltas: { novelty: 0.2, comfort: 0.06 } },
-    { id: "t_comfort_4", label: "Surprise me", deltas: { novelty: 0.46, comfort: -0.2, intensity: 0.08 } },
+  q("t_comfort", "For tonight, how safe or adventurous should the pick be?", "today", "core", ["comfort", "novelty"], [
+    { id: "t_comfort_1", label: "Give me a no-risk comfort watch", deltas: { comfort: 0.46, novelty: -0.4 } },
+    { id: "t_comfort_2", label: "Keep it familiar with a slight twist", deltas: { comfort: 0.24, novelty: -0.12 } },
+    { id: "t_comfort_3", label: "Push me a bit outside my usual", deltas: { novelty: 0.2, comfort: 0.06 } },
+    { id: "t_comfort_4", label: "Go left-field and surprise me", deltas: { novelty: 0.46, comfort: -0.2, intensity: 0.08 } },
   ]),
-  q("t_pacing", "What pace sounds best tonight?", "today", "core", ["energy", "intensity", "depth"], [
-    { id: "t_pacing_1", label: "Slow and atmospheric", deltas: { mood: 0.24, depth: 0.16, energy: -0.18 } },
-    { id: "t_pacing_2", label: "Even and steady", deltas: { comfort: 0.14, mood: 0.12 } },
-    { id: "t_pacing_3", label: "Fast moving", deltas: { energy: 0.28, intensity: 0.14 } },
-    { id: "t_pacing_4", label: "Maximum adrenaline", deltas: { intensity: 0.44, energy: 0.24, depth: -0.2 } },
+  q("t_pacing", "How quickly do you want tonight's movie to move?", "today", "core", ["energy", "intensity", "depth"], [
+    { id: "t_pacing_1", label: "Slow and immersive", deltas: { mood: 0.24, depth: 0.16, energy: -0.18 } },
+    { id: "t_pacing_2", label: "Steady, no rush", deltas: { comfort: 0.14, mood: 0.12 } },
+    { id: "t_pacing_3", label: "Keep it moving", deltas: { energy: 0.28, intensity: 0.14 } },
+    { id: "t_pacing_4", label: "Maximum intensity, no downtime", deltas: { intensity: 0.44, energy: 0.24, depth: -0.2 } },
   ]),
 ];
 
@@ -261,11 +261,11 @@ const TODAY_ADAPTIVE_POOL: Question[] = [
     { id: "ta_theme_3", label: "Give me meaningful themes", deltas: { depth: 0.34, mood: 0.14 } },
     { id: "ta_theme_4", label: "Go deep and existential", deltas: { depth: 0.48, darkness: 0.16, comfort: -0.18 } },
   ]),
-  q("ta_discovery", "How new or different should tonight's pick feel?", "today", "adaptive", ["novelty", "comfort"], [
-    { id: "ta_discovery_1", label: "Almost none", deltas: { comfort: 0.42, novelty: -0.36 } },
-    { id: "ta_discovery_2", label: "A little new", deltas: { comfort: 0.16, novelty: 0.06 } },
-    { id: "ta_discovery_3", label: "Quite a bit of novelty", deltas: { novelty: 0.32, comfort: -0.08 } },
-    { id: "ta_discovery_4", label: "Maximum novelty", deltas: { novelty: 0.5, comfort: -0.22, intensity: 0.08 } },
+  q("ta_discovery", "If needed, how far should we stretch beyond your usual taste tonight?", "today", "adaptive", ["novelty", "comfort"], [
+    { id: "ta_discovery_1", label: "Stay in my wheelhouse", deltas: { comfort: 0.42, novelty: -0.36 } },
+    { id: "ta_discovery_2", label: "Try something adjacent", deltas: { comfort: 0.16, novelty: 0.06 } },
+    { id: "ta_discovery_3", label: "Take me into new territory", deltas: { novelty: 0.32, comfort: -0.08 } },
+    { id: "ta_discovery_4", label: "Drop me somewhere unexpected", deltas: { novelty: 0.5, comfort: -0.22, intensity: 0.08 } },
   ]),
 ];
 
@@ -479,7 +479,4 @@ export function answersToTraitContext(responses: Responses, questionSet?: Questi
 export function answersToTraitVector(responses: Responses, questionSet?: Question[]): number[] {
   return answersToTraitContext(responses, questionSet).blendedArray;
 }
-
-
-
 
