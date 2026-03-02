@@ -1,11 +1,9 @@
-﻿// frontend/src/pages/Quiz.tsx
+// frontend/src/pages/Quiz.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { QUESTIONS, Responses, answersToTraitContext } from "../data/questions";
 import { postRecommend } from "../lib/api";
 
-const RESP_KEY = "mm_responses";
-const PAGE_KEY = "mm_page";
 const PAGE_SIZE_PER_GROUP = 2;
 
 const APP_STATE_VERSION = "2026-03-02-1";
@@ -76,8 +74,8 @@ export default function Quiz() {
       try {
         localStorage.removeItem("mm_answers");
         localStorage.removeItem("mm_context");
-        localStorage.removeItem(RESP_KEY);
-        localStorage.removeItem(PAGE_KEY);
+        localStorage.removeItem("mm_responses");
+        localStorage.removeItem("mm_page");
         localStorage.setItem(VERSION_KEY, APP_STATE_VERSION);
       } catch {}
       setResponses({});
@@ -93,8 +91,8 @@ export default function Quiz() {
       try {
         localStorage.removeItem("mm_answers");
         localStorage.removeItem("mm_context");
-        localStorage.removeItem(RESP_KEY);
-        localStorage.removeItem(PAGE_KEY);
+        localStorage.removeItem("mm_responses");
+        localStorage.removeItem("mm_page");
         localStorage.setItem(VERSION_KEY, APP_STATE_VERSION);
       } catch {}
       setResponses({});
@@ -108,38 +106,25 @@ export default function Quiz() {
       return;
     }
 
+    // Always start fresh on quiz entry/refresh.
     try {
-      const raw = localStorage.getItem(RESP_KEY);
-      const saved = raw ? (JSON.parse(raw) as Responses) : {};
-      const validIds = new Set(QUESTIONS.map((q) => q.id));
-      const filtered: Responses = {};
-      for (const [k, v] of Object.entries(saved || {})) {
-        if (validIds.has(k)) filtered[k] = v;
-      }
-      if (Object.keys(filtered).length) setResponses(filtered);
-
-      const pRaw = localStorage.getItem(PAGE_KEY);
-      const pSaved = pRaw ? parseInt(pRaw, 10) : 0;
-      if (!Number.isNaN(pSaved) && pSaved >= 0 && pSaved < totalPages) {
-        setPage(pSaved);
-      }
+      localStorage.removeItem("mm_responses");
+      localStorage.removeItem("mm_page");
     } catch {}
+    setResponses({});
+    setPage(0);
+    setMissingIds(new Set());
+    return;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(PAGE_KEY, String(page));
-    } catch {}
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [page]);
 
   function choose(qid: string, cid: string) {
     setResponses((prev) => {
       const next = { ...prev, [qid]: cid };
-      try {
-        localStorage.setItem(RESP_KEY, JSON.stringify(next));
-      } catch {}
       return next;
     });
 
@@ -344,5 +329,4 @@ export default function Quiz() {
     </div>
   );
 }
-
 
