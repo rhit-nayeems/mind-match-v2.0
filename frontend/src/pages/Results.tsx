@@ -47,36 +47,6 @@ const clamp01 = (v: any) => {
 
 const pct = (v?: number) => (v == null ? '-' : `${Math.round((v > 1 ? v : v * 100))}%`)
 
-function safeGetItem(key: string): string | null {
-  try {
-    return localStorage.getItem(key)
-  } catch {
-    return null
-  }
-}
-
-function safeSetItem(key: string, value: string) {
-  try {
-    localStorage.setItem(key, value)
-  } catch {}
-}
-
-function safeParseJSON<T>(raw: string | null): T | null {
-  if (!raw) return null
-  try {
-    return JSON.parse(raw) as T
-  } catch {
-    return null
-  }
-}
-
-function normalizeAnswers(input: unknown): number[] | null {
-  if (!Array.isArray(input) || input.length !== 9) return null
-  const out = input.map((x) => Number(x))
-  if (out.some((x) => !Number.isFinite(x))) return null
-  return out
-}
-
 export default function Results() {
   const loc = useLocation() as any
   const nav = useNavigate()
@@ -97,54 +67,54 @@ export default function Results() {
   }
 
   useEffect(() => {
-    const answersFromState = normalizeAnswers(loc.state?.answers)
-    const answersFromStorage = normalizeAnswers(safeParseJSON<unknown>(safeGetItem('mm_answers')))
-    const answers = answersFromState ?? answersFromStorage
+    const saved = localStorage.getItem('mm_answers')
+    const savedCtx = localStorage.getItem('mm_context')
+    const answers: number[] = loc.state?.answers ?? (saved ? JSON.parse(saved) : null)
     let context: any = loc.state?.context
 
-    if (!context) {
-      context = safeParseJSON<any>(safeGetItem('mm_context'))
+    if (!context && savedCtx) {
+      try {
+        context = JSON.parse(savedCtx)
+      } catch {}
     }
 
     if (!answers) {
-      setTimeout(() => nav('/quiz', { replace: true }), 0)
+      setTimeout(() => nav('/quiz'), 0)
       return
     }
 
     if (context) {
-      safeSetItem('mm_context', JSON.stringify(context))
+      try {
+        localStorage.setItem('mm_context', JSON.stringify(context))
+      } catch {}
     }
 
     ;(async () => {
-      try {
-        const res = await postRecommend(answers, safeGetItem('mm_session') || '', context)
-        setData(res as ResultsData)
-        setSelectedIdx(0)
-        setExpandedSynopsisIds(new Set())
+      const res = await postRecommend(answers, localStorage.getItem('mm_session') || '', context)
+      setData(res as ResultsData)
+      setSelectedIdx(0)
+      setExpandedSynopsisIds(new Set())
 
-        const allowConfetti =
-          typeof window !== 'undefined' &&
-          !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
-          window.innerWidth >= 900
+      const allowConfetti =
+        typeof window !== 'undefined' &&
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+        window.innerWidth >= 900
 
-        if (allowConfetti) {
-          setTimeout(() => {
-            confetti({
-              particleCount: 22,
-              spread: 48,
-              origin: { y: 0.72 },
-              colors: ['#f5f5f5', '#d4d4d8', '#a1a1aa'],
-              scalar: 0.66,
-              ticks: 120,
-              disableForReducedMotion: true,
-            })
-          }, 200)
-        }
-      } catch {
-        setTimeout(() => nav('/quiz', { replace: true }), 0)
+      if (allowConfetti) {
+        setTimeout(() => {
+          confetti({
+            particleCount: 22,
+            spread: 48,
+            origin: { y: 0.72 },
+            colors: ['#f5f5f5', '#d4d4d8', '#a1a1aa'],
+            scalar: 0.66,
+            ticks: 120,
+            disableForReducedMotion: true,
+          })
+        }, 200)
       }
     })()
-  }, [loc.state?.answers, loc.state?.context, nav])
+  }, [])
 
   const userOrdered = useMemo(() => {
     const src = data?.profile?.traits ?? {}
@@ -477,3 +447,5 @@ function toPoints(
     })
     .join(' ')
 }
+
+
