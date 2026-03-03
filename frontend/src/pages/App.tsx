@@ -6,6 +6,9 @@ export default function App() {
     <div className="tech-shell">
       <div className="tech-bg" aria-hidden>
         <div className="tech-grid" />
+        <div className="tech-web" />
+        <div className="tech-spokes" />
+        <div className="tech-nodes" />
         <div className="tech-orb a" />
         <div className="tech-orb b" />
         <div className="tech-scan" />
