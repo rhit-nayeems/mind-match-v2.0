@@ -13,6 +13,11 @@
   --mm-border-strong: rgba(255, 255, 255, 0.35);
   --mm-text: #f5f5f5;
   --mm-muted: #a7a7a7;
+  --mm-accent: #67e8f9;
+  --mm-accent-soft: rgba(103, 232, 249, 0.18);
+  --mm-accent-strong: rgba(56, 189, 248, 0.45);
+  --mm-accent-blue: #60a5fa;
+  --mm-accent-amber: #fbbf24;
 }
 
 html,
@@ -24,8 +29,9 @@ body,
 body {
   margin: 0;
   background:
-    radial-gradient(circle at 84% -6%, rgba(255, 255, 255, 0.1), transparent 32%),
-    radial-gradient(circle at 10% 112%, rgba(255, 255, 255, 0.08), transparent 36%),
+    radial-gradient(circle at 82% -8%, rgba(96, 165, 250, 0.22), transparent 38%),
+    radial-gradient(circle at 14% 118%, rgba(34, 211, 238, 0.12), transparent 46%),
+    radial-gradient(circle at 56% -16%, rgba(251, 191, 36, 0.08), transparent 34%),
     radial-gradient(circle at 24% -12%, #141414 0%, var(--mm-bg) 44%, #000 100%);
   color: var(--mm-text);
   font-family: "Space Grotesk", "Helvetica Neue", sans-serif;
@@ -46,12 +52,17 @@ body {
 
 .surface {
   border-radius: 20px;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.38);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 14px 30px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(103, 232, 249, 0.06);
 }
 
 .surface-soft {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.025);
+  background:
+    linear-gradient(180deg, rgba(103, 232, 249, 0.05), rgba(255, 255, 255, 0.02) 30%, rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.025);
 }
 
 .btn,
@@ -62,18 +73,29 @@ body {
   gap: 0.5rem;
   border-radius: 999px;
   padding: 0.65rem 1.2rem;
-  border: 1px solid var(--mm-border-strong);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
+  border: 1px solid color-mix(in srgb, var(--mm-accent) 52%, white 48%);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--mm-accent) 42%, white 58%),
+      color-mix(in srgb, var(--mm-accent-blue) 42%, black 58%)
+    );
   color: var(--mm-text);
   font-weight: 600;
-  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease, filter 220ms ease;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 8px 18px rgba(8, 145, 178, 0.22);
 }
 
 .btn:hover,
 .btn-neo:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.32);
-  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 12px 20px rgba(6, 182, 212, 0.26);
+  border-color: color-mix(in srgb, var(--mm-accent) 74%, white 26%);
+  filter: saturate(1.08);
 }
 
 .btn:disabled,
@@ -85,15 +107,15 @@ body {
 .btn-ghost {
   border-radius: 999px;
   border: 1px solid var(--mm-border);
-  background: rgba(255, 255, 255, 0.03);
+  background: linear-gradient(180deg, rgba(103, 232, 249, 0.07), rgba(255, 255, 255, 0.03));
   color: var(--mm-text);
   padding: 0.6rem 1.1rem;
   transition: border-color 220ms ease, background 220ms ease;
 }
 
 .btn-ghost:hover {
-  border-color: var(--mm-border-strong);
-  background: rgba(255, 255, 255, 0.09);
+  border-color: color-mix(in srgb, var(--mm-accent) 52%, white 48%);
+  background: linear-gradient(180deg, rgba(103, 232, 249, 0.16), rgba(255, 255, 255, 0.07));
 }
 
 .headline {
@@ -113,11 +135,11 @@ body {
 .outline-chip {
   display: inline-flex;
   align-items: center;
-  border: 1px solid var(--mm-border);
+  border: 1px solid color-mix(in srgb, var(--mm-accent) 36%, var(--mm-border) 64%);
   border-radius: 999px;
   padding: 0.35rem 0.7rem;
-  color: #d8d8d8;
-  background: rgba(255, 255, 255, 0.02);
+  color: #d6f4fb;
+  background: linear-gradient(180deg, rgba(103, 232, 249, 0.11), rgba(255, 255, 255, 0.02));
 }
 
 .tech-shell {
@@ -144,21 +166,20 @@ body {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    linear-gradient(rgba(103, 232, 249, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(103, 232, 249, 0.08) 1px, transparent 1px);
   background-size: 62px 62px;
   opacity: 0.17;
   -webkit-mask-image: radial-gradient(circle at 50% 42%, black 20%, rgba(0, 0, 0, 0.7) 58%, transparent 100%);
   mask-image: radial-gradient(circle at 50% 42%, black 20%, rgba(0, 0, 0, 0.7) 58%, transparent 100%);
 }
 
-
 .tech-web {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(120deg, transparent 47.8%, rgba(255, 255, 255, 0.1) 49.7%, rgba(255, 255, 255, 0.1) 50.3%, transparent 52.2%),
-    linear-gradient(60deg, transparent 47.8%, rgba(255, 255, 255, 0.08) 49.7%, rgba(255, 255, 255, 0.08) 50.3%, transparent 52.2%);
+    linear-gradient(120deg, transparent 47.8%, rgba(96, 165, 250, 0.16) 49.7%, rgba(96, 165, 250, 0.16) 50.3%, transparent 52.2%),
+    linear-gradient(60deg, transparent 47.8%, rgba(34, 211, 238, 0.14) 49.7%, rgba(34, 211, 238, 0.14) 50.3%, transparent 52.2%);
   background-size: 340px 210px, 340px 210px;
   background-position: -80px -40px, 110px -70px;
   opacity: 0.18;
@@ -166,19 +187,18 @@ body {
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.75) 60%, transparent 100%);
 }
 
-
 .tech-circuit {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(90deg, transparent 8%, rgba(255, 255, 255, 0.12) 8.4%, rgba(255, 255, 255, 0.12) 8.8%, transparent 9.2%),
-    linear-gradient(90deg, transparent 26%, rgba(255, 255, 255, 0.08) 26.4%, rgba(255, 255, 255, 0.08) 26.8%, transparent 27.2%),
-    linear-gradient(90deg, transparent 48%, rgba(255, 255, 255, 0.1) 48.4%, rgba(255, 255, 255, 0.1) 48.8%, transparent 49.2%),
-    linear-gradient(90deg, transparent 71%, rgba(255, 255, 255, 0.08) 71.4%, rgba(255, 255, 255, 0.08) 71.8%, transparent 72.2%),
-    linear-gradient(0deg, transparent 17%, rgba(255, 255, 255, 0.08) 17.3%, rgba(255, 255, 255, 0.08) 17.7%, transparent 18%),
-    linear-gradient(0deg, transparent 34%, rgba(255, 255, 255, 0.06) 34.3%, rgba(255, 255, 255, 0.06) 34.7%, transparent 35%),
-    linear-gradient(0deg, transparent 52%, rgba(255, 255, 255, 0.08) 52.3%, rgba(255, 255, 255, 0.08) 52.7%, transparent 53%),
-    linear-gradient(0deg, transparent 69%, rgba(255, 255, 255, 0.06) 69.3%, rgba(255, 255, 255, 0.06) 69.7%, transparent 70%);
+    linear-gradient(90deg, transparent 8%, rgba(34, 211, 238, 0.15) 8.4%, rgba(34, 211, 238, 0.15) 8.8%, transparent 9.2%),
+    linear-gradient(90deg, transparent 26%, rgba(96, 165, 250, 0.12) 26.4%, rgba(96, 165, 250, 0.12) 26.8%, transparent 27.2%),
+    linear-gradient(90deg, transparent 48%, rgba(34, 211, 238, 0.13) 48.4%, rgba(34, 211, 238, 0.13) 48.8%, transparent 49.2%),
+    linear-gradient(90deg, transparent 71%, rgba(251, 191, 36, 0.1) 71.4%, rgba(251, 191, 36, 0.1) 71.8%, transparent 72.2%),
+    linear-gradient(0deg, transparent 17%, rgba(96, 165, 250, 0.11) 17.3%, rgba(96, 165, 250, 0.11) 17.7%, transparent 18%),
+    linear-gradient(0deg, transparent 34%, rgba(34, 211, 238, 0.09) 34.3%, rgba(34, 211, 238, 0.09) 34.7%, transparent 35%),
+    linear-gradient(0deg, transparent 52%, rgba(96, 165, 250, 0.1) 52.3%, rgba(96, 165, 250, 0.1) 52.7%, transparent 53%),
+    linear-gradient(0deg, transparent 69%, rgba(34, 211, 238, 0.09) 69.3%, rgba(34, 211, 238, 0.09) 69.7%, transparent 70%);
   opacity: 0.12;
   -webkit-mask-image: radial-gradient(circle at 50% 20%, black 20%, rgba(0, 0, 0, 0.8) 55%, transparent 100%);
   mask-image: radial-gradient(circle at 50% 20%, black 20%, rgba(0, 0, 0, 0.8) 55%, transparent 100%);
@@ -193,7 +213,7 @@ body {
   transform: translateX(-50%);
   background: repeating-conic-gradient(
     from -10deg,
-    rgba(255, 255, 255, 0.07) 0deg 0.6deg,
+    rgba(103, 232, 249, 0.07) 0deg 0.6deg,
     transparent 0.6deg 12deg
   );
   opacity: 0.06;
@@ -205,22 +225,22 @@ body {
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle at 14% 22%, rgba(255, 255, 255, 0.35) 0 1.5px, transparent 2px),
-    radial-gradient(circle at 28% 36%, rgba(255, 255, 255, 0.22) 0 1px, transparent 1.7px),
-    radial-gradient(circle at 44% 18%, rgba(255, 255, 255, 0.28) 0 1.3px, transparent 2px),
-    radial-gradient(circle at 61% 34%, rgba(255, 255, 255, 0.25) 0 1.2px, transparent 1.9px),
-    radial-gradient(circle at 78% 24%, rgba(255, 255, 255, 0.3) 0 1.4px, transparent 2px),
-    radial-gradient(circle at 86% 40%, rgba(255, 255, 255, 0.22) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 20% 58%, rgba(255, 255, 255, 0.2) 0 1.1px, transparent 1.8px),
-    radial-gradient(circle at 52% 62%, rgba(255, 255, 255, 0.3) 0 1.3px, transparent 2px),
-    radial-gradient(circle at 72% 58%, rgba(255, 255, 255, 0.2) 0 1.1px, transparent 1.8px);
+    radial-gradient(circle at 14% 22%, rgba(34, 211, 238, 0.4) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 28% 36%, rgba(96, 165, 250, 0.28) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 44% 18%, rgba(251, 191, 36, 0.2) 0 1.3px, transparent 2px),
+    radial-gradient(circle at 61% 34%, rgba(96, 165, 250, 0.3) 0 1.2px, transparent 1.9px),
+    radial-gradient(circle at 78% 24%, rgba(34, 211, 238, 0.32) 0 1.4px, transparent 2px),
+    radial-gradient(circle at 86% 40%, rgba(96, 165, 250, 0.24) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 20% 58%, rgba(34, 211, 238, 0.2) 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 52% 62%, rgba(96, 165, 250, 0.34) 0 1.3px, transparent 2px),
+    radial-gradient(circle at 72% 58%, rgba(251, 191, 36, 0.2) 0 1.1px, transparent 1.8px);
   opacity: 0.38;
 }
 
 .tech-orb {
   position: absolute;
   border-radius: 999px;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.07) 30%, rgba(255, 255, 255, 0) 64%);
+  background: radial-gradient(circle at 50% 50%, rgba(34, 211, 238, 0.22) 0%, rgba(96, 165, 250, 0.09) 30%, rgba(255, 255, 255, 0) 64%);
   animation: orb-drift 26s ease-in-out infinite alternate;
   will-change: transform;
 }
@@ -250,6 +270,22 @@ body {
   background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.08) 1px, transparent 0);
   background-size: 4px 4px;
   opacity: 0.01;
+}
+
+.icon-tint-1 {
+  color: #67e8f9;
+}
+
+.icon-tint-2 {
+  color: #93c5fd;
+}
+
+.icon-tint-3 {
+  color: #fcd34d;
+}
+
+.bar-accent {
+  background: linear-gradient(90deg, #22d3ee 0%, #60a5fa 58%, #fbbf24 100%);
 }
 
 @keyframes orb-drift {

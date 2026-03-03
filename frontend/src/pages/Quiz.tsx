@@ -320,8 +320,8 @@ export default function Quiz() {
       <div
         key={qid}
         className={[
-          "rounded-2xl border p-5 transition-colors bg-white/[0.03] border-white/15",
-          isMissing ? "ring-2 ring-white/60" : "",
+          "rounded-2xl border p-5 transition-colors bg-cyan-100/[0.03] border-cyan-200/20",
+          isMissing ? "ring-2 ring-rose-300/70" : "",
         ].join(" ")}
       >
         <div className="mb-3 text-base font-medium text-zinc-100">{text}</div>
@@ -352,10 +352,10 @@ export default function Quiz() {
                   className={[
                     "cursor-pointer select-none rounded-xl border px-3 py-2 outline-none",
                     checked
-                      ? "border-white bg-white text-black shadow-[0_0_0_1px_rgba(255,255,255,.35)]"
-                      : "border-white/15 bg-black/35 text-zinc-200 hover:bg-white/10",
-                    "focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
-                    "peer-focus-visible:ring-2 peer-focus-visible:ring-white/70 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-black",
+                      ? "border-cyan-100/70 bg-cyan-100/90 text-zinc-900 shadow-[0_0_0_1px_rgba(103,232,249,.5)]"
+                      : "border-cyan-200/20 bg-black/35 text-zinc-200 hover:bg-cyan-200/[0.12]",
+                    "focus-visible:ring-2 focus-visible:ring-cyan-200/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
+                    "peer-focus-visible:ring-2 peer-focus-visible:ring-cyan-200/80 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-black",
                   ].join(" ")}
                 >
                   {c.label}
@@ -388,9 +388,9 @@ export default function Quiz() {
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(progress)}
-          className="mb-6 h-2.5 w-full overflow-hidden rounded-full border border-white/20 bg-white/5"
+          className="mb-6 h-2.5 w-full overflow-hidden rounded-full border border-cyan-200/25 bg-cyan-100/[0.08]"
         >
-          <div className="h-full bg-white transition-all" style={{ width: `${progress}%` }} />
+          <div className="bar-accent h-full transition-all" style={{ width: `${progress}%` }} />
         </div>
 
         <h1 className="headline mb-2 text-2xl text-zinc-100 md:text-3xl">Calibrate Your Movie DNA</h1>
@@ -401,7 +401,7 @@ export default function Quiz() {
         <div className="space-y-4">{currentQs.map((q) => renderQ(q.id, q.text, q.choices))}</div>
 
         <div className="sticky bottom-0 left-0 right-0 mt-6">
-          <div className="rounded-2xl border border-white/15 bg-black/90 px-4 py-3">
+          <div className="rounded-2xl border border-cyan-200/20 bg-black/85 px-4 py-3 backdrop-blur">
             <div className="mx-auto flex max-w-4xl items-center justify-between">
               <button
                 type="button"
@@ -410,7 +410,7 @@ export default function Quiz() {
                 className={`rounded-xl border px-4 py-2 ${
                   page === 0
                     ? "cursor-not-allowed border-white/10 bg-white/[0.03] text-zinc-600"
-                    : "border-white/20 bg-white/[0.06] text-zinc-200 hover:bg-white/[0.14]"
+                    : "border-cyan-200/25 bg-cyan-100/[0.08] text-zinc-100 hover:bg-cyan-100/[0.16]"
                 }`}
               >
                 &larr; Back
@@ -441,5 +441,6 @@ export default function Quiz() {
     </div>
   );
 }
+
 
 

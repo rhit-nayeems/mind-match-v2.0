@@ -106,7 +106,7 @@ export default function Results() {
             particleCount: 22,
             spread: 48,
             origin: { y: 0.72 },
-            colors: ['#f5f5f5', '#d4d4d8', '#a1a1aa'],
+            colors: ['#67e8f9', '#93c5fd', '#fbbf24'],
             scalar: 0.66,
             ticks: 120,
             disableForReducedMotion: true,
@@ -198,8 +198,8 @@ export default function Results() {
                       }}
                       className={[
                         'w-full overflow-hidden rounded-2xl border p-4 text-left transition-all',
-                        'bg-white/[0.03] hover:bg-white/[0.09] border-white/15',
-                        active ? 'border-white/65 shadow-[0_0_0_1px_rgba(255,255,255,.35)]' : '',
+                        'bg-cyan-100/[0.03] hover:bg-cyan-100/[0.1] border-cyan-200/20',
+                        active ? 'border-cyan-100/70 shadow-[0_0_0_1px_rgba(103,232,249,.45)]' : '',
                       ].join(' ')}
                     >
                       <div className="flex gap-4">
@@ -221,21 +221,21 @@ export default function Results() {
 
                           {normalizedVote != null && (
                             <div className="mt-1 max-w-full">
-                              <span className="inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md border border-white/15 bg-white/[0.04] px-2 py-0.5 text-xs">
-                                <span className="shrink-0 text-zinc-400">{ratingSource}:</span>
+                              <span className="inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md border border-amber-200/25 bg-amber-100/[0.08] px-2 py-0.5 text-xs">
+                                <span className="shrink-0 text-amber-100/75">{ratingSource}:</span>
                                 <span className="inline-flex shrink-0 items-center gap-0.5" aria-hidden>
                                   {Array.from({ length: 5 }).map((_, idx) => (
                                     <Star
                                       key={`${cardKey}-star-${idx}`}
                                       className={
                                         idx < filledStars
-                                          ? 'h-2.5 w-2.5 fill-zinc-100 text-zinc-100'
-                                          : 'h-2.5 w-2.5 text-zinc-500'
+                                          ? 'h-2.5 w-2.5 fill-amber-300 text-amber-300'
+                                          : 'h-2.5 w-2.5 text-amber-100/35'
                                       }
                                     />
                                   ))}
                                 </span>
-                                <span className="tabular-nums text-zinc-200">{normalizedVote.toFixed(1)}/10</span>
+                                <span className="tabular-nums text-amber-200">{normalizedVote.toFixed(1)}/10</span>
                               </span>
                             </div>
                           )}
@@ -262,7 +262,7 @@ export default function Results() {
                                       return next
                                     })
                                   }}
-                                  className="mt-1 text-xs font-medium text-zinc-300 underline decoration-white/30 underline-offset-2 hover:text-zinc-100"
+                                  className="mt-1 text-xs font-medium text-cyan-100/85 underline decoration-cyan-200/45 underline-offset-2 hover:text-cyan-100"
                                 >
                                   {synopsisExpanded ? 'Show less' : 'Read more'}
                                 </button>
@@ -275,7 +275,7 @@ export default function Results() {
                               {m.genre.slice(0, 3).map((g, idx) => (
                                 <span
                                   key={`${m.id}-${g}-${idx}`}
-                                  className="rounded-full border border-white/15 bg-white/[0.04] px-2 py-0.5 text-xs text-zinc-300"
+                                  className="rounded-full border border-cyan-200/25 bg-cyan-100/[0.08] px-2 py-0.5 text-xs text-cyan-100/85"
                                 >
                                   {g}
                                 </span>
@@ -284,13 +284,13 @@ export default function Results() {
                           )}
 
                           <div className="mt-3">
-                            <div className="flex items-center justify-between text-xs text-zinc-400">
+                            <div className="flex items-center justify-between text-xs text-zinc-300">
                               <span>match score</span>
-                              <span className="font-semibold text-zinc-200">{pct(m.match)}</span>
+                              <span className="font-semibold text-cyan-100">{pct(m.match)}</span>
                             </div>
-                            <div className="mt-1 h-2 overflow-hidden rounded-full border border-white/15 bg-white/10">
+                            <div className="mt-1 h-2 overflow-hidden rounded-full border border-cyan-200/20 bg-cyan-100/[0.1]">
                               <div
-                                className="h-full rounded-full bg-white"
+                                className="bar-accent h-full rounded-full"
                                 style={{
                                   width: `${Math.min(
                                     100,
@@ -463,5 +463,6 @@ function toPoints(
     })
     .join(' ')
 }
+
 
 

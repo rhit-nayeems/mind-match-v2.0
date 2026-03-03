@@ -20,6 +20,8 @@ const featureCards = [
   },
 ]
 
+const iconTintClasses = ['icon-tint-1', 'icon-tint-2', 'icon-tint-3']
+
 export default function Landing() {
   return (
     <div className="py-10 md:py-16">
@@ -52,15 +54,15 @@ export default function Landing() {
           </div>
 
           <div className="surface-soft grid h-fit content-start gap-3 self-start p-3 md:self-center">
-            <div className="rounded-xl border border-white/15 bg-black/35 p-3">
-              <div className="code-label text-zinc-400">sample profile preview</div>
+            <div className="rounded-xl border border-cyan-200/25 bg-black/35 p-3">
+              <div className="code-label text-cyan-100/80">sample profile preview</div>
               <div className="mt-2.5 grid grid-cols-3 gap-1.5 text-xs text-zinc-300">
                 {['depth', 'novelty', 'comfort', 'energy', 'mood', 'humor'].map((k, i) => (
-                  <div key={k} className="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1">
+                  <div key={k} className="rounded-lg border border-cyan-200/20 bg-white/[0.03] px-2 py-1">
                     <div className="uppercase text-[10px] text-zinc-500">{k}</div>
                     <div className="mt-1 h-1.5 rounded-full bg-white/10">
                       <div
-                        className="h-full rounded-full bg-white"
+                        className="bar-accent h-full rounded-full"
                         style={{ width: `${50 + ((i * 11) % 38)}%` }}
                       />
                     </div>
@@ -68,10 +70,10 @@ export default function Landing() {
                 ))}
               </div>
             </div>
-            <div className="rounded-xl border border-white/15 bg-white/[0.03] p-3">
-              <div className="code-label text-zinc-400">signal path</div>
+            <div className="rounded-xl border border-cyan-200/20 bg-cyan-200/[0.04] p-3">
+              <div className="code-label text-cyan-100/80">signal path</div>
               <div className="mt-2 overflow-x-auto">
-                <p className="min-w-max whitespace-nowrap text-sm text-zinc-300">
+                <p className="min-w-max whitespace-nowrap text-sm text-zinc-200">
                   quiz vectors -&gt; weighted similarity -&gt; diversity rerank -&gt; curated top matches
                 </p>
               </div>
@@ -83,6 +85,7 @@ export default function Landing() {
       <section className="mt-8 grid gap-4 md:grid-cols-3">
         {featureCards.map((item, idx) => {
           const Icon = item.icon
+          const tint = iconTintClasses[idx % iconTintClasses.length]
           return (
             <motion.article
               key={item.label}
@@ -92,11 +95,11 @@ export default function Landing() {
               transition={{ delay: idx * 0.06, duration: 0.45 }}
               className="surface-soft p-5"
             >
-              <div className="mb-3 inline-flex rounded-lg border border-white/20 bg-white/10 p-2 text-white">
+              <div className={`mb-3 inline-flex rounded-lg border border-cyan-200/20 bg-cyan-100/[0.08] p-2 ${tint}`}>
                 <Icon className="h-4 w-4" />
               </div>
               <h2 className="headline text-lg text-zinc-100">{item.label}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-400">{item.text}</p>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-300">{item.text}</p>
             </motion.article>
           )
         })}
@@ -104,4 +107,3 @@ export default function Landing() {
     </div>
   )
 }
-
