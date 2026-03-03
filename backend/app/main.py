@@ -1,9 +1,11 @@
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+import hashlib
 import json
 import math
 import os
+import random
 import re
 from typing import Any, Dict, Iterable, List, Set, Tuple
 
@@ -24,7 +26,7 @@ LINUCB = LinUCB(d=27, alpha=0.6)
 MOVIE_PATH = Path(__file__).parent / "datasets" / "movies.json"
 TRAIT_ORDER = ["energy", "mood", "depth", "optimism", "novelty", "comfort", "intensity", "humor", "darkness"]
 INTERACTION_TYPES = {"click", "save", "finish", "dismiss"}
-ALGO_TAG = "hybrid_cosine_text_feedback_mmr_v4_top500"
+ALGO_TAG = "hybrid_centered_cosine_text_feedback_mmr_v5_top500"
 
 
 def _safe_float(v: Any, default: float = 0.0) -> float:
@@ -36,6 +38,34 @@ def _safe_float(v: Any, default: float = 0.0) -> float:
 
 def _clamp01(v: float) -> float:
     return 0.0 if v < 0.0 else 1.0 if v > 1.0 else float(v)
+
+
+def _env_float(name: str, default: float) -> float:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    try:
+        return float(raw)
+    except Exception:
+        return default
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    try:
+        return int(raw)
+    except Exception:
+        return default
+
+
+POPULARITY_BIAS_MAX = max(0.0, _env_float("MM_POPULARITY_BIAS_MAX", 0.012))
+RERANK_BAND_MULT = max(1.2, _env_float("MM_RERANK_BAND_MULT", 2.4))
+RERANK_EXPLORE_MIN = _clamp01(_env_float("MM_RERANK_EXPLORE_MIN", 0.06))
+RERANK_EXPLORE_MAX = _clamp01(_env_float("MM_RERANK_EXPLORE_MAX", 0.32))
+MAX_PER_PRIMARY_GENRE = max(1, _env_int("MM_MAX_PER_PRIMARY_GENRE", 2))
+MAX_PER_FRANCHISE = max(1, _env_int("MM_MAX_PER_FRANCHISE", 1))
 
 
 def init_app(app):
@@ -106,6 +136,16 @@ def _cosine(a: List[float], b: List[float]) -> float:
     return num / (da * db)
 
 
+def _centered_cosine01(a: List[float], b: List[float]) -> float:
+    """Cosine on centered [0,1] vectors, mapped to [0,1]."""
+    ac = [float(x) - 0.5 for x in a]
+    bc = [float(y) - 0.5 for y in b]
+    raw = _cosine(ac, bc)
+    if not math.isfinite(raw):
+        return 0.5
+    return _clamp01(0.5 * (raw + 1.0))
+
+
 def _dedupe(cands: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
     seen_ids: Set[Any] = set()
     seen_keys: Set[Tuple[str, Any]] = set()
@@ -126,6 +166,15 @@ def _title_root(title: str) -> str:
     stop = {"the", "a", "an", "and", "of", "to", "part", "movie", "film"}
     toks = [t for t in toks if t not in stop]
     return " ".join(toks[:2]) if toks else ""
+
+
+def _primary_genre(movie: Dict[str, Any]) -> str:
+    g = movie.get("genre")
+    if isinstance(g, list) and g:
+        return str(g[0]).strip().lower()
+    if isinstance(g, str):
+        return g.strip().lower()
+    return ""
 
 
 def _get_recently_seen_ids(session_id: str, lookback_days: int = 14) -> Set[str]:
@@ -253,8 +302,8 @@ def _rank_score(
     vote_count = max(0.0, _safe_float(m.get("vote_count", 0.0), 0.0))
     vote_count_norm = min(1.0, math.log1p(vote_count) / math.log(5000.0))
 
-    # Favor known mainstream titles a bit, while preserving user novelty intent.
-    popularity_bias = 0.03 * (0.65 * pop_norm + 0.35 * vote_count_norm)
+    # Keep a small mainstream prior, but avoid drowning out personal taste.
+    popularity_bias = POPULARITY_BIAS_MAX * (0.45 + 0.55 * user_comfort) * (0.55 * pop_norm + 0.45 * vote_count_norm)
     discovery_bonus = 0.025 * user_novelty * (1.0 - pop_norm)
     novelty_bonus = 0.045 * user_novelty * movie_novelty * (0.5 + 0.5 * _clamp01(overall_conf))
     comfort_bonus = 0.028 * user_comfort * movie_comfort
@@ -270,6 +319,78 @@ def _adaptive_lambda(user_traits: Dict[str, float], overall_conf: float, seen_co
     return max(0.45, min(0.88, lam))
 
 
+def _stable_rng(session_id: str, user_traits: Dict[str, float], overall_conf: float) -> random.Random:
+    payload = {
+        "session_id": str(session_id or "anon"),
+        "confidence": round(_clamp01(overall_conf), 4),
+        "traits": {k: round(_clamp01(_safe_float(user_traits.get(k, 0.5), 0.5)), 4) for k in TRAIT_ORDER},
+    }
+    raw = json.dumps(payload, sort_keys=True).encode("utf-8")
+    seed = int(hashlib.sha256(raw).hexdigest()[:16], 16)
+    return random.Random(seed)
+
+
+def _sample_rerank_pool(
+    scored: List[Dict[str, Any]],
+    pool_size: int,
+    user_traits: Dict[str, float],
+    overall_conf: float,
+    rng: random.Random,
+) -> Tuple[List[Dict[str, Any]], float, int]:
+    if not scored or pool_size <= 0:
+        return [], 0.0, 0
+
+    if len(scored) <= pool_size:
+        return scored[:pool_size], 0.0, len(scored)
+
+    novelty = _clamp01(_safe_float(user_traits.get("novelty", 0.5), 0.5))
+    conf = _clamp01(overall_conf)
+    explore_ratio = _clamp01(
+        RERANK_EXPLORE_MIN + (RERANK_EXPLORE_MAX - RERANK_EXPLORE_MIN) * (0.65 * novelty + 0.35 * (1.0 - conf))
+    )
+
+    band_mult = max(1.2, RERANK_BAND_MULT + 0.8 * explore_ratio)
+    band_size = max(pool_size, min(len(scored), int(round(pool_size * band_mult))))
+    band = scored[:band_size]
+
+    if explore_ratio <= 1e-6:
+        return band[:pool_size], explore_ratio, band_size
+
+    top_score = _safe_float(band[0].get("rank_score", band[0].get("match", 0.0)), 0.0)
+    temperature = 0.02 + 0.06 * explore_ratio
+
+    remaining = list(range(len(band)))
+    picked_idx: List[int] = []
+
+    while remaining and len(picked_idx) < pool_size:
+        weights: List[float] = []
+        for idx in remaining:
+            item = band[idx]
+            score = _safe_float(item.get("rank_score", item.get("match", 0.0)), 0.0)
+            delta = max(0.0, top_score - score)
+            w_score = math.exp(-delta / max(1e-6, temperature))
+            w_rank = 1.0 / (1.0 + idx)
+            w = (1.0 - explore_ratio) * w_rank + explore_ratio * w_score
+            weights.append(max(1e-9, w))
+
+        total = sum(weights)
+        draw = rng.random() * total
+        cum = 0.0
+        chosen_local = 0
+        for j, w in enumerate(weights):
+            cum += w
+            if draw <= cum:
+                chosen_local = j
+                break
+
+        picked_global = remaining.pop(chosen_local)
+        picked_idx.append(picked_global)
+
+    picked = [band[i] for i in picked_idx]
+    picked.sort(key=lambda m: _safe_float(m.get("rank_score", m.get("match", 0.0)), 0.0), reverse=True)
+    return picked, explore_ratio, band_size
+
+
 def _mmr_diversify(
     cands: List[Dict[str, Any]],
     user_traits: Dict[str, float],
@@ -277,49 +398,73 @@ def _mmr_diversify(
     lambda_: float = 0.70,
     seen_ids: Set[str] | None = None,
     seen_penalty: float = 0.08,
+    max_per_primary_genre: int = MAX_PER_PRIMARY_GENRE,
+    max_per_franchise: int = MAX_PER_FRANCHISE,
 ) -> List[Dict[str, Any]]:
     if not cands:
         return []
 
     u = _vec_from_user(user_traits)
-    enriched = []
+    enriched: List[Tuple[Dict[str, Any], List[float], float]] = []
     for m in cands:
         v = _vec_from_movie(m)
-        base = _safe_float(m.get("rank_score", m.get("match", _cosine(u, v))), 0.0)
+        base = _safe_float(m.get("rank_score", m.get("match", _centered_cosine01(u, v))), 0.0)
         if seen_ids and str(m.get("id")) in seen_ids:
             base -= seen_penalty
         enriched.append((m, v, base))
 
     picked: List[Tuple[Dict[str, Any], List[float], float]] = []
-    picked_roots: Set[str] = set()
+    picked_roots: Dict[str, int] = defaultdict(int)
+    picked_genres: Dict[str, int] = defaultdict(int)
     rest = enriched[:]
+    strict = True
 
     while rest and len(picked) < k:
-        best_idx = 0
+        best_idx = -1
         best_key = (-1e9, -1e9, "")
 
         for i, (m, v, base) in enumerate(rest):
+            root = _title_root(str(m.get("title", "")))
+            genre = _primary_genre(m)
+            root_count = picked_roots.get(root, 0) if root else 0
+            genre_count = picked_genres.get(genre, 0) if genre else 0
+
+            franchise_block = bool(root and max_per_franchise > 0 and root_count >= max_per_franchise)
+            genre_block = bool(genre and max_per_primary_genre > 0 and genre_count >= max_per_primary_genre)
+            if strict and (franchise_block or genre_block):
+                continue
+
             if not picked:
                 div = 1.0
             else:
-                sim = max(_cosine(v, pv) for _, pv, _ in picked)
+                sim = max(_centered_cosine01(v, pv) for _, pv, _ in picked)
                 div = 1.0 - sim
 
-            root = _title_root(str(m.get("title", "")))
-            franchise_penalty = 0.06 if root and root in picked_roots else 0.0
+            franchise_penalty = 0.08 * root_count
+            genre_penalty = 0.05 * genre_count
 
-            mmr = lambda_ * base + (1.0 - lambda_) * div - franchise_penalty
+            mmr = lambda_ * base + (1.0 - lambda_) * div - franchise_penalty - genre_penalty
             tie_title = str(m.get("title", ""))
             key = (mmr, base, tie_title)
             if key > best_key:
                 best_key = key
                 best_idx = i
 
+        if best_idx < 0:
+            if strict:
+                strict = False
+                continue
+            break
+
         chosen = rest.pop(best_idx)
         picked.append(chosen)
         root = _title_root(str(chosen[0].get("title", "")))
+        genre = _primary_genre(chosen[0])
         if root:
-            picked_roots.add(root)
+            picked_roots[root] += 1
+        if genre:
+            picked_genres[genre] += 1
+        strict = True
 
     result = []
     for m, _, base in picked:
@@ -416,24 +561,33 @@ def recommend():
 
     scored.sort(
         key=lambda x: (
-            _safe_float(x.get("rank_score"), 0.0),
-            _safe_float(x.get("match"), 0.0),
-            _safe_float(x.get("popularity"), 0.0),
-            _safe_float(x.get("vote_count"), 0.0),
-        ),
-        reverse=True,
+            -_safe_float(x.get("rank_score"), 0.0),
+            -_safe_float(x.get("match"), 0.0),
+            str(x.get("title", "")).lower(),
+            str(x.get("id", "")),
+        )
     )
 
     seen = _get_recently_seen_ids(session_id, lookback_days=21)
     adaptive_lambda = _adaptive_lambda(user_traits, overall_conf, seen_count=len(seen))
+    rng = _stable_rng(session_id, user_traits, overall_conf)
+    rerank_input, explore_ratio, rerank_band = _sample_rerank_pool(
+        scored,
+        pool_size=rerank_pool_size,
+        user_traits=user_traits,
+        overall_conf=overall_conf,
+        rng=rng,
+    )
 
     reranked = _mmr_diversify(
-        scored[:rerank_pool_size],
+        rerank_input,
         user_traits=user_traits,
         k=6,
         lambda_=adaptive_lambda,
         seen_ids=seen,
         seen_penalty=0.08 + 0.07 * (1.0 - overall_conf),
+        max_per_primary_genre=MAX_PER_PRIMARY_GENRE,
+        max_per_franchise=MAX_PER_FRANCHISE,
     )
 
     _calibrate_matches(reranked)
@@ -496,6 +650,11 @@ def recommend():
                 "candidate_limit": candidate_limit,
                 "prefilter": prefilter_n,
                 "rerank_pool": rerank_pool_size,
+                "rerank_band": rerank_band,
+                "explore_ratio": round(explore_ratio, 4),
+                "max_per_primary_genre": MAX_PER_PRIMARY_GENRE,
+                "max_per_franchise": MAX_PER_FRANCHISE,
+                "popularity_bias_max": round(POPULARITY_BIAS_MAX, 4),
             },
             "session_id": session_id,
         }

@@ -121,6 +121,16 @@ def _cosine(a: List[float], b: List[float]) -> float:
     return num / (da * db)
 
 
+def _centered_cosine01(a: List[float], b: List[float]) -> float:
+    """Cosine on centered [0,1] vectors, mapped to [0,1]."""
+    ac = [float(x) - 0.5 for x in a]
+    bc = [float(y) - 0.5 for y in b]
+    raw = _cosine(ac, bc)
+    if not math.isfinite(raw):
+        return 0.5
+    return max(0.0, min(1.0, 0.5 * (raw + 1.0)))
+
+
 def _safe_trait_map(raw: Any) -> Dict[str, float]:
     obj = _json_obj(raw)
     clean: Dict[str, float] = {}
@@ -278,17 +288,17 @@ def hybrid_candidates(
     pre_n = max(limit, min(prefilter, len(records)))
     pool = records[:pre_n]
 
-    uvec = [float(user_traits.get(k, 0.0)) for k in TRAITS]
+    uvec = [float(user_traits.get(k, 0.5)) for k in TRAITS]
 
     trait_scores: Dict[int, float] = {}
     for rec in pool:
-        mvec = [float(rec["traits"].get(k, 0.0)) for k in TRAITS]
-        score = _cosine(uvec, mvec)
+        mvec = [float(rec["traits"].get(k, 0.5)) for k in TRAITS]
+        score = _centered_cosine01(uvec, mvec)
         trait_scores[int(rec["_idx"])] = score
 
     trait_ranked = sorted(
         trait_scores.items(),
-        key=lambda x: (x[1], _as_float(records[x[0]].get("popularity"), 0.0)),
+        key=lambda x: x[1],
         reverse=True,
     )
     trait_top = dict(trait_ranked[: max(limit, trait_pool)])
@@ -355,12 +365,11 @@ def hybrid_candidates(
 
     out.sort(
         key=lambda m: (
-            float(m.get("match", 0.0)),
-            float(m.get("trait_score", 0.0)),
-            float(m.get("text_score", 0.0)),
-            float(m.get("popularity", 0.0)),
-        ),
-        reverse=True,
+            -float(m.get("match", 0.0)),
+            -float(m.get("trait_score", 0.0)),
+            -float(m.get("text_score", 0.0)),
+            str(m.get("title", "")).lower(),
+        )
     )
     return out[:limit]
 
