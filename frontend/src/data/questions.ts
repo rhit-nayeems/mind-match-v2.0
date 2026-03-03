@@ -389,12 +389,39 @@ export function buildAdaptiveQuizQuestions(
   );
   const todayCount = Math.max(2, Math.min(TODAY_ADAPTIVE_POOL.length, options?.todayCount ?? DEFAULT_ADAPTIVE_PER_GROUP));
 
-  const askedIds = new Set(asked.map((q) => q.id));
-  for (const id of options?.excludeIds ?? []) askedIds.add(id);
-  const personality = selectAdaptiveQuestions(PERSONALITY_ADAPTIVE_POOL, personalityCount, traitNeed, askedIds);
-  const today = selectAdaptiveQuestions(TODAY_ADAPTIVE_POOL, todayCount, traitNeed, askedIds);
+  const baseAskedIds = new Set(asked.map((q) => q.id));
+  const strictAskedIds = new Set(baseAskedIds);
+  for (const id of options?.excludeIds ?? []) strictAskedIds.add(id);
 
-  return [...personality, ...today];
+  let personality = selectAdaptiveQuestions(PERSONALITY_ADAPTIVE_POOL, personalityCount, traitNeed, strictAskedIds);
+  let today = selectAdaptiveQuestions(TODAY_ADAPTIVE_POOL, todayCount, traitNeed, strictAskedIds);
+
+  // If recent-history exclusions are too strict, relax them so adaptive phase always appears.
+  if (personality.length < personalityCount) {
+    const relaxedAsked = new Set(baseAskedIds);
+    for (const q of personality) relaxedAsked.add(q.id);
+    const topup = selectAdaptiveQuestions(
+      PERSONALITY_ADAPTIVE_POOL,
+      personalityCount - personality.length,
+      traitNeed,
+      relaxedAsked
+    );
+    personality = [...personality, ...topup];
+  }
+
+  if (today.length < todayCount) {
+    const relaxedAsked = new Set(baseAskedIds);
+    for (const q of today) relaxedAsked.add(q.id);
+    const topup = selectAdaptiveQuestions(
+      TODAY_ADAPTIVE_POOL,
+      todayCount - today.length,
+      traitNeed,
+      relaxedAsked
+    );
+    today = [...today, ...topup];
+  }
+
+  return [...personality.slice(0, personalityCount), ...today.slice(0, todayCount)];
 }
 
 function normalizeQuestionSet(questionSet?: Question[]): Question[] {
