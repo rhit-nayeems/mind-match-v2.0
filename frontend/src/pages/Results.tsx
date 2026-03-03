@@ -138,11 +138,11 @@ export default function Results() {
   const selected = recs[selectedIdx]
 
   return (
-    <div className="py-4 md:py-6">
-      <section className="surface p-5 md:p-8">
+    <div className="py-5 md:py-8">
+      <section className="surface p-6 md:p-9">
         <header className="text-center">
           <span className="outline-chip">personal profile synthesis</span>
-          <h1 className="headline mt-4 text-3xl text-zinc-100 md:text-4xl">Your Match Matrix</h1>
+          <h1 className="headline mt-4 text-4xl text-zinc-100 md:text-5xl">Your Match Matrix</h1>
           <p className="mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-zinc-300 md:text-base">
             {data?.profile?.summary ?? 'Computing your profile summary...'}
           </p>
@@ -153,9 +153,9 @@ export default function Results() {
           </div>
         </header>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="mt-9 grid grid-cols-1 gap-7 lg:grid-cols-12">
           <section className="lg:col-span-7">
-            <h2 className="headline mb-4 text-lg text-zinc-100">Recommended Titles</h2>
+            <h2 className="headline mb-4 text-xl text-zinc-100">Recommended Titles</h2>
 
             {isLoading ? (
               <div className="grid gap-5 sm:grid-cols-2">
@@ -197,9 +197,9 @@ export default function Results() {
                         }
                       }}
                       className={[
-                        'w-full overflow-hidden rounded-2xl border p-4 text-left transition-all',
-                        'bg-white/[0.03] hover:bg-white/[0.09] border-white/15',
-                        active ? 'border-white/65 shadow-[0_0_0_1px_rgba(255,255,255,.35)]' : '',
+                        'w-full overflow-hidden rounded-2xl border border-white/15 bg-white/[0.03] p-4 text-left transition-all shadow-[0_7px_18px_rgba(0,0,0,0.25)] hover:border-white/30',
+                        'hover:bg-white/[0.08]',
+                        active ? 'border-white/70 shadow-[0_0_0_1px_rgba(255,255,255,.3),0_12px_24px_rgba(0,0,0,0.35)]' : '',
                       ].join(' ')}
                     >
                       <div className="flex gap-4">
@@ -207,7 +207,7 @@ export default function Results() {
                           <MoviePoster
                             posterUrl={m.posterUrl || undefined}
                             title={m.title}
-                            className="h-36 w-24 rounded-xl bg-black/40"
+                            className="h-36 w-24 rounded-xl bg-black/40 ring-1 ring-white/10"
                           />
                         </div>
 
@@ -290,7 +290,7 @@ export default function Results() {
                             </div>
                             <div className="mt-1 h-2 overflow-hidden rounded-full border border-white/15 bg-white/10">
                               <div
-                                className="h-full rounded-full bg-white"
+                                className="h-full rounded-full bg-gradient-to-r from-white to-zinc-400"
                                 style={{
                                   width: `${Math.min(
                                     100,
@@ -309,9 +309,9 @@ export default function Results() {
             )}
           </section>
 
-          <aside className="lg:col-span-5">
-            <h2 className="headline mb-4 text-lg text-zinc-100">Profile vs Selected Movie</h2>
-            <div className="surface-soft p-5">
+          <aside className="lg:col-span-5 lg:sticky lg:top-24 lg:self-start">
+            <h2 className="headline mb-4 text-xl text-zinc-100">Profile vs Selected Movie</h2>
+            <div className="surface-soft p-6">
               <div className="flex items-center justify-between">
                 <div className="min-w-0">
                   <div className="text-xs uppercase tracking-[0.14em] text-zinc-500">selected</div>

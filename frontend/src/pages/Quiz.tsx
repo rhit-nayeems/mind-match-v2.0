@@ -320,11 +320,11 @@ export default function Quiz() {
       <div
         key={qid}
         className={[
-          "rounded-2xl border p-5 transition-colors bg-white/[0.03] border-white/15",
+          "rounded-2xl border border-white/15 bg-white/[0.03] p-5 transition-all shadow-[0_6px_16px_rgba(0,0,0,0.24)] hover:border-white/30",
           isMissing ? "ring-2 ring-white/60" : "",
         ].join(" ")}
       >
-        <div className="mb-3 text-base font-medium text-zinc-100">{text}</div>
+        <div className="mb-3 text-base font-semibold leading-relaxed text-zinc-100">{text}</div>
         <div className="flex flex-wrap gap-2.5">
           {choices.map((c: any) => {
             const checked = responses[qid] === c.id;
@@ -350,10 +350,10 @@ export default function Quiz() {
                     }
                   }}
                   className={[
-                    "cursor-pointer select-none rounded-xl border px-3 py-2 outline-none",
+                    "cursor-pointer select-none rounded-xl border px-3 py-2.5 outline-none transition-all",
                     checked
-                      ? "border-white bg-white text-black shadow-[0_0_0_1px_rgba(255,255,255,.35)]"
-                      : "border-white/15 bg-black/35 text-zinc-200 hover:bg-white/10",
+                      ? "border-white bg-white text-black shadow-[0_8px_18px_rgba(0,0,0,0.3)]"
+                      : "border-white/15 bg-black/35 text-zinc-200 hover:border-white/35 hover:bg-white/12",
                     "focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
                     "peer-focus-visible:ring-2 peer-focus-visible:ring-white/70 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-black",
                   ].join(" ")}
@@ -371,8 +371,8 @@ export default function Quiz() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-2 pb-24 pt-4 md:px-4">
-      <div className="surface p-5 md:p-7">
+    <div className="mx-auto max-w-5xl px-2 pb-24 pt-4 md:px-4">
+      <div className="surface p-6 md:p-8">
         <div ref={topRef} />
 
         <div className="mb-5 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
@@ -393,15 +393,15 @@ export default function Quiz() {
           <div className="h-full bg-white transition-all" style={{ width: `${progress}%` }} />
         </div>
 
-        <h1 className="headline mb-2 text-2xl text-zinc-100 md:text-3xl">Calibrate Your Movie DNA</h1>
-        <p className="mb-6 max-w-2xl text-zinc-300">
+        <h1 className="headline mb-2 text-3xl text-zinc-100 md:text-4xl">Calibrate Your Movie DNA</h1>
+        <p className="mb-7 max-w-2xl text-sm leading-relaxed text-zinc-300 md:text-base">
           Answer a short sequence about your taste profile and how you feel tonight.
         </p>
 
         <div className="space-y-4">{currentQs.map((q) => renderQ(q.id, q.text, q.choices))}</div>
 
         <div className="sticky bottom-0 left-0 right-0 mt-6">
-          <div className="rounded-2xl border border-white/15 bg-black/90 px-4 py-3">
+          <div className="rounded-2xl border border-white/20 bg-black/80 px-4 py-3 backdrop-blur">
             <div className="mx-auto flex max-w-4xl items-center justify-between">
               <button
                 type="button"

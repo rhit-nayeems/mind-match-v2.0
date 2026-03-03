@@ -1,18 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --mm-bg: #050505;
-  --mm-bg-soft: #0c0c0c;
-  --mm-panel: rgba(255, 255, 255, 0.04);
-  --mm-panel-strong: rgba(255, 255, 255, 0.08);
+  --mm-bg: #030303;
+  --mm-bg-soft: #0a0a0a;
+  --mm-panel: rgba(255, 255, 255, 0.045);
+  --mm-panel-soft: rgba(255, 255, 255, 0.03);
+  --mm-panel-strong: rgba(255, 255, 255, 0.085);
   --mm-border: rgba(255, 255, 255, 0.14);
-  --mm-border-strong: rgba(255, 255, 255, 0.35);
-  --mm-text: #f5f5f5;
-  --mm-muted: #a7a7a7;
+  --mm-border-strong: rgba(255, 255, 255, 0.4);
+  --mm-text: #f4f4f5;
+  --mm-muted: #9f9fa5;
+  --mm-glow: rgba(255, 255, 255, 0.15);
 }
 
 html,
@@ -23,17 +25,43 @@ body,
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at 84% -6%, rgba(255, 255, 255, 0.1), transparent 32%),
-    radial-gradient(circle at 10% 112%, rgba(255, 255, 255, 0.08), transparent 36%),
-    radial-gradient(circle at 24% -12%, #141414 0%, var(--mm-bg) 44%, #000 100%);
   color: var(--mm-text);
-  font-family: "Space Grotesk", "Helvetica Neue", sans-serif;
+  font-family: 'Sora', 'Helvetica Neue', sans-serif;
   letter-spacing: 0.01em;
+  background:
+    radial-gradient(circle at 12% -10%, rgba(255, 255, 255, 0.1), transparent 32%),
+    radial-gradient(circle at 86% 6%, rgba(255, 255, 255, 0.08), transparent 36%),
+    radial-gradient(circle at 76% 106%, rgba(255, 255, 255, 0.07), transparent 34%),
+    linear-gradient(160deg, #0b0b0b 0%, var(--mm-bg) 46%, #000 100%);
 }
 
 .gradient {
   background: transparent;
+}
+
+.headline {
+  font-family: 'Sora', 'Helvetica Neue', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.code-label,
+.outline-chip {
+  font-family: 'Space Mono', 'Consolas', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.outline-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--mm-border);
+  border-radius: 999px;
+  padding: 0.36rem 0.74rem;
+  color: #d7d7dc;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
 }
 
 .card,
@@ -41,17 +69,25 @@ body {
 .surface,
 .surface-soft {
   border: 1px solid var(--mm-border);
-  background: var(--mm-panel);
 }
 
 .surface {
-  border-radius: 20px;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.38);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%),
+    var(--mm-panel);
+  box-shadow:
+    0 22px 40px rgba(0, 0, 0, 0.46),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(8px);
 }
 
 .surface-soft {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.025);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
+    var(--mm-panel-soft);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .btn,
@@ -61,19 +97,24 @@ body {
   justify-content: center;
   gap: 0.5rem;
   border-radius: 999px;
-  padding: 0.65rem 1.2rem;
+  padding: 0.68rem 1.25rem;
   border: 1px solid var(--mm-border-strong);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
-  color: var(--mm-text);
-  font-weight: 600;
-  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.11));
+  color: #050505;
+  font-weight: 700;
+  transition: transform 200ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
 }
 
 .btn:hover,
 .btn-neo:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.32);
-  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(255, 255, 255, 0.22) inset;
 }
 
 .btn:disabled,
@@ -87,37 +128,14 @@ body {
   border: 1px solid var(--mm-border);
   background: rgba(255, 255, 255, 0.03);
   color: var(--mm-text);
-  padding: 0.6rem 1.1rem;
-  transition: border-color 220ms ease, background 220ms ease;
+  padding: 0.62rem 1.12rem;
+  transition: border-color 220ms ease, background 220ms ease, transform 200ms ease;
 }
 
 .btn-ghost:hover {
   border-color: var(--mm-border-strong);
-  background: rgba(255, 255, 255, 0.09);
-}
-
-.headline {
-  font-family: "Space Grotesk", "Helvetica Neue", sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-}
-
-.code-label,
-.outline-chip {
-  font-family: "IBM Plex Mono", "Consolas", monospace;
-  font-size: 0.73rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.outline-chip {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--mm-border);
-  border-radius: 999px;
-  padding: 0.35rem 0.7rem;
-  color: #d8d8d8;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
 }
 
 .tech-shell {
@@ -144,104 +162,96 @@ body {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size: 62px 62px;
-  opacity: 0.17;
-  -webkit-mask-image: radial-gradient(circle at 50% 42%, black 20%, rgba(0, 0, 0, 0.7) 58%, transparent 100%);
-  mask-image: radial-gradient(circle at 50% 42%, black 20%, rgba(0, 0, 0, 0.7) 58%, transparent 100%);
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: 0.12;
+  mask-image: radial-gradient(circle at 50% 38%, black 18%, rgba(0, 0, 0, 0.74) 60%, transparent 100%);
 }
-
 
 .tech-web {
   position: absolute;
-  inset: 0;
+  inset: -8% -14%;
   background-image:
-    linear-gradient(120deg, transparent 47.8%, rgba(255, 255, 255, 0.1) 49.7%, rgba(255, 255, 255, 0.1) 50.3%, transparent 52.2%),
-    linear-gradient(60deg, transparent 47.8%, rgba(255, 255, 255, 0.08) 49.7%, rgba(255, 255, 255, 0.08) 50.3%, transparent 52.2%);
-  background-size: 340px 210px, 340px 210px;
-  background-position: -80px -40px, 110px -70px;
-  opacity: 0.18;
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.75) 60%, transparent 100%);
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.75) 60%, transparent 100%);
+    linear-gradient(128deg, transparent 48.6%, rgba(255, 255, 255, 0.11) 49.5%, rgba(255, 255, 255, 0.11) 50.2%, transparent 51.1%),
+    linear-gradient(58deg, transparent 48.6%, rgba(255, 255, 255, 0.09) 49.5%, rgba(255, 255, 255, 0.09) 50.2%, transparent 51.1%);
+  background-size: 300px 190px, 300px 190px;
+  opacity: 0.15;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.45) 62%, transparent);
 }
-
 
 .tech-circuit {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(90deg, transparent 8%, rgba(255, 255, 255, 0.12) 8.4%, rgba(255, 255, 255, 0.12) 8.8%, transparent 9.2%),
-    linear-gradient(90deg, transparent 26%, rgba(255, 255, 255, 0.08) 26.4%, rgba(255, 255, 255, 0.08) 26.8%, transparent 27.2%),
-    linear-gradient(90deg, transparent 48%, rgba(255, 255, 255, 0.1) 48.4%, rgba(255, 255, 255, 0.1) 48.8%, transparent 49.2%),
-    linear-gradient(90deg, transparent 71%, rgba(255, 255, 255, 0.08) 71.4%, rgba(255, 255, 255, 0.08) 71.8%, transparent 72.2%),
-    linear-gradient(0deg, transparent 17%, rgba(255, 255, 255, 0.08) 17.3%, rgba(255, 255, 255, 0.08) 17.7%, transparent 18%),
-    linear-gradient(0deg, transparent 34%, rgba(255, 255, 255, 0.06) 34.3%, rgba(255, 255, 255, 0.06) 34.7%, transparent 35%),
-    linear-gradient(0deg, transparent 52%, rgba(255, 255, 255, 0.08) 52.3%, rgba(255, 255, 255, 0.08) 52.7%, transparent 53%),
-    linear-gradient(0deg, transparent 69%, rgba(255, 255, 255, 0.06) 69.3%, rgba(255, 255, 255, 0.06) 69.7%, transparent 70%);
-  opacity: 0.12;
-  -webkit-mask-image: radial-gradient(circle at 50% 20%, black 20%, rgba(0, 0, 0, 0.8) 55%, transparent 100%);
-  mask-image: radial-gradient(circle at 50% 20%, black 20%, rgba(0, 0, 0, 0.8) 55%, transparent 100%);
+    linear-gradient(90deg, transparent 9%, rgba(255, 255, 255, 0.1) 9.35%, rgba(255, 255, 255, 0.1) 9.75%, transparent 10.1%),
+    linear-gradient(90deg, transparent 31%, rgba(255, 255, 255, 0.08) 31.35%, rgba(255, 255, 255, 0.08) 31.75%, transparent 32.1%),
+    linear-gradient(90deg, transparent 56%, rgba(255, 255, 255, 0.09) 56.35%, rgba(255, 255, 255, 0.09) 56.75%, transparent 57.1%),
+    linear-gradient(90deg, transparent 78%, rgba(255, 255, 255, 0.08) 78.35%, rgba(255, 255, 255, 0.08) 78.75%, transparent 79.1%),
+    linear-gradient(0deg, transparent 20%, rgba(255, 255, 255, 0.07) 20.3%, rgba(255, 255, 255, 0.07) 20.7%, transparent 21%),
+    linear-gradient(0deg, transparent 45%, rgba(255, 255, 255, 0.07) 45.3%, rgba(255, 255, 255, 0.07) 45.7%, transparent 46%),
+    linear-gradient(0deg, transparent 67%, rgba(255, 255, 255, 0.06) 67.3%, rgba(255, 255, 255, 0.06) 67.7%, transparent 68%);
+  opacity: 0.09;
+  mask-image: radial-gradient(circle at 50% 24%, black 18%, rgba(0, 0, 0, 0.75) 56%, transparent 100%);
 }
 
 .tech-spokes {
   position: absolute;
-  width: 124vmax;
-  height: 124vmax;
+  width: 128vmax;
+  height: 128vmax;
   left: 50%;
-  top: -64vmax;
+  top: -68vmax;
   transform: translateX(-50%);
   background: repeating-conic-gradient(
-    from -10deg,
-    rgba(255, 255, 255, 0.07) 0deg 0.6deg,
-    transparent 0.6deg 12deg
+    from -8deg,
+    rgba(255, 255, 255, 0.07) 0deg 0.7deg,
+    transparent 0.7deg 13deg
   );
-  opacity: 0.06;
-  -webkit-mask-image: radial-gradient(circle at 50% 70%, transparent 0%, black 19%, black 48%, transparent 76%);
-  mask-image: radial-gradient(circle at 50% 70%, transparent 0%, black 19%, black 48%, transparent 76%);
+  opacity: 0.05;
+  mask-image: radial-gradient(circle at 50% 70%, transparent 0%, black 20%, black 48%, transparent 76%);
 }
 
 .tech-nodes {
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle at 14% 22%, rgba(255, 255, 255, 0.35) 0 1.5px, transparent 2px),
-    radial-gradient(circle at 28% 36%, rgba(255, 255, 255, 0.22) 0 1px, transparent 1.7px),
-    radial-gradient(circle at 44% 18%, rgba(255, 255, 255, 0.28) 0 1.3px, transparent 2px),
-    radial-gradient(circle at 61% 34%, rgba(255, 255, 255, 0.25) 0 1.2px, transparent 1.9px),
-    radial-gradient(circle at 78% 24%, rgba(255, 255, 255, 0.3) 0 1.4px, transparent 2px),
-    radial-gradient(circle at 86% 40%, rgba(255, 255, 255, 0.22) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 20% 58%, rgba(255, 255, 255, 0.2) 0 1.1px, transparent 1.8px),
-    radial-gradient(circle at 52% 62%, rgba(255, 255, 255, 0.3) 0 1.3px, transparent 2px),
-    radial-gradient(circle at 72% 58%, rgba(255, 255, 255, 0.2) 0 1.1px, transparent 1.8px);
-  opacity: 0.38;
+    radial-gradient(circle at 14% 20%, rgba(255, 255, 255, 0.32) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 27% 34%, rgba(255, 255, 255, 0.22) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 42% 17%, rgba(255, 255, 255, 0.26) 0 1.2px, transparent 1.9px),
+    radial-gradient(circle at 62% 33%, rgba(255, 255, 255, 0.24) 0 1.1px, transparent 1.7px),
+    radial-gradient(circle at 78% 23%, rgba(255, 255, 255, 0.3) 0 1.4px, transparent 2px),
+    radial-gradient(circle at 88% 38%, rgba(255, 255, 255, 0.21) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 22% 57%, rgba(255, 255, 255, 0.19) 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 53% 63%, rgba(255, 255, 255, 0.28) 0 1.3px, transparent 2px),
+    radial-gradient(circle at 71% 58%, rgba(255, 255, 255, 0.2) 0 1.1px, transparent 1.8px);
+  opacity: 0.34;
 }
 
 .tech-orb {
   position: absolute;
   border-radius: 999px;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.07) 30%, rgba(255, 255, 255, 0) 64%);
-  animation: orb-drift 26s ease-in-out infinite alternate;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.06) 32%, rgba(255, 255, 255, 0) 64%);
+  animation: orb-drift 22s ease-in-out infinite alternate;
   will-change: transform;
 }
 
 .tech-orb.a {
-  width: 42vw;
-  height: 42vw;
-  min-width: 240px;
-  min-height: 240px;
-  top: -14vw;
-  left: -9vw;
+  width: 40vw;
+  height: 40vw;
+  min-width: 220px;
+  min-height: 220px;
+  top: -12vw;
+  left: -7vw;
 }
 
 .tech-orb.b {
-  width: 34vw;
-  height: 34vw;
-  min-width: 200px;
-  min-height: 200px;
-  bottom: -10vw;
-  right: -8vw;
-  animation-duration: 32s;
+  width: 30vw;
+  height: 30vw;
+  min-width: 180px;
+  min-height: 180px;
+  bottom: -8vw;
+  right: -7vw;
+  animation-duration: 30s;
 }
 
 .tech-noise {
@@ -257,17 +267,17 @@ body {
     transform: translate3d(0, 0, 0) scale(1);
   }
   100% {
-    transform: translate3d(14px, -16px, 0) scale(1.04);
+    transform: translate3d(12px, -14px, 0) scale(1.04);
   }
 }
 
 @keyframes pulse-soft {
   0%,
   100% {
-    opacity: 0.46;
+    opacity: 0.44;
   }
   50% {
-    opacity: 0.8;
+    opacity: 0.78;
   }
 }
 
@@ -283,10 +293,10 @@ body {
 }
 
 .skeleton::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.11), transparent);
   background-size: 1000px 100%;
   animation: shimmer 2.3s infinite;
 }
@@ -318,28 +328,24 @@ body {
   }
 
   .tech-web {
-    opacity: 0.13;
-    background-size: 250px 150px, 250px 150px;
+    opacity: 0.12;
+    background-size: 230px 145px, 230px 145px;
   }
 
   .tech-circuit {
-    opacity: 0.08;
+    opacity: 0.07;
   }
 
   .tech-nodes {
-    opacity: 0.24;
+    opacity: 0.22;
   }
 
   .tech-orb {
     display: none;
   }
 
-  .tech-noise {
-    opacity: 0.012;
-  }
-
   .surface {
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.26);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 }
 
