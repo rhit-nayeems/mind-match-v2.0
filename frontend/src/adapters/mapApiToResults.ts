@@ -1,6 +1,6 @@
 // frontend/src/adapters/mapApiToResults.ts
-// Normalizes your backend JSON to exactly what Results.tsx expects.
-// If your backend already sends the same fields, this will just pass them through.
+// Normalizes backend JSON to what Results.tsx expects.
+// If backend fields already match, this mostly passes them through.
 
 export type UserTraits = { [k: string]: number };
 
@@ -18,8 +18,9 @@ function normalizePoster(u?: any): string {
   if (s.startsWith("http://") || s.startsWith("https://")) return s;
   if (s.startsWith("/")) return TMDB_BASE + s; // TMDB relative path
   // Sometimes backends send "t/p/w500/..." or "w500/..." without the leading slash
-  if (s.startsWith("t/p/") || s.startsWith("w500/"))
+  if (s.startsWith("t/p/") || s.startsWith("w500/")) {
     return TMDB_BASE + "/" + s.replace(/^\/?/, "");
+  }
   return s;
 }
 
@@ -27,12 +28,12 @@ export function mapApiToResults(api: ApiResponse) {
   const userTraits = (api.profile?.traits ?? {}) as UserTraits;
   const profileSummary =
     api.profile?.summary ??
-    "Tonight you’re feeling playful and comfort-seeking and uplifting.";
+    "Tonight your profile leans playful, warm, and comfort-seeking.";
 
   const raw = Array.isArray(api.recommendations) ? api.recommendations : [];
 
   const recommendations = raw.map((m: ApiMovie, i: number) => {
-    // tolerate many field names from different backends
+    // Tolerate many field names from different backends
     const rawPoster =
       m.posterUrl ??
       m.poster_url ??
@@ -66,7 +67,7 @@ export function mapApiToResults(api: ApiResponse) {
       match,
       traits,
       genre: (m.genre ?? m.genres ?? []).slice(0, 3),
-      director: m.director ?? "—",
+      director: m.director ?? "Unknown",
       rating: m.rating ?? "NR",
     };
   });

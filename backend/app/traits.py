@@ -21,10 +21,10 @@ DISPLAY_NAME = {
 LOW_PREF = {
     "darkness": "very bleak material",
     "energy": "hyper-fast pacing",
-    "mood": "pure style over story",
-    "depth": "heavily cerebral plots",
-    "optimism": "saccharine tones",
-    "novelty": "experimental structure",
+    "mood": "style that ignores story",
+    "depth": "dense, theory-heavy plots",
+    "optimism": "overly sweet tone",
+    "novelty": "highly experimental structure",
     "comfort": "overly cozy beats",
     "intensity": "constant high stress",
     "humor": "joke-heavy writing",
@@ -91,19 +91,19 @@ def _pair_style(top_a: str, top_b: str) -> str:
 def _novelty_vs_comfort(g: Dict[str, float]) -> str:
     delta = g["novelty"] - g["comfort"]
     if delta >= 0.14:
-        return "You lean toward discovery over familiarity, so fresh worlds and unusual angles are likely to land."
+        return "You lean toward discovery over familiarity, so unusual settings and fresh ideas should hit well."
     if delta <= -0.14:
-        return "You lean toward familiarity over disruption, so grounded stories with emotional payoff are likely to land."
-    return "You sit near the middle between discovery and familiarity, so you can enjoy a smart blend of both."
+        return "You lean toward familiarity over disruption, so grounded stories with emotional payoff should hit well."
+    return "You sit near the middle of discovery and familiarity, so hybrid picks usually work best."
 
 
 def _light_vs_dark(g: Dict[str, float]) -> str:
     delta = g["optimism"] - g["darkness"]
     if delta >= 0.12:
-        return "Tone-wise, you skew brighter than dark, with a preference for hope over bleakness."
+        return "Tone-wise, you skew brighter than dark and usually prefer hope over bleakness."
     if delta <= -0.12:
-        return "Tone-wise, you tolerate darker material well, especially when the stakes feel earned."
-    return "Tone-wise, you are comfortable with balanced light and shadow rather than extremes."
+        return "Tone-wise, you can handle darker material, especially when the stakes feel earned."
+    return "Tone-wise, you are comfortable with balanced light and shadow."
 
 
 def answers_to_traits(answers: List[float]) -> Dict[str, float]:
@@ -125,44 +125,43 @@ def summarize_traits(traits: Dict[str, float]) -> str:
 
     opener_map = {
         "explorer": [
-            "Your profile reads as a curious explorer.",
-            "You come through as an exploration-first viewer.",
+            "You usually pick movies that feel fresh and kinetic.",
+            "Your taste leans curious, fast-moving, and discovery-first.",
         ],
         "reflective": [
-            "Your profile reads as reflective and grounded.",
-            "You come through as thoughtful with a calm center.",
+            "You gravitate toward grounded stories with substance.",
+            "Your taste leans thoughtful, patient, and character-forward.",
         ],
         "edge": [
-            "Your profile reads as edge-driven and high-stakes.",
-            "You come through as intense and comfortable with darker turns.",
+            "You are comfortable with tension and darker turns.",
+            "Your taste leans high-stakes, intense, and emotionally bold.",
         ],
         "bright": [
-            "Your profile reads as bright-toned and playful.",
-            "You come through as warm, witty, and upbeat.",
+            "You lean toward warmth, wit, and emotional lift.",
+            "Your taste favors upbeat tone and playful writing.",
         ],
         "atmospheric": [
-            "Your profile reads as atmosphere-first and introspective.",
-            "You come through as tone-aware with a depth bias.",
+            "You care a lot about mood and cinematic texture.",
+            "Your taste favors atmosphere and introspection.",
         ],
         "curious": [
-            "Your profile reads as curious and concept-forward.",
-            "You come through as open to ideas and novelty.",
+            "You like concept-forward stories with real depth.",
+            "Your taste leans original, idea-driven, and reflective.",
         ],
         "warm": [
-            "Your profile reads as warm and emotionally anchored.",
-            "You come through as comfort-seeking with optimism.",
+            "You prefer emotionally warm stories that still feel earned.",
+            "Your taste leans comforting, optimistic, and human.",
         ],
         "balanced": [
-            "Your profile reads as balanced with clear signal peaks.",
-            "You come through as versatile with a few strong leanings.",
+            "Your profile is balanced, with a few clear spikes.",
+            "You have broad range, but some signals stand out.",
         ],
     }
 
     opener = _pick(opener_map.get(style, opener_map["balanced"]), sig, "opener")
 
     signal_sentence = (
-        f"Your strongest signals are {DISPLAY_NAME[top1[0]]} and {DISPLAY_NAME[top2[0]]}, "
-        f"with {DISPLAY_NAME[top3[0]]} close behind."
+        f"Top signals right now: {DISPLAY_NAME[top1[0]]}, {DISPLAY_NAME[top2[0]]}, and {DISPLAY_NAME[top3[0]]}."
     )
 
     pace = "faster pacing" if g["energy"] >= 0.60 else "steadier pacing"
@@ -171,11 +170,11 @@ def summarize_traits(traits: Dict[str, float]) -> str:
 
     avoid_sentence = ""
     if low1[1] <= 0.34:
-        avoid_sentence = f"You are less likely to enjoy {LOW_PREF[low1[0]]}."
+        avoid_sentence = f"Lower signal area: {LOW_PREF[low1[0]]} may land less often for you."
 
     close_options = [
         f"Best-fit picks should combine {pace}, {weight}, and {humor}.",
-        f"Expect your strongest matches to favor {pace}, {weight}, and {humor}.",
+        f"Your strongest matches should lean toward {pace}, {weight}, and {humor}.",
     ]
     close_sentence = _pick(close_options, sig, "close")
 

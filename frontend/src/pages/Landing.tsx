@@ -38,8 +38,8 @@ export default function Landing() {
               Start matching.
             </h1>
             <p className="mt-5 max-w-xl text-base text-zinc-300 md:text-lg">
-              MindMatch is a black-box-free recommender that profiles your long-term taste and current mood,
-              then returns films that feel deliberate instead of random.
+              MindMatch is a transparent recommender that models your long-term taste and current mood,
+              then returns movies that feel intentionally matched, not random.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -70,9 +70,11 @@ export default function Landing() {
             </div>
             <div className="rounded-xl border border-white/15 bg-white/[0.03] p-4">
               <div className="code-label text-zinc-400">signal path</div>
-              <p className="mt-2 text-sm text-zinc-300">
-                quiz vectors -&gt; weighted similarity -&gt; diversity rerank -&gt; curated top matches
-              </p>
+              <div className="mt-2 overflow-x-auto">
+                <p className="min-w-max whitespace-nowrap text-sm text-zinc-300">
+                  quiz vectors -&gt; weighted similarity -&gt; diversity rerank -&gt; curated top matches
+                </p>
+              </div>
             </div>
           </div>
         </div>
