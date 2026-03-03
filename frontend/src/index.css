@@ -189,7 +189,7 @@ body {
   width: 124vmax;
   height: 124vmax;
   left: 50%;
-  top: -64vmax;
+  top: -69vmax;
   transform: translateX(-50%);
   background: repeating-conic-gradient(
     from -10deg,
@@ -230,7 +230,7 @@ body {
   height: 42vw;
   min-width: 240px;
   min-height: 240px;
-  top: -14vw;
+  top: -19vw;
   left: -9vw;
 }
 

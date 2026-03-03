@@ -29,7 +29,7 @@ export default function Landing() {
         transition={{ duration: 0.55 }}
         className="surface overflow-hidden"
       >
-        <div className="grid gap-8 p-7 md:grid-cols-[1.1fr_0.9fr] md:p-10">
+        <div className="grid items-start gap-8 p-7 md:grid-cols-[1.1fr_0.9fr] md:p-10">
           <div>
             <span className="outline-chip">psychology x cinema intelligence</span>
             <h1 className="headline mt-5 text-4xl leading-tight text-zinc-100 md:text-6xl">
@@ -51,12 +51,12 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="surface-soft grid gap-4 p-4">
-            <div className="rounded-xl border border-white/15 bg-black/35 p-4">
+          <div className="surface-soft grid h-fit content-start gap-3 self-start p-3">
+            <div className="rounded-xl border border-white/15 bg-black/35 p-3">
               <div className="code-label text-zinc-400">sample profile preview</div>
-              <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-zinc-300">
+              <div className="mt-2.5 grid grid-cols-3 gap-1.5 text-xs text-zinc-300">
                 {['depth', 'novelty', 'comfort', 'energy', 'mood', 'humor'].map((k, i) => (
-                  <div key={k} className="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1.5">
+                  <div key={k} className="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1">
                     <div className="uppercase text-[10px] text-zinc-500">{k}</div>
                     <div className="mt-1 h-1.5 rounded-full bg-white/10">
                       <div
@@ -68,7 +68,7 @@ export default function Landing() {
                 ))}
               </div>
             </div>
-            <div className="rounded-xl border border-white/15 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-white/15 bg-white/[0.03] p-3">
               <div className="code-label text-zinc-400">signal path</div>
               <div className="mt-2 overflow-x-auto">
                 <p className="min-w-max whitespace-nowrap text-sm text-zinc-300">
