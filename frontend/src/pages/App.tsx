@@ -8,10 +8,15 @@ export default function App() {
         <div className="tech-grid" />
         <div className="tech-web" />
         <div className="tech-circuit" />
+        <div className="tech-ring" />
         <div className="tech-spokes" />
         <div className="tech-nodes" />
+        <div className="tech-flares" />
+        <div className="tech-scan" />
         <div className="tech-orb a" />
         <div className="tech-orb b" />
+        <div className="tech-noise" />
+        <div className="tech-vignette" />
       </div>
 
       <header className="mx-4 mt-4 rounded-2xl surface px-4 py-3">
@@ -42,4 +47,3 @@ export default function App() {
     </div>
   )
 }
-
