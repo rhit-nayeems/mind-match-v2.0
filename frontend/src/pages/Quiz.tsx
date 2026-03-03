@@ -18,21 +18,33 @@ const VERSION_KEY = "mm_version";
 const RECENT_QIDS_KEY = "mm_recent_question_ids";
 const RECENT_QIDS_MAX = 64;
 
-function ensureSessionId(): string {
-  let sid = localStorage.getItem("mm_session");
-  if (!sid) {
-    // @ts-ignore
-    sid = (crypto?.randomUUID?.() as string) || String(Date.now());
-    localStorage.setItem("mm_session", sid);
+function safeGetItem(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
   }
+}
+
+function safeSetItem(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {}
+}
+
+function ensureSessionId(): string {
+  const existing = safeGetItem("mm_session");
+  if (existing) return existing;
+
+  // @ts-ignore
+  const sid = (crypto?.randomUUID?.() as string) || String(Date.now());
+  safeSetItem("mm_session", sid);
   return sid;
 }
 
-
-
 function readRecentQuestionIds(): string[] {
   try {
-    const raw = localStorage.getItem(RECENT_QIDS_KEY);
+    const raw = safeGetItem(RECENT_QIDS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -49,9 +61,7 @@ function rememberQuestionIds(ids: string[]) {
 
   const prev = readRecentQuestionIds();
   const merged = [...clean, ...prev.filter((id) => !clean.includes(id))].slice(0, RECENT_QIDS_MAX);
-  try {
-    localStorage.setItem(RECENT_QIDS_KEY, JSON.stringify(merged));
-  } catch {}
+  safeSetItem(RECENT_QIDS_KEY, JSON.stringify(merged));
 }
 
 function overlapCount(questions: Question[], recentIds: Set<string>): number {
@@ -140,14 +150,14 @@ export default function Quiz() {
   useEffect(() => {
     ensureSessionId();
 
-    const storedVer = localStorage.getItem(VERSION_KEY);
+    const storedVer = safeGetItem(VERSION_KEY);
     if (storedVer !== APP_STATE_VERSION) {
       try {
         localStorage.removeItem("mm_answers");
         localStorage.removeItem("mm_context");
         localStorage.removeItem("mm_responses");
         localStorage.removeItem("mm_page");
-        localStorage.setItem(VERSION_KEY, APP_STATE_VERSION);
+        safeSetItem(VERSION_KEY, APP_STATE_VERSION);
       } catch {}
       setResponses({});
       setPage(0);
@@ -166,7 +176,7 @@ export default function Quiz() {
         localStorage.removeItem("mm_context");
         localStorage.removeItem("mm_responses");
         localStorage.removeItem("mm_page");
-        localStorage.setItem(VERSION_KEY, APP_STATE_VERSION);
+        safeSetItem(VERSION_KEY, APP_STATE_VERSION);
       } catch {}
       setResponses({});
       setPage(0);
@@ -298,7 +308,7 @@ export default function Quiz() {
         localStorage.setItem("mm_context", JSON.stringify(requestContext));
       } catch {}
 
-      const sid = localStorage.getItem("mm_session") || "";
+      const sid = safeGetItem("mm_session") || ensureSessionId();
       rememberQuestionIds(quizQuestions.map((q) => q.id));
       try {
         await postRecommend(vector, sid, requestContext);
@@ -369,6 +379,24 @@ export default function Quiz() {
       </div>
     );
   };
+
+  if (totalPages === 0) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-10">
+        <div className="surface p-6 text-center">
+          <h1 className="headline text-2xl text-zinc-100">Quiz unavailable</h1>
+          <p className="mt-2 text-zinc-400">Please restart the quiz session.</p>
+          <button
+            type="button"
+            className="btn-neo mt-5"
+            onClick={() => navigate('/quiz', { replace: true, state: { reset: true } })}
+          >
+            Restart Quiz
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-2 pb-24 pt-4 md:px-4">
@@ -441,5 +469,3 @@ export default function Quiz() {
     </div>
   );
 }
-
-

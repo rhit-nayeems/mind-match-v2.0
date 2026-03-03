@@ -1,22 +1,47 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+function safeGetItem(key: string): string | null {
+  try {
+    return localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function safeParseJSON<T>(raw: string | null): T | null {
+  if (!raw) return null
+  try {
+    return JSON.parse(raw) as T
+  } catch {
+    return null
+  }
+}
+
+function normalizeAnswers(input: unknown): number[] | null {
+  if (!Array.isArray(input) || input.length !== 9) return null
+  const out = input.map((x) => Number(x))
+  if (out.some((x) => !Number.isFinite(x))) return null
+  return out
+}
+
 export default function Loading() {
   const nav = useNavigate()
   const loc = useLocation() as any
 
   useEffect(() => {
-    const saved = localStorage.getItem('mm_answers')
-    const answers = loc.state?.answers ?? (saved ? JSON.parse(saved) : null)
+    const answersFromState = normalizeAnswers(loc.state?.answers)
+    const answersFromStorage = normalizeAnswers(safeParseJSON<unknown>(safeGetItem('mm_answers')))
+    const answers = answersFromState ?? answersFromStorage
 
     if (!answers) {
-      nav('/quiz')
+      nav('/quiz', { replace: true })
       return
     }
 
     const t = setTimeout(() => nav('/results', { state: { answers } }), 550)
     return () => clearTimeout(t)
-  }, [])
+  }, [loc.state?.answers, nav])
 
   return (
     <div className="grid min-h-[60vh] place-items-center">
@@ -32,4 +57,3 @@ export default function Loading() {
     </div>
   )
 }
-
