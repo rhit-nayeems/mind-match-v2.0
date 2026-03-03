@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   DEFAULT_ADAPTIVE_PER_GROUP,
+  DEFAULT_CORE_PER_GROUP,
   Question,
   Responses,
   answersToTraitContext,
@@ -14,6 +15,8 @@ import { postRecommend } from "../lib/api";
 const PAGE_SIZE_PER_GROUP = 2;
 const APP_STATE_VERSION = "2026-03-02-2";
 const VERSION_KEY = "mm_version";
+const RECENT_QIDS_KEY = "mm_recent_question_ids";
+const RECENT_QIDS_MAX = 64;
 
 function ensureSessionId(): string {
   let sid = localStorage.getItem("mm_session");
@@ -23,6 +26,40 @@ function ensureSessionId(): string {
     localStorage.setItem("mm_session", sid);
   }
   return sid;
+}
+
+
+
+function readRecentQuestionIds(): string[] {
+  try {
+    const raw = localStorage.getItem(RECENT_QIDS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((x): x is string => typeof x === "string").slice(0, RECENT_QIDS_MAX);
+  } catch {
+    return [];
+  }
+}
+
+function rememberQuestionIds(ids: string[]) {
+  if (!ids.length) return;
+  const clean = ids.filter((x): x is string => typeof x === "string" && x.length > 0);
+  if (!clean.length) return;
+
+  const prev = readRecentQuestionIds();
+  const merged = [...clean, ...prev.filter((id) => !clean.includes(id))].slice(0, RECENT_QIDS_MAX);
+  try {
+    localStorage.setItem(RECENT_QIDS_KEY, JSON.stringify(merged));
+  } catch {}
+}
+
+function overlapCount(questions: Question[], recentIds: Set<string>): number {
+  let overlap = 0;
+  for (const q of questions) {
+    if (recentIds.has(q.id)) overlap += 1;
+  }
+  return overlap;
 }
 
 function splitByGroup<T extends { choices: { group: string }[] }>(qs: T[]) {
@@ -62,9 +99,25 @@ export default function Quiz() {
   const navigate = useNavigate();
   const loc = useLocation() as any;
 
-  const [coreQuestions] = useState<Question[]>(() =>
-    buildCoreQuizQuestions({ personalityCount: 4, todayCount: 4 })
-  );
+  const [coreQuestions] = useState<Question[]>(() => {
+    const recent = new Set(readRecentQuestionIds());
+    const opts = { personalityCount: DEFAULT_CORE_PER_GROUP, todayCount: DEFAULT_CORE_PER_GROUP, excludeIds: recent };
+
+    let best = buildCoreQuizQuestions(opts);
+    let bestOverlap = overlapCount(best, recent);
+
+    for (let i = 0; i < 6; i++) {
+      const cand = buildCoreQuizQuestions(opts);
+      const overlap = overlapCount(cand, recent);
+      if (overlap < bestOverlap) {
+        best = cand;
+        bestOverlap = overlap;
+      }
+      if (bestOverlap === 0) break;
+    }
+
+    return best;
+  });
   const [adaptiveQuestions, setAdaptiveQuestions] = useState<Question[]>([]);
   const [stage, setStage] = useState<"core" | "adaptive">("core");
 
@@ -183,10 +236,26 @@ export default function Quiz() {
   }
 
   function startAdaptivePhase() {
-    const generated = buildAdaptiveQuizQuestions(responses, coreQuestions, {
+    const recent = new Set(readRecentQuestionIds());
+
+    const opts = {
       personalityCount: DEFAULT_ADAPTIVE_PER_GROUP,
       todayCount: DEFAULT_ADAPTIVE_PER_GROUP,
-    });
+      excludeIds: recent,
+    };
+
+    let generated = buildAdaptiveQuizQuestions(responses, coreQuestions, opts);
+    let bestOverlap = overlapCount(generated, recent);
+
+    for (let i = 0; i < 6; i++) {
+      const cand = buildAdaptiveQuizQuestions(responses, coreQuestions, opts);
+      const overlap = overlapCount(cand, recent);
+      if (overlap < bestOverlap) {
+        generated = cand;
+        bestOverlap = overlap;
+      }
+      if (bestOverlap === 0) break;
+    }
 
     if (!generated.length) return false;
 
@@ -230,6 +299,7 @@ export default function Quiz() {
       } catch {}
 
       const sid = localStorage.getItem("mm_session") || "";
+      rememberQuestionIds(quizQuestions.map((q) => q.id));
       try {
         await postRecommend(vector, sid, requestContext);
       } catch {

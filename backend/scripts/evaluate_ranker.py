@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import math
 import random
 import statistics
@@ -13,6 +14,7 @@ from typing import Dict, List
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT))
+os.environ.setdefault("RATELIMIT_DEFAULT", "100000 per minute")
 
 from app import create_app
 from app.catalog_db import count_rows

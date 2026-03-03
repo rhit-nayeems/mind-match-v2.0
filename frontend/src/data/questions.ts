@@ -46,12 +46,12 @@ export type TraitContext = {
   };
 };
 
-export const DEFAULT_CORE_PER_GROUP = 4;
+export const DEFAULT_CORE_PER_GROUP = 5;
 export const DEFAULT_ADAPTIVE_PER_GROUP = 4;
 
-const PERSONALITY_WEIGHT = 0.62;
-const TODAY_WEIGHT = 0.38;
-const SCALE = 0.42;
+const PERSONALITY_WEIGHT = 0.68;
+const TODAY_WEIGHT = 0.32;
+const SCALE = 0.5;
 
 function clamp01(v: number) {
   if (!Number.isFinite(v)) return 0;
@@ -279,8 +279,12 @@ export const QUESTION_BANK: Question[] = [
 // Backward-compatible default question list; runtime quiz uses buildCoreQuizQuestions().
 export const QUESTIONS: Question[] = [...PERSONALITY_CORE_POOL, ...TODAY_CORE_POOL];
 
-function selectCoreQuestions(pool: Question[], count: number): Question[] {
-  const available = shuffle(pool);
+function selectCoreQuestions(pool: Question[], count: number, excludeIds?: Set<string>): Question[] {
+  const excluded = excludeIds ?? new Set<string>();
+  const preferred = shuffle(pool.filter((q) => !excluded.has(q.id)));
+  const backup = shuffle(pool.filter((q) => excluded.has(q.id)));
+  const available = [...preferred, ...backup];
+
   const selected: Question[] = [];
   const covered = makeTraitVector(0);
 
@@ -296,7 +300,8 @@ function selectCoreQuestions(pool: Question[], count: number): Question[] {
         if (covered[k] === 0) newCoverage += 1;
       }
 
-      const score = newCoverage * 2.6 + coverage.length * 0.2 + Math.random() * 0.12;
+      const overlapPenalty = excluded.has(cand.id) ? 0.9 : 0;
+      const score = newCoverage * 2.9 + coverage.length * 0.2 - overlapPenalty + Math.random() * 0.16;
       if (score > bestScore) {
         bestScore = score;
         bestIdx = i;
@@ -311,12 +316,13 @@ function selectCoreQuestions(pool: Question[], count: number): Question[] {
   return shuffle(selected);
 }
 
-export function buildCoreQuizQuestions(options?: { personalityCount?: number; todayCount?: number }): Question[] {
+export function buildCoreQuizQuestions(options?: { personalityCount?: number; todayCount?: number; excludeIds?: Iterable<string> }): Question[] {
   const personalityCount = Math.max(2, Math.min(PERSONALITY_CORE_POOL.length, options?.personalityCount ?? DEFAULT_CORE_PER_GROUP));
   const todayCount = Math.max(2, Math.min(TODAY_CORE_POOL.length, options?.todayCount ?? DEFAULT_CORE_PER_GROUP));
 
-  const personality = selectCoreQuestions(PERSONALITY_CORE_POOL, personalityCount);
-  const today = selectCoreQuestions(TODAY_CORE_POOL, todayCount);
+  const excludeIds = new Set(options?.excludeIds ?? []);
+  const personality = selectCoreQuestions(PERSONALITY_CORE_POOL, personalityCount, excludeIds);
+  const today = selectCoreQuestions(TODAY_CORE_POOL, todayCount, excludeIds);
 
   return [...personality, ...today];
 }
@@ -341,7 +347,7 @@ function selectAdaptiveQuestions(
 
       const need = coverage.reduce((sum, k) => sum + traitNeed[k], 0) / coverage.length;
       const novelty = coverage.reduce((sum, k) => sum + 1 / (1 + usedTraits[k]), 0) / coverage.length;
-      const score = 0.72 * need + 0.25 * novelty + Math.random() * 0.03;
+      const score = 0.7 * need + 0.24 * novelty + Math.random() * 0.06;
 
       if (score > bestScore) {
         bestScore = score;
@@ -360,7 +366,7 @@ function selectAdaptiveQuestions(
 export function buildAdaptiveQuizQuestions(
   responses: Responses,
   askedQuestions: Question[],
-  options?: { personalityCount?: number; todayCount?: number }
+  options?: { personalityCount?: number; todayCount?: number; excludeIds?: Iterable<string> }
 ): Question[] {
   const asked = askedQuestions.length ? askedQuestions : QUESTIONS;
   const provisional = answersToTraitContext(responses, asked);
@@ -384,6 +390,7 @@ export function buildAdaptiveQuizQuestions(
   const todayCount = Math.max(2, Math.min(TODAY_ADAPTIVE_POOL.length, options?.todayCount ?? DEFAULT_ADAPTIVE_PER_GROUP));
 
   const askedIds = new Set(asked.map((q) => q.id));
+  for (const id of options?.excludeIds ?? []) askedIds.add(id);
   const personality = selectAdaptiveQuestions(PERSONALITY_ADAPTIVE_POOL, personalityCount, traitNeed, askedIds);
   const today = selectAdaptiveQuestions(TODAY_ADAPTIVE_POOL, todayCount, traitNeed, askedIds);
 

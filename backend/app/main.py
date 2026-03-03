@@ -26,7 +26,7 @@ LINUCB = LinUCB(d=27, alpha=0.6)
 MOVIE_PATH = Path(__file__).parent / "datasets" / "movies.json"
 TRAIT_ORDER = ["energy", "mood", "depth", "optimism", "novelty", "comfort", "intensity", "humor", "darkness"]
 INTERACTION_TYPES = {"click", "save", "finish", "dismiss"}
-ALGO_TAG = "hybrid_centered_cosine_text_feedback_mmr_v6_top500_r4_close3plus1mild"
+ALGO_TAG = "hybrid_centered_cosine_text_feedback_mmr_v7_relevance_floor_freshness_overlap_guard"
 
 
 def _safe_float(v: Any, default: float = 0.0) -> float:
@@ -60,13 +60,24 @@ def _env_int(name: str, default: int) -> int:
         return default
 
 
-POPULARITY_BIAS_MAX = max(0.0, _env_float("MM_POPULARITY_BIAS_MAX", 0.012))
+POPULARITY_BIAS_MAX = max(0.0, _env_float("MM_POPULARITY_BIAS_MAX", 0.006))
 RERANK_BAND_MULT = max(1.2, _env_float("MM_RERANK_BAND_MULT", 2.4))
 RERANK_EXPLORE_MIN = _clamp01(_env_float("MM_RERANK_EXPLORE_MIN", 0.06))
 RERANK_EXPLORE_MAX = _clamp01(_env_float("MM_RERANK_EXPLORE_MAX", 0.32))
 MAX_PER_PRIMARY_GENRE = max(1, _env_int("MM_MAX_PER_PRIMARY_GENRE", 2))
 MAX_PER_FRANCHISE = max(1, _env_int("MM_MAX_PER_FRANCHISE", 1))
 RESULT_COUNT = max(2, min(10, _env_int("MM_RESULT_COUNT", 4)))
+RELEVANCE_FLOOR_ABS = _clamp01(_env_float("MM_RELEVANCE_FLOOR_ABS", 0.72))
+RELEVANCE_FLOOR_REL = max(0.0, _env_float("MM_RELEVANCE_FLOOR_REL", 0.08))
+GLOBAL_REPEAT_BETA = max(0.0, _env_float("MM_GLOBAL_REPEAT_BETA", 0.012))
+GLOBAL_REPEAT_LOOKBACK_DAYS = max(1, _env_int("MM_GLOBAL_REPEAT_LOOKBACK_DAYS", 14))
+DISSIMILAR_LOOKBACK_DAYS = max(1, _env_int("MM_DISSIMILAR_LOOKBACK_DAYS", 30))
+DISSIMILAR_SIM_MAX = _clamp01(_env_float("MM_DISSIMILAR_SIM_MAX", 0.42))
+DISSIMILAR_PENALTY_BETA = max(0.0, _env_float("MM_DISSIMILAR_PENALTY_BETA", 0.009))
+DISSIMILAR_MMR_PENALTY_BETA = max(0.0, _env_float("MM_DISSIMILAR_MMR_PENALTY_BETA", 0.008))
+DISSIMILAR_HOT_MIN = max(1, _env_int("MM_DISSIMILAR_HOT_MIN", 5))
+DISSIMILAR_OVERLAP_CAP = max(0, _env_int("MM_DISSIMILAR_OVERLAP_CAP", 2))
+FORCE_DIVERSE_TAIL_SLOTS = max(0, _env_int("MM_DIVERSE_TAIL_SLOTS", 0))
 
 
 def init_app(app):
@@ -263,11 +274,98 @@ def _get_session_adjustments(session_id: str, lookback_days: int = 45) -> Dict[s
     return {mid: max(-0.20, min(0.20, adj)) for mid, adj in out.items()}
 
 
+def _get_global_shown_counts(movie_ids: List[str], lookback_days: int = 14) -> Dict[str, int]:
+    ids = [str(x) for x in movie_ids if x is not None]
+    if not ids:
+        return {}
+
+    cutoff_dt = datetime.now(timezone.utc) - timedelta(days=lookback_days)
+    out: Dict[str, int] = defaultdict(int)
+    dbs = SessionLocal()
+    try:
+        rows = (
+            dbs.query(Event)
+            .filter(Event.movie_id.in_(ids))
+            .filter(Event.ts >= cutoff_dt)
+            .filter(Event.type == "shown")
+            .all()
+        )
+        for e in rows:
+            out[str(e.movie_id)] += 1
+    except Exception:
+        return {}
+    finally:
+        dbs.close()
+
+    return out
+
+
+def _extract_trait_vec(raw: Any) -> List[float] | None:
+    if not isinstance(raw, dict):
+        return None
+    return [_clamp01(_safe_float(raw.get(k, 0.5), 0.5)) for k in TRAIT_ORDER]
+
+
+def _get_dissimilar_exposure_counts(
+    movie_ids: List[str],
+    user_traits: Dict[str, float],
+    lookback_days: int = 30,
+    sim_max: float = 0.42,
+) -> Dict[str, int]:
+    ids = [str(x) for x in movie_ids if x is not None]
+    if not ids:
+        return {}
+
+    cutoff_dt = datetime.now(timezone.utc) - timedelta(days=lookback_days)
+    by_session_movies: Dict[str, Set[str]] = defaultdict(set)
+    by_session_traits: Dict[str, List[float]] = {}
+    dbs = SessionLocal()
+
+    try:
+        rows = (
+            dbs.query(Event)
+            .filter(Event.movie_id.in_(ids))
+            .filter(Event.ts >= cutoff_dt)
+            .filter(Event.type == "shown")
+            .all()
+        )
+        for e in rows:
+            sid = str(e.session_id or "")
+            if not sid:
+                continue
+            mid = str(e.movie_id)
+            by_session_movies[sid].add(mid)
+
+            if sid in by_session_traits:
+                continue
+            feats = e.features if isinstance(e.features, dict) else {}
+            vec = _extract_trait_vec(feats.get("user_traits"))
+            if vec is not None:
+                by_session_traits[sid] = vec
+    except Exception:
+        return {}
+    finally:
+        dbs.close()
+
+    target = _vec_from_user(user_traits)
+    out: Dict[str, int] = defaultdict(int)
+    for sid, mids in by_session_movies.items():
+        other = by_session_traits.get(sid)
+        if other is None:
+            continue
+        sim = _centered_cosine01(target, other)
+        if sim > sim_max:
+            continue
+        for mid in mids:
+            out[mid] += 1
+
+    return out
+
 def _blend_weights(overall_conf: float) -> Dict[str, float]:
     conf = _clamp01(overall_conf)
-    trait_w = 0.58 + 0.24 * conf
-    text_w = 0.30 - 0.12 * conf
-    feedback_w = 0.12
+    trait_w = 0.68 + 0.22 * conf
+    text_w = 0.24 - 0.10 * conf
+    feedback_w = 0.08
     total = trait_w + text_w + feedback_w
     return {
         "trait": trait_w / total,
@@ -394,6 +492,36 @@ def _sample_rerank_pool(
     return picked, explore_ratio, band_size
 
 
+def _movie_trait_score(m: Dict[str, Any]) -> float:
+    return _clamp01(_safe_float(m.get("trait_score", m.get("match", 0.0)), 0.0))
+
+
+def _apply_relevance_floor(scored: List[Dict[str, Any]], result_count: int) -> Tuple[List[Dict[str, Any]], float, str]:
+    if not scored:
+        return [], RELEVANCE_FLOOR_ABS, "none"
+
+    top_trait = max(_movie_trait_score(m) for m in scored)
+    floor = max(RELEVANCE_FLOOR_ABS, top_trait - RELEVANCE_FLOOR_REL)
+    filtered = [m for m in scored if _movie_trait_score(m) >= floor]
+    if len(filtered) >= result_count:
+        return filtered, floor, "strict"
+
+    # Back off minimally to avoid empty/too-small sets.
+    relaxed_floor = max(0.60, top_trait - max(0.16, RELEVANCE_FLOOR_REL * 1.9))
+    filtered_relaxed = [m for m in scored if _movie_trait_score(m) >= relaxed_floor]
+    if len(filtered_relaxed) >= result_count:
+        return filtered_relaxed, relaxed_floor, "relaxed"
+
+    # Final fallback: keep a short ranked slice, preserving relevance order.
+    keep_n = max(result_count * 3, result_count)
+    fallback = scored[:keep_n]
+    if fallback:
+        relaxed_floor = min(_movie_trait_score(m) for m in fallback)
+    return fallback, relaxed_floor, "fallback"
+
+
+
+
 def _mmr_diversify(
     cands: List[Dict[str, Any]],
     user_traits: Dict[str, float],
@@ -403,10 +531,17 @@ def _mmr_diversify(
     seen_penalty: float = 0.08,
     max_per_primary_genre: int = MAX_PER_PRIMARY_GENRE,
     max_per_franchise: int = MAX_PER_FRANCHISE,
+    dissimilar_counts: Dict[str, int] | None = None,
+    dissimilar_hot_min: int = 3,
+    dissimilar_overlap_cap: int = 1,
+    dissimilar_mmr_penalty_beta: float = 0.0,
+    relevance_floor: float | None = None,
     diverse_tail_slots: int = 0,
 ) -> List[Dict[str, Any]]:
     if not cands:
         return []
+
+    _ = diverse_tail_slots
 
     u = _vec_from_user(user_traits)
     enriched: List[Tuple[Dict[str, Any], List[float], float]] = []
@@ -422,24 +557,17 @@ def _mmr_diversify(
     picked_genres: Dict[str, int] = defaultdict(int)
     rest = enriched[:]
     strict = True
+    picked_hot_overlap = 0
 
     while rest and len(picked) < k:
         best_idx = -1
         best_key = (-1e9, -1e9, "")
         anchor_base = picked[0][2] if picked else max((b for _, _, b in rest), default=0.0)
-
-        picks_left = k - len(picked)
-        if diverse_tail_slots > 0 and picks_left <= diverse_tail_slots:
-            lambda_eff = max(0.64, min(0.92, lambda_ - 0.05))
-            min_base_allowed = anchor_base - 0.16
-        elif diverse_tail_slots > 0:
-            lambda_eff = max(0.74, min(0.95, lambda_ + 0.12))
-            min_base_allowed = anchor_base - 0.10
-        else:
-            lambda_eff = max(0.45, min(0.92, lambda_))
-            min_base_allowed = anchor_base - 0.22
+        lambda_eff = max(0.72, min(0.95, lambda_ + 0.08))
+        min_base_allowed = anchor_base - 0.11
 
         for i, (m, v, base) in enumerate(rest):
+            mid = str(m.get("id"))
             root = _title_root(str(m.get("title", "")))
             genre = _primary_genre(m)
             root_count = picked_roots.get(root, 0) if root else 0
@@ -447,7 +575,25 @@ def _mmr_diversify(
 
             franchise_block = bool(root and max_per_franchise > 0 and root_count >= max_per_franchise)
             genre_block = bool(genre and max_per_primary_genre > 0 and genre_count >= max_per_primary_genre)
-            if strict and (franchise_block or genre_block or base < min_base_allowed):
+
+            trait_score = _movie_trait_score(m)
+            relevance_block = bool(relevance_floor is not None and trait_score < relevance_floor)
+
+            dissimilar_count = max(0, int((dissimilar_counts or {}).get(mid, 0)))
+            is_dissimilar_hot = dissimilar_count >= dissimilar_hot_min
+            overlap_block = bool(
+                dissimilar_overlap_cap >= 0
+                and is_dissimilar_hot
+                and picked_hot_overlap >= dissimilar_overlap_cap
+            )
+
+            if strict and (
+                franchise_block
+                or genre_block
+                or relevance_block
+                or base < min_base_allowed
+                or overlap_block
+            ):
                 continue
 
             if not picked:
@@ -458,8 +604,9 @@ def _mmr_diversify(
 
             franchise_penalty = 0.06 * root_count
             genre_penalty = 0.02 * genre_count
+            dissimilar_penalty = dissimilar_mmr_penalty_beta * math.log1p(dissimilar_count)
 
-            mmr = lambda_eff * base + (1.0 - lambda_eff) * div - franchise_penalty - genre_penalty
+            mmr = lambda_eff * base + (1.0 - lambda_eff) * div - franchise_penalty - genre_penalty - dissimilar_penalty
             tie_title = str(m.get("title", ""))
             key = (mmr, base, tie_title)
             if key > best_key:
@@ -480,6 +627,13 @@ def _mmr_diversify(
             picked_roots[root] += 1
         if genre:
             picked_genres[genre] += 1
+
+        if dissimilar_counts is not None:
+            chosen_mid = str(chosen[0].get("id"))
+            chosen_dissimilar_count = max(0, int(dissimilar_counts.get(chosen_mid, 0)))
+            if chosen_dissimilar_count >= dissimilar_hot_min:
+                picked_hot_overlap += 1
+
         strict = True
 
     result = []
@@ -553,12 +707,21 @@ def recommend():
 
     movie_ids = [str(m.get("id")) for m in deduped if m.get("id") is not None]
     feedback_priors = _get_feedback_priors(movie_ids)
+    global_shown_counts = _get_global_shown_counts(movie_ids, lookback_days=GLOBAL_REPEAT_LOOKBACK_DAYS)
+    dissimilar_exposure_counts = _get_dissimilar_exposure_counts(
+        movie_ids,
+        user_traits=user_traits,
+        lookback_days=DISSIMILAR_LOOKBACK_DAYS,
+        sim_max=DISSIMILAR_SIM_MAX,
+    )
     session_adjustments = _get_session_adjustments(session_id)
     weights = _blend_weights(overall_conf)
 
     scored: List[Dict[str, Any]] = []
     for m in deduped:
         mid = str(m.get("id"))
+        shown_recent = max(0, int(global_shown_counts.get(mid, 0)))
+        dissimilar_recent = max(0, int(dissimilar_exposure_counts.get(mid, 0)))
         feedback_score = feedback_priors.get(mid, 0.5)
         session_adjustment = session_adjustments.get(mid, 0.0)
         rank_score = _rank_score(
@@ -569,9 +732,16 @@ def recommend():
             session_adjustment=session_adjustment,
             weights=weights,
         )
+        freshness_penalty = GLOBAL_REPEAT_BETA * math.log1p(shown_recent)
+        dissimilar_penalty = DISSIMILAR_PENALTY_BETA * math.log1p(dissimilar_recent)
+        rank_score -= freshness_penalty + dissimilar_penalty
 
         m2 = dict(m)
         m2["feedback_score"] = round(feedback_score, 6)
+        m2["freshness_shown_lookback"] = shown_recent
+        m2["dissimilar_shown_lookback"] = dissimilar_recent
+        m2["freshness_penalty"] = round(freshness_penalty, 6)
+        m2["dissimilar_penalty"] = round(dissimilar_penalty, 6)
         m2["session_adjustment"] = round(session_adjustment, 6)
         m2["rank_score"] = round(rank_score, 6)
         scored.append(m2)
@@ -584,14 +754,15 @@ def recommend():
             str(x.get("id", "")),
         )
     )
+    scored, relevance_floor, relevance_floor_source = _apply_relevance_floor(scored, result_count=result_count)
 
     seen = _get_recently_seen_ids(session_id, lookback_days=21)
     adaptive_lambda = _adaptive_lambda(user_traits, overall_conf, seen_count=len(seen))
     rng = _stable_rng(session_id, user_traits, overall_conf)
     close_mode = result_count <= 4
     if close_mode:
-        adaptive_lambda = max(0.72, min(0.90, adaptive_lambda + 0.08))
-    explore_scale = 0.45 if close_mode else 1.0
+        adaptive_lambda = max(0.76, min(0.94, adaptive_lambda + 0.10))
+    explore_scale = 0.28 if close_mode else 0.50
     rerank_input, explore_ratio, rerank_band = _sample_rerank_pool(
         scored,
         pool_size=rerank_pool_size,
@@ -602,7 +773,7 @@ def recommend():
     )
 
     genre_cap = max(3, MAX_PER_PRIMARY_GENRE) if close_mode else MAX_PER_PRIMARY_GENRE
-    diverse_tail_slots = 1 if result_count >= 4 else 0
+    diverse_tail_slots = FORCE_DIVERSE_TAIL_SLOTS
 
     reranked = _mmr_diversify(
         rerank_input,
@@ -613,6 +784,11 @@ def recommend():
         seen_penalty=0.08 + 0.07 * (1.0 - overall_conf),
         max_per_primary_genre=genre_cap,
         max_per_franchise=MAX_PER_FRANCHISE,
+        dissimilar_counts=dissimilar_exposure_counts,
+        dissimilar_hot_min=DISSIMILAR_HOT_MIN,
+        dissimilar_overlap_cap=DISSIMILAR_OVERLAP_CAP,
+        dissimilar_mmr_penalty_beta=DISSIMILAR_MMR_PENALTY_BETA,
+        relevance_floor=relevance_floor,
         diverse_tail_slots=diverse_tail_slots,
     )
 
@@ -682,9 +858,21 @@ def recommend():
                 "explore_scale": round(explore_scale, 3),
                 "close_mode": close_mode,
                 "diverse_tail_slots": diverse_tail_slots,
+                "relevance_floor": round(relevance_floor, 4),
+                "relevance_floor_source": relevance_floor_source,
                 "max_per_primary_genre": genre_cap,
                 "max_per_franchise": MAX_PER_FRANCHISE,
                 "popularity_bias_max": round(POPULARITY_BIAS_MAX, 4),
+                "global_repeat_beta": round(GLOBAL_REPEAT_BETA, 4),
+                "global_repeat_lookback_days": GLOBAL_REPEAT_LOOKBACK_DAYS,
+                "dissimilar_sim_max": round(DISSIMILAR_SIM_MAX, 4),
+                "dissimilar_penalty_beta": round(DISSIMILAR_PENALTY_BETA, 4),
+                "dissimilar_mmr_penalty_beta": round(DISSIMILAR_MMR_PENALTY_BETA, 4),
+                "dissimilar_hot_min": DISSIMILAR_HOT_MIN,
+                "dissimilar_overlap_cap": DISSIMILAR_OVERLAP_CAP,
+                "dissimilar_lookback_days": DISSIMILAR_LOOKBACK_DAYS,
+                "global_shown_nonzero": sum(1 for v in global_shown_counts.values() if int(v) > 0),
+                "dissimilar_nonzero": sum(1 for v in dissimilar_exposure_counts.values() if int(v) > 0),
             },
             "session_id": session_id,
         }
