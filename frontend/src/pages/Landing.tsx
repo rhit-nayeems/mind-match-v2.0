@@ -53,7 +53,7 @@ export default function Landing() {
 
           <div className="surface-soft grid gap-4 p-4">
             <div className="rounded-xl border border-white/15 bg-black/35 p-4">
-              <div className="code-label text-zinc-400">runtime profile</div>
+              <div className="code-label text-zinc-400">sample profile preview</div>
               <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-zinc-300">
                 {['depth', 'novelty', 'comfort', 'energy', 'mood', 'humor'].map((k, i) => (
                   <div key={k} className="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1.5">
@@ -71,7 +71,7 @@ export default function Landing() {
             <div className="rounded-xl border border-white/15 bg-white/[0.03] p-4">
               <div className="code-label text-zinc-400">signal path</div>
               <p className="mt-2 text-sm text-zinc-300">
-                quiz vectors ? weighted similarity ? diversity rerank ? curated top matches
+                quiz vectors -&gt; weighted similarity -&gt; diversity rerank -&gt; curated top matches
               </p>
             </div>
           </div>
