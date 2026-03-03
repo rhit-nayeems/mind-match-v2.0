@@ -26,7 +26,7 @@ LINUCB = LinUCB(d=27, alpha=0.6)
 MOVIE_PATH = Path(__file__).parent / "datasets" / "movies.json"
 TRAIT_ORDER = ["energy", "mood", "depth", "optimism", "novelty", "comfort", "intensity", "humor", "darkness"]
 INTERACTION_TYPES = {"click", "save", "finish", "dismiss"}
-ALGO_TAG = "hybrid_centered_cosine_text_feedback_mmr_v5_top500"
+ALGO_TAG = "hybrid_centered_cosine_text_feedback_mmr_v5_top500_r4"
 
 
 def _safe_float(v: Any, default: float = 0.0) -> float:
@@ -66,6 +66,7 @@ RERANK_EXPLORE_MIN = _clamp01(_env_float("MM_RERANK_EXPLORE_MIN", 0.06))
 RERANK_EXPLORE_MAX = _clamp01(_env_float("MM_RERANK_EXPLORE_MAX", 0.32))
 MAX_PER_PRIMARY_GENRE = max(1, _env_int("MM_MAX_PER_PRIMARY_GENRE", 2))
 MAX_PER_FRANCHISE = max(1, _env_int("MM_MAX_PER_FRANCHISE", 1))
+RESULT_COUNT = max(2, min(10, _env_int("MM_RESULT_COUNT", 4)))
 
 
 def init_app(app):
@@ -394,7 +395,7 @@ def _sample_rerank_pool(
 def _mmr_diversify(
     cands: List[Dict[str, Any]],
     user_traits: Dict[str, float],
-    k: int = 6,
+    k: int = RESULT_COUNT,
     lambda_: float = 0.70,
     seen_ids: Set[str] | None = None,
     seen_penalty: float = 0.08,
@@ -515,9 +516,10 @@ def recommend():
         return jsonify({"error": f"Catalog not ready. Expected DB at: {db_path}"}), 503
 
     active_rows = max(1, count_rows())
+    result_count = RESULT_COUNT
     candidate_limit = max(40, min(140, int(active_rows * 0.30)))
     prefilter_n = max(candidate_limit, min(active_rows, int(active_rows * 0.85)))
-    rerank_pool_size = max(24, min(96, int(candidate_limit * 0.75)))
+    rerank_pool_size = max(result_count * 8, min(96, int(candidate_limit * 0.72)))
 
     try:
         raw_cands = top_matches(
@@ -579,14 +581,16 @@ def recommend():
         rng=rng,
     )
 
+    genre_cap = 1 if result_count <= 4 else MAX_PER_PRIMARY_GENRE
+
     reranked = _mmr_diversify(
         rerank_input,
         user_traits=user_traits,
-        k=6,
+        k=result_count,
         lambda_=adaptive_lambda,
         seen_ids=seen,
         seen_penalty=0.08 + 0.07 * (1.0 - overall_conf),
-        max_per_primary_genre=MAX_PER_PRIMARY_GENRE,
+        max_per_primary_genre=genre_cap,
         max_per_franchise=MAX_PER_FRANCHISE,
     )
 
@@ -649,10 +653,11 @@ def recommend():
                 "active_catalog_rows": active_rows,
                 "candidate_limit": candidate_limit,
                 "prefilter": prefilter_n,
+                "result_count": result_count,
                 "rerank_pool": rerank_pool_size,
                 "rerank_band": rerank_band,
                 "explore_ratio": round(explore_ratio, 4),
-                "max_per_primary_genre": MAX_PER_PRIMARY_GENRE,
+                "max_per_primary_genre": genre_cap,
                 "max_per_franchise": MAX_PER_FRANCHISE,
                 "popularity_bias_max": round(POPULARITY_BIAS_MAX, 4),
             },
@@ -709,3 +714,4 @@ def event():
         dbs.close()
 
     return {"ok": True}
+

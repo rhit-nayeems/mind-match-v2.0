@@ -196,7 +196,7 @@ export default function Results() {
                             {m.director && <span>{m.director}</span>}
                           </div>
 
-                          {m.synopsis && <p className="mt-2 line-clamp-2 text-sm text-zinc-300">{m.synopsis}</p>}
+                          {m.synopsis && <p className="mt-2 whitespace-normal break-words text-sm leading-relaxed text-zinc-300">{m.synopsis}</p>}
 
                           {m.genre && m.genre.length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-2">
