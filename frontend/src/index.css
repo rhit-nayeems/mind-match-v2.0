@@ -25,7 +25,7 @@ body {
   margin: 0;
   background:
     radial-gradient(circle at 84% -6%, rgba(255, 255, 255, 0.1), transparent 32%),
-    radial-gradient(circle at 10% 112%, rgba(255, 255, 255, 0.08), transparent 36%),
+    radial-gradient(circle at 8% 130%, rgba(255, 255, 255, 0.03), transparent 42%),
     radial-gradient(circle at 24% -12%, #141414 0%, var(--mm-bg) 44%, #000 100%);
   color: var(--mm-text);
   font-family: "Space Grotesk", "Helvetica Neue", sans-serif;
@@ -140,6 +140,13 @@ body {
   isolation: isolate;
 }
 
+.tech-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 62%, rgba(0, 0, 0, 0.34) 84%, rgba(0, 0, 0, 0.6) 100%);
+}
+
 .tech-grid {
   position: absolute;
   inset: 0;
@@ -235,12 +242,13 @@ body {
 }
 
 .tech-orb.b {
-  width: 34vw;
-  height: 34vw;
-  min-width: 200px;
-  min-height: 200px;
-  bottom: -10vw;
-  right: -8vw;
+  width: 30vw;
+  height: 30vw;
+  min-width: 180px;
+  min-height: 180px;
+  bottom: -16vw;
+  right: -12vw;
+  opacity: 0.6;
   animation-duration: 32s;
 }
 
@@ -350,3 +358,4 @@ body {
     animation: none !important;
   }
 }
+
