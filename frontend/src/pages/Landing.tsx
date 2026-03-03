@@ -29,7 +29,7 @@ export default function Landing() {
         transition={{ duration: 0.55 }}
         className="surface overflow-hidden"
       >
-        <div className="grid items-start gap-8 p-7 md:grid-cols-[1.1fr_0.9fr] md:p-10">
+        <div className="grid gap-8 p-7 md:grid-cols-[1.1fr_0.9fr] md:items-center md:p-10">
           <div>
             <span className="outline-chip">psychology x cinema intelligence</span>
             <h1 className="headline mt-5 text-4xl leading-tight text-zinc-100 md:text-6xl">
@@ -51,7 +51,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="surface-soft grid h-fit content-start gap-3 self-start p-3">
+          <div className="surface-soft grid h-fit content-start gap-3 self-start p-3 md:self-center">
             <div className="rounded-xl border border-white/15 bg-black/35 p-3">
               <div className="code-label text-zinc-400">sample profile preview</div>
               <div className="mt-2.5 grid grid-cols-3 gap-1.5 text-xs text-zinc-300">
