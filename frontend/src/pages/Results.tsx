@@ -320,7 +320,18 @@ export default function Results() {
                 <div className="text-sm text-zinc-300">{selected?.match != null ? pct(selected.match) : '-'} match</div>
               </div>
 
-              <div className="mt-4 flex items-center justify-center">
+              <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-zinc-300">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" aria-hidden />
+                  Your profile
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400" aria-hidden />
+                  Selected movie
+                </span>
+              </div>
+
+              <div className="mt-3 flex items-center justify-center">
                 <InlineRadar
                   keys={TRAITS as unknown as string[]}
                   user={userOrdered}
@@ -377,6 +388,11 @@ function InlineRadar({
   const pointsUser = toPoints(spokes, user, rMax, cx, cy)
   const pointsMovie = movie ? toPoints(spokes, movie, rMax, cx, cy) : null
 
+  const userFill = 'rgba(34,211,238,0.20)'
+  const userStroke = 'rgba(34,211,238,0.95)'
+  const movieFill = 'rgba(251,191,36,0.18)'
+  const movieStroke = 'rgba(251,191,36,0.95)'
+
   return (
     <svg width={size} height={size} role="img" aria-label="Trait radar chart" style={{ overflow: 'visible' }}>
       {[0.25, 0.5, 0.75, 1].map((p) => (
@@ -388,9 +404,9 @@ function InlineRadar({
       ))}
 
       {pointsMovie && (
-        <polygon points={pointsMovie} fill="rgba(163,163,163,.18)" stroke="rgba(212,212,212,.92)" strokeWidth="2" />
+        <polygon points={pointsMovie} fill={movieFill} stroke={movieStroke} strokeWidth="2" />
       )}
-      <polygon points={pointsUser} fill="rgba(255,255,255,.20)" stroke="rgba(255,255,255,.96)" strokeWidth="2" />
+      <polygon points={pointsUser} fill={userFill} stroke={userStroke} strokeWidth="2" />
 
       {spokes.map((s) => {
         const lx = cx + Math.cos(s.angle) * labelR
