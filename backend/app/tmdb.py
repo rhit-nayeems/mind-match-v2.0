@@ -78,6 +78,9 @@ def enrich_movie_by_title_year(m: dict) -> dict:
             **m,
             "posterUrl": poster or m.get("posterUrl"),
             "synopsis": full.get("overview") or m.get("synopsis"),
+            "vote_average": full.get("vote_average") or m.get("vote_average"),
+            "vote_count": full.get("vote_count") or m.get("vote_count"),
+            "rating_source": m.get("rating_source") or "TMDB",
             "links": links
         }
     except Exception:

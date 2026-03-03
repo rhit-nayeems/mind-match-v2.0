@@ -7,12 +7,11 @@ export default function App() {
       <div className="tech-bg" aria-hidden>
         <div className="tech-grid" />
         <div className="tech-web" />
+        <div className="tech-circuit" />
         <div className="tech-spokes" />
         <div className="tech-nodes" />
         <div className="tech-orb a" />
         <div className="tech-orb b" />
-        <div className="tech-scan" />
-        <div className="tech-noise" />
       </div>
 
       <header className="mx-4 mt-4 rounded-2xl surface px-4 py-3">

@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import { postRecommend } from '../lib/api'
 import { MoviePoster } from '../components/MoviePoster'
+import { Star } from 'lucide-react'
 
 const TRAITS = [
   'darkness',
@@ -26,6 +27,9 @@ type ResultsData = {
     title: string
     year?: number
     rating?: string
+    rating_source?: string
+    vote_average?: number
+    vote_count?: number
     director?: string
     posterUrl?: string | null
     synopsis?: string
@@ -49,6 +53,7 @@ export default function Results() {
 
   const [data, setData] = useState<ResultsData | null>(null)
   const [selectedIdx, setSelectedIdx] = useState(0)
+  const [expandedSynopsisIds, setExpandedSynopsisIds] = useState<Set<string>>(new Set())
   const isLoading = !data
 
   function handleRetake() {
@@ -88,6 +93,7 @@ export default function Results() {
       const res = await postRecommend(answers, localStorage.getItem('mm_session') || '', context)
       setData(res as ResultsData)
       setSelectedIdx(0)
+      setExpandedSynopsisIds(new Set())
 
       const allowConfetti =
         typeof window !== 'undefined' &&
@@ -166,10 +172,30 @@ export default function Results() {
               <div className="grid gap-5 sm:grid-cols-2">
                 {recs.map((m, i) => {
                   const active = i === selectedIdx
+                  const cardKey = String(m.id ?? i)
+                  const synopsis = String(m.synopsis ?? '').trim()
+                  const canExpandSynopsis = synopsis.length > 110
+                  const synopsisExpanded = expandedSynopsisIds.has(cardKey)
+
+                  const voteAverage = Number(m.vote_average)
+                  const normalizedVote = Number.isFinite(voteAverage) && voteAverage > 0
+                    ? Math.max(0, Math.min(10, voteAverage))
+                    : null
+                  const ratingSource = String(m.rating_source || 'TMDB')
+                  const filledStars = normalizedVote == null ? 0 : Math.max(0, Math.min(5, Math.round(normalizedVote / 2)))
+
                   return (
-                    <button
-                      key={m.id ?? i}
+                    <div
+                      key={cardKey}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => setSelectedIdx(i)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setSelectedIdx(i)
+                        }
+                      }}
                       className={[
                         'w-full rounded-2xl border p-4 text-left transition-all',
                         'bg-white/[0.03] hover:bg-white/[0.09] border-white/15',
@@ -190,13 +216,56 @@ export default function Results() {
 
                           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-400">
                             {m.year && <span>{m.year}</span>}
-                            {m.rating && (
-                              <span className="rounded-md border border-white/15 bg-white/[0.04] px-2 py-0.5">{m.rating}</span>
+                            {normalizedVote != null && (
+                              <span className="inline-flex items-center gap-1 rounded-md border border-white/15 bg-white/[0.04] px-2 py-0.5">
+                                <span className="text-zinc-400">{ratingSource}:</span>
+                                <span className="inline-flex items-center gap-0.5" aria-hidden>
+                                  {Array.from({ length: 5 }).map((_, idx) => (
+                                    <Star
+                                      key={`${cardKey}-star-${idx}`}
+                                      className={
+                                        idx < filledStars
+                                          ? 'h-3 w-3 fill-zinc-100 text-zinc-100'
+                                          : 'h-3 w-3 text-zinc-500'
+                                      }
+                                    />
+                                  ))}
+                                </span>
+                                <span className="tabular-nums text-zinc-200">{normalizedVote.toFixed(1)}/10</span>
+                              </span>
                             )}
                             {m.director && <span>{m.director}</span>}
                           </div>
 
-                          {m.synopsis && <p className="mt-2 whitespace-normal break-words text-sm leading-relaxed text-zinc-300">{m.synopsis}</p>}
+                          {synopsis && (
+                            <div className="mt-2">
+                              <p
+                                className={[
+                                  synopsisExpanded ? 'whitespace-normal break-words leading-relaxed' : 'line-clamp-1',
+                                  'text-sm text-zinc-300',
+                                ].join(' ')}
+                              >
+                                {synopsis}
+                              </p>
+                              {canExpandSynopsis && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setExpandedSynopsisIds((prev) => {
+                                      const next = new Set(prev)
+                                      if (next.has(cardKey)) next.delete(cardKey)
+                                      else next.add(cardKey)
+                                      return next
+                                    })
+                                  }}
+                                  className="mt-1 text-xs font-medium text-zinc-300 underline decoration-white/30 underline-offset-2 hover:text-zinc-100"
+                                >
+                                  {synopsisExpanded ? 'Show less' : 'Read more'}
+                                </button>
+                              )}
+                            </div>
+                          )}
 
                           {m.genre && m.genre.length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-2">
@@ -230,7 +299,7 @@ export default function Results() {
                           </div>
                         </div>
                       </div>
-                    </button>
+                    </div>
                   )
                 })}
               </div>
