@@ -197,7 +197,7 @@ export default function Results() {
                         }
                       }}
                       className={[
-                        'w-full rounded-2xl border p-4 text-left transition-all',
+                        'w-full overflow-hidden rounded-2xl border p-4 text-left transition-all',
                         'bg-white/[0.03] hover:bg-white/[0.09] border-white/15',
                         active ? 'border-white/65 shadow-[0_0_0_1px_rgba(255,255,255,.35)]' : '',
                       ].join(' ')}
@@ -216,26 +216,29 @@ export default function Results() {
 
                           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-400">
                             {m.year && <span>{m.year}</span>}
-                            {normalizedVote != null && (
-                              <span className="inline-flex items-center gap-1 rounded-md border border-white/15 bg-white/[0.04] px-2 py-0.5">
-                                <span className="text-zinc-400">{ratingSource}:</span>
-                                <span className="inline-flex items-center gap-0.5" aria-hidden>
+                            {m.director && <span className="min-w-0 truncate">{m.director}</span>}
+                          </div>
+
+                          {normalizedVote != null && (
+                            <div className="mt-1 max-w-full">
+                              <span className="inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md border border-white/15 bg-white/[0.04] px-2 py-0.5 text-xs">
+                                <span className="shrink-0 text-zinc-400">{ratingSource}:</span>
+                                <span className="inline-flex shrink-0 items-center gap-0.5" aria-hidden>
                                   {Array.from({ length: 5 }).map((_, idx) => (
                                     <Star
                                       key={`${cardKey}-star-${idx}`}
                                       className={
                                         idx < filledStars
-                                          ? 'h-3 w-3 fill-zinc-100 text-zinc-100'
-                                          : 'h-3 w-3 text-zinc-500'
+                                          ? 'h-2.5 w-2.5 fill-zinc-100 text-zinc-100'
+                                          : 'h-2.5 w-2.5 text-zinc-500'
                                       }
                                     />
                                   ))}
                                 </span>
                                 <span className="tabular-nums text-zinc-200">{normalizedVote.toFixed(1)}/10</span>
                               </span>
-                            )}
-                            {m.director && <span>{m.director}</span>}
-                          </div>
+                            </div>
+                          )}
 
                           {synopsis && (
                             <div className="mt-2">

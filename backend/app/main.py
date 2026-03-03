@@ -26,7 +26,7 @@ LINUCB = LinUCB(d=27, alpha=0.6)
 MOVIE_PATH = Path(__file__).parent / "datasets" / "movies.json"
 TRAIT_ORDER = ["energy", "mood", "depth", "optimism", "novelty", "comfort", "intensity", "humor", "darkness"]
 INTERACTION_TYPES = {"click", "save", "finish", "dismiss"}
-ALGO_TAG = "hybrid_centered_cosine_text_feedback_mmr_v5_top500_r4"
+ALGO_TAG = "hybrid_centered_cosine_text_feedback_mmr_v6_top500_r4_close3plus1mild"
 
 
 def _safe_float(v: Any, default: float = 0.0) -> float:
@@ -337,6 +337,7 @@ def _sample_rerank_pool(
     user_traits: Dict[str, float],
     overall_conf: float,
     rng: random.Random,
+    explore_scale: float = 1.0,
 ) -> Tuple[List[Dict[str, Any]], float, int]:
     if not scored or pool_size <= 0:
         return [], 0.0, 0
@@ -349,6 +350,7 @@ def _sample_rerank_pool(
     explore_ratio = _clamp01(
         RERANK_EXPLORE_MIN + (RERANK_EXPLORE_MAX - RERANK_EXPLORE_MIN) * (0.65 * novelty + 0.35 * (1.0 - conf))
     )
+    explore_ratio = _clamp01(explore_ratio * max(0.0, float(explore_scale)))
 
     band_mult = max(1.2, RERANK_BAND_MULT + 0.8 * explore_ratio)
     band_size = max(pool_size, min(len(scored), int(round(pool_size * band_mult))))
@@ -401,6 +403,7 @@ def _mmr_diversify(
     seen_penalty: float = 0.08,
     max_per_primary_genre: int = MAX_PER_PRIMARY_GENRE,
     max_per_franchise: int = MAX_PER_FRANCHISE,
+    diverse_tail_slots: int = 0,
 ) -> List[Dict[str, Any]]:
     if not cands:
         return []
@@ -423,6 +426,18 @@ def _mmr_diversify(
     while rest and len(picked) < k:
         best_idx = -1
         best_key = (-1e9, -1e9, "")
+        anchor_base = picked[0][2] if picked else max((b for _, _, b in rest), default=0.0)
+
+        picks_left = k - len(picked)
+        if diverse_tail_slots > 0 and picks_left <= diverse_tail_slots:
+            lambda_eff = max(0.64, min(0.92, lambda_ - 0.05))
+            min_base_allowed = anchor_base - 0.16
+        elif diverse_tail_slots > 0:
+            lambda_eff = max(0.74, min(0.95, lambda_ + 0.12))
+            min_base_allowed = anchor_base - 0.10
+        else:
+            lambda_eff = max(0.45, min(0.92, lambda_))
+            min_base_allowed = anchor_base - 0.22
 
         for i, (m, v, base) in enumerate(rest):
             root = _title_root(str(m.get("title", "")))
@@ -432,7 +447,7 @@ def _mmr_diversify(
 
             franchise_block = bool(root and max_per_franchise > 0 and root_count >= max_per_franchise)
             genre_block = bool(genre and max_per_primary_genre > 0 and genre_count >= max_per_primary_genre)
-            if strict and (franchise_block or genre_block):
+            if strict and (franchise_block or genre_block or base < min_base_allowed):
                 continue
 
             if not picked:
@@ -441,10 +456,10 @@ def _mmr_diversify(
                 sim = max(_centered_cosine01(v, pv) for _, pv, _ in picked)
                 div = 1.0 - sim
 
-            franchise_penalty = 0.08 * root_count
-            genre_penalty = 0.05 * genre_count
+            franchise_penalty = 0.06 * root_count
+            genre_penalty = 0.02 * genre_count
 
-            mmr = lambda_ * base + (1.0 - lambda_) * div - franchise_penalty - genre_penalty
+            mmr = lambda_eff * base + (1.0 - lambda_eff) * div - franchise_penalty - genre_penalty
             tie_title = str(m.get("title", ""))
             key = (mmr, base, tie_title)
             if key > best_key:
@@ -487,8 +502,8 @@ def _calibrate_matches(items: List[Dict[str, Any]]) -> None:
 
     for m, s in zip(items, scores):
         z = (s - mu) / sd
-        p = 1.0 / (1.0 + math.exp(-1.25 * z))
-        calibrated = 0.30 + 0.68 * p
+        p = 1.0 / (1.0 + math.exp(-1.05 * z))
+        calibrated = 0.36 + 0.60 * p
         m["match"] = round(_clamp01(calibrated), 4)
 
 
@@ -573,15 +588,21 @@ def recommend():
     seen = _get_recently_seen_ids(session_id, lookback_days=21)
     adaptive_lambda = _adaptive_lambda(user_traits, overall_conf, seen_count=len(seen))
     rng = _stable_rng(session_id, user_traits, overall_conf)
+    close_mode = result_count <= 4
+    if close_mode:
+        adaptive_lambda = max(0.72, min(0.90, adaptive_lambda + 0.08))
+    explore_scale = 0.45 if close_mode else 1.0
     rerank_input, explore_ratio, rerank_band = _sample_rerank_pool(
         scored,
         pool_size=rerank_pool_size,
         user_traits=user_traits,
         overall_conf=overall_conf,
         rng=rng,
+        explore_scale=explore_scale,
     )
 
-    genre_cap = 1 if result_count <= 4 else MAX_PER_PRIMARY_GENRE
+    genre_cap = max(3, MAX_PER_PRIMARY_GENRE) if close_mode else MAX_PER_PRIMARY_GENRE
+    diverse_tail_slots = 1 if result_count >= 4 else 0
 
     reranked = _mmr_diversify(
         rerank_input,
@@ -592,6 +613,7 @@ def recommend():
         seen_penalty=0.08 + 0.07 * (1.0 - overall_conf),
         max_per_primary_genre=genre_cap,
         max_per_franchise=MAX_PER_FRANCHISE,
+        diverse_tail_slots=diverse_tail_slots,
     )
 
     _calibrate_matches(reranked)
@@ -657,6 +679,9 @@ def recommend():
                 "rerank_pool": rerank_pool_size,
                 "rerank_band": rerank_band,
                 "explore_ratio": round(explore_ratio, 4),
+                "explore_scale": round(explore_scale, 3),
+                "close_mode": close_mode,
+                "diverse_tail_slots": diverse_tail_slots,
                 "max_per_primary_genre": genre_cap,
                 "max_per_franchise": MAX_PER_FRANCHISE,
                 "popularity_bias_max": round(POPULARITY_BIAS_MAX, 4),
