@@ -161,6 +161,13 @@ body {
   overflow: hidden;
   isolation: isolate;
 }
+.tech-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 54%, rgba(0, 0, 0, 0.22) 76%, rgba(0, 0, 0, 0.44) 100%);
+}
+
 .tech-grid {
   position: absolute;
   inset: 0;
@@ -179,7 +186,11 @@ body {
   background-image:
     linear-gradient(120deg, transparent 47.8%, rgba(96, 165, 250, 0.16) 49.7%, rgba(96, 165, 250, 0.16) 50.3%, transparent 52.2%),
     linear-gradient(60deg, transparent 47.8%, rgba(34, 211, 238, 0.14) 49.7%, rgba(34, 211, 238, 0.14) 50.3%, transparent 52.2%);
-  opacity: 0.11;
+  background-size: 340px 210px, 340px 210px;
+  background-position: -80px -40px, 110px -70px;
+  opacity: 0.18;
+  -webkit-mask-image: radial-gradient(circle at 50% 14%, rgba(0, 0, 0, 0.98) 12%, rgba(0, 0, 0, 0.78) 56%, transparent 100%);
+  mask-image: radial-gradient(circle at 50% 14%, rgba(0, 0, 0, 0.98) 12%, rgba(0, 0, 0, 0.78) 56%, transparent 100%);
 }
 
 .tech-circuit {
@@ -349,7 +360,8 @@ body {
   }
 
   .tech-web {
-    opacity: 0.1;
+    opacity: 0.13;
+    background-size: 250px 150px, 250px 150px;
   }
 
   .tech-circuit {
