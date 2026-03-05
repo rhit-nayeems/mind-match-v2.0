@@ -343,11 +343,11 @@ export default function Results() {
 
               <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-zinc-300">
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" aria-hidden />
+                  <span className="h-2.5 w-2.5 rounded-full bg-sky-400" aria-hidden />
                   Your profile
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400" aria-hidden />
+                  <span className="h-2.5 w-2.5 rounded-full bg-blue-600" aria-hidden />
                   Selected movie
                 </span>
               </div>
@@ -409,10 +409,10 @@ function InlineRadar({
   const pointsUser = toPoints(spokes, user, rMax, cx, cy)
   const pointsMovie = movie ? toPoints(spokes, movie, rMax, cx, cy) : null
 
-  const userFill = 'rgba(34,211,238,0.20)'
-  const userStroke = 'rgba(34,211,238,0.95)'
-  const movieFill = 'rgba(251,191,36,0.18)'
-  const movieStroke = 'rgba(251,191,36,0.95)'
+  const userFill = 'rgba(56,189,248,0.18)'
+  const userStroke = 'rgba(125,211,252,0.96)'
+  const movieFill = 'rgba(37,99,235,0.2)'
+  const movieStroke = 'rgba(37,99,235,0.95)'
 
   return (
     <svg width={size} height={size} role="img" aria-label="Trait radar chart" style={{ overflow: 'visible' }}>
@@ -480,4 +480,5 @@ function toPoints(
     })
     .join(' ')
 }
+
 
