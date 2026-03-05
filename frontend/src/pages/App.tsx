@@ -31,7 +31,7 @@ export default function App() {
 
               <div className="hidden md:inline-flex items-center gap-1.5 rounded-lg border border-cyan-200/20 bg-cyan-100/[0.05] px-3 py-1.5 text-[11px] uppercase tracking-[0.12em] text-cyan-100/70">
                 <Sparkles className="h-3.5 w-3.5" />
-                live profile inference
+                personalized recommendations
               </div>
             </div>
           </header>
@@ -70,3 +70,4 @@ export default function App() {
     </div>
   )
 }
+
