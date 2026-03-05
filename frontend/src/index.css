@@ -23,16 +23,18 @@
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
+}
+
+html,
+body {
+  background-color: #06080c;
 }
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at 82% -8%, rgba(96, 165, 250, 0.18), transparent 40%),
-    radial-gradient(circle at 18% 16%, rgba(34, 211, 238, 0.09), transparent 48%),
-    radial-gradient(circle at 56% -16%, rgba(251, 191, 36, 0.07), transparent 36%),
-    linear-gradient(180deg, #0a0d11 0%, #06080c 52%, #040507 100%);
+  background: #06080c;
+  background-attachment: fixed;
   color: var(--mm-text);
   font-family: "Space Grotesk", "Helvetica Neue", sans-serif;
   letter-spacing: 0.01em;
@@ -154,13 +156,12 @@ body {
 }
 
 .tech-bg {
-  position: absolute;
+  position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
   isolation: isolate;
-  background: linear-gradient(180deg, rgba(3, 8, 12, 0.38) 0%, rgba(3, 8, 12, 0.38) 100%);
 }
 
 .tech-grid {
