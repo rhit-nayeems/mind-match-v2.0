@@ -385,3 +385,33 @@ body {
   -webkit-backdrop-filter: blur(10px);
 }
 
+
+.topbar-shell {
+  position: relative;
+  margin-top: 0.75rem;
+}
+
+.topbar-bridge {
+  position: absolute;
+  left: 0.25rem;
+  right: 0.25rem;
+  bottom: -1.2rem;
+  height: 3.2rem;
+  pointer-events: none;
+  border-radius: 1.25rem;
+  background: linear-gradient(180deg, rgba(103, 232, 249, 0.11), rgba(96, 165, 250, 0.06) 55%, rgba(255, 255, 255, 0));
+  opacity: 0.34;
+  filter: blur(14px);
+}
+
+.topbar-surface {
+  position: relative;
+  z-index: 2;
+  border-color: color-mix(in srgb, var(--mm-accent) 22%, var(--mm-border) 78%);
+  background:
+    linear-gradient(90deg, rgba(103, 232, 249, 0.08), rgba(255, 255, 255, 0.01) 34%, rgba(96, 165, 250, 0.08)),
+    rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
