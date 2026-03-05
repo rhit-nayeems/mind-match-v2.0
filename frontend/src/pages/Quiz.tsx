@@ -405,7 +405,7 @@ export default function Quiz() {
         <div className="space-y-4">{currentQs.map((q) => renderQ(q.id, q.text, q.choices))}</div>
 
         <div className="sticky bottom-0 left-0 right-0 mt-6">
-          <div className="rounded-2xl border border-cyan-200/20 bg-black/85 px-4 py-3 backdrop-blur">
+          <div className="quiz-nav-tray px-4 py-3">
             <div className="mx-auto flex max-w-4xl items-center justify-between">
               <button
                 type="button"
@@ -445,6 +445,7 @@ export default function Quiz() {
     </div>
   );
 }
+
 
 
 
