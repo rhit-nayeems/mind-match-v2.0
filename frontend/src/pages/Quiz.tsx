@@ -19,13 +19,17 @@ const RECENT_QIDS_KEY = "mm_recent_question_ids";
 const RECENT_QIDS_MAX = 64;
 
 function ensureSessionId(): string {
-  let sid = localStorage.getItem("mm_session");
-  if (!sid) {
-    // @ts-ignore
-    sid = (crypto?.randomUUID?.() as string) || String(Date.now());
-    localStorage.setItem("mm_session", sid);
+  try {
+    let sid = localStorage.getItem("mm_session");
+    if (!sid) {
+      // @ts-ignore
+      sid = (crypto?.randomUUID?.() as string) || String(Date.now());
+      localStorage.setItem("mm_session", sid);
+    }
+    return sid;
+  } catch {
+    return String(Date.now());
   }
-  return sid;
 }
 
 
@@ -441,6 +445,7 @@ export default function Quiz() {
     </div>
   );
 }
+
 
 
 

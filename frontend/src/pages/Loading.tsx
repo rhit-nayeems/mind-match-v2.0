@@ -1,15 +1,25 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+function readSavedAnswers(): number[] | null {
+  try {
+    const raw = localStorage.getItem('mm_answers')
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : null
+  } catch {
+    return null
+  }
+}
+
 export default function Loading() {
   const nav = useNavigate()
   const loc = useLocation() as any
 
   useEffect(() => {
-    const saved = localStorage.getItem('mm_answers')
-    const answers = loc.state?.answers ?? (saved ? JSON.parse(saved) : null)
+    const answers = Array.isArray(loc.state?.answers) ? loc.state.answers : readSavedAnswers()
 
-    if (!answers) {
+    if (!answers || answers.length === 0) {
       nav('/quiz')
       return
     }
@@ -32,5 +42,3 @@ export default function Loading() {
     </div>
   )
 }
-
-

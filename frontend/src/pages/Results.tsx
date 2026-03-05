@@ -47,6 +47,27 @@ const clamp01 = (v: any) => {
 
 const pct = (v?: number) => (v == null ? '-' : `${Math.round((v > 1 ? v : v * 100))}%`)
 
+function readSavedAnswers(): number[] | null {
+  try {
+    const raw = localStorage.getItem('mm_answers')
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : null
+  } catch {
+    return null
+  }
+}
+
+function readSavedContext(): any {
+  try {
+    const raw = localStorage.getItem('mm_context')
+    if (!raw) return null
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
 export default function Results() {
   const loc = useLocation() as any
   const nav = useNavigate()
@@ -67,18 +88,10 @@ export default function Results() {
   }
 
   useEffect(() => {
-    const saved = localStorage.getItem('mm_answers')
-    const savedCtx = localStorage.getItem('mm_context')
-    const answers: number[] = loc.state?.answers ?? (saved ? JSON.parse(saved) : null)
-    let context: any = loc.state?.context
+    const answers: number[] | null = Array.isArray(loc.state?.answers) ? loc.state.answers : readSavedAnswers()
+    let context: any = loc.state?.context ?? readSavedContext()
 
-    if (!context && savedCtx) {
-      try {
-        context = JSON.parse(savedCtx)
-      } catch {}
-    }
-
-    if (!answers) {
+    if (!answers || answers.length === 0) {
       setTimeout(() => nav('/quiz'), 0)
       return
     }
@@ -90,28 +103,33 @@ export default function Results() {
     }
 
     ;(async () => {
-      const res = await postRecommend(answers, localStorage.getItem('mm_session') || '', context)
-      setData(res as ResultsData)
-      setSelectedIdx(0)
-      setExpandedSynopsisIds(new Set())
+      try {
+        const res = await postRecommend(answers, localStorage.getItem('mm_session') || '', context)
+        setData(res as ResultsData)
+        setSelectedIdx(0)
+        setExpandedSynopsisIds(new Set())
 
-      const allowConfetti =
-        typeof window !== 'undefined' &&
-        !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
-        window.innerWidth >= 900
+        const allowConfetti =
+          typeof window !== 'undefined' &&
+          !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+          window.innerWidth >= 900
 
-      if (allowConfetti) {
-        setTimeout(() => {
-          confetti({
-            particleCount: 22,
-            spread: 48,
-            origin: { y: 0.72 },
-            colors: ['#67e8f9', '#93c5fd', '#fbbf24'],
-            scalar: 0.66,
-            ticks: 120,
-            disableForReducedMotion: true,
-          })
-        }, 200)
+        if (allowConfetti) {
+          setTimeout(() => {
+            confetti({
+              particleCount: 22,
+              spread: 48,
+              origin: { y: 0.72 },
+              colors: ['#67e8f9', '#93c5fd', '#fbbf24'],
+              scalar: 0.66,
+              ticks: 120,
+              disableForReducedMotion: true,
+            })
+          }, 200)
+        }
+      } catch (err) {
+        console.error('Failed to load recommendations on /results refresh', err)
+        setTimeout(() => nav('/quiz'), 0)
       }
     })()
   }, [])
@@ -418,26 +436,22 @@ function InlineRadar({
         const isBottom = !isLeft && !isRight && ly > cy
 
         const anchor: 'start' | 'end' | 'middle' = isLeft ? 'end' : isRight ? 'start' : 'middle'
-        const dy = isTop ? '-0.5em' : isBottom ? '1.0em' : '0.35em'
-
-        const approxW = s.key.length * charPx
-        let x = lx
-
-        if (anchor === 'end') x = Math.max(edgePad + approxW, lx)
-        if (anchor === 'start') x = Math.min(size - edgePad - approxW, lx)
-        if (anchor === 'middle') {
-          const halfW = approxW / 2
-          x = Math.min(size - edgePad - halfW, Math.max(edgePad + halfW, lx))
-        }
+        const baseline: 'middle' | 'hanging' | 'ideographic' = isTop
+          ? 'ideographic'
+          : isBottom
+            ? 'hanging'
+            : 'middle'
 
         return (
           <text
             key={s.key}
-            x={x}
+            x={lx}
             y={ly}
             textAnchor={anchor}
-            dy={dy}
-            style={{ fill: 'rgba(228,228,231,.84)', fontSize: fontPx, pointerEvents: 'none' }}
+            dominantBaseline={baseline}
+            fill="rgba(255,255,255,.78)"
+            fontSize="11"
+            style={{ textTransform: 'capitalize' }}
           >
             {s.key}
           </text>
@@ -449,20 +463,17 @@ function InlineRadar({
 
 function toPoints(
   spokes: { key: string; angle: number }[],
-  vec: Record<string, number>,
-  rMax: number,
+  v: Record<string, number>,
+  r: number,
   cx: number,
   cy: number
 ) {
   return spokes
     .map((s) => {
-      const v = clamp01(vec?.[s.key] ?? 0)
-      const x = cx + Math.cos(s.angle) * (rMax * v)
-      const y = cy + Math.sin(s.angle) * (rMax * v)
+      const n = clamp01(v[s.key])
+      const x = cx + Math.cos(s.angle) * r * n
+      const y = cy + Math.sin(s.angle) * r * n
       return `${x},${y}`
     })
     .join(' ')
 }
-
-
-
