@@ -8,7 +8,6 @@ export default function App() {
         <div className="tech-grid" />
         <div className="tech-web" />
         <div className="tech-circuit" />
-        <div className="tech-spokes" />
         <div className="tech-nodes" />
         <div className="tech-orb a" />
         <div className="tech-orb b" />
@@ -65,4 +64,3 @@ export default function App() {
     </div>
   )
 }
-

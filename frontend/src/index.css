@@ -204,22 +204,6 @@ body {
   mask-image: radial-gradient(circle at 50% 20%, black 20%, rgba(0, 0, 0, 0.8) 55%, transparent 100%);
 }
 
-.tech-spokes {
-  position: absolute;
-  width: 124vmax;
-  height: 124vmax;
-  left: 50%;
-  top: -69vmax;
-  transform: translateX(-50%);
-  background: repeating-conic-gradient(
-    from -10deg,
-    rgba(103, 232, 249, 0.07) 0deg 0.6deg,
-    transparent 0.6deg 12deg
-  );
-  opacity: 0.06;
-  -webkit-mask-image: radial-gradient(circle at 50% 70%, transparent 0%, black 19%, black 48%, transparent 76%);
-  mask-image: radial-gradient(circle at 50% 70%, transparent 0%, black 19%, black 48%, transparent 76%);
-}
 
 .tech-nodes {
   position: absolute;
@@ -337,8 +321,7 @@ body {
 }
 
 @media (max-width: 1024px) {
-  .tech-orb.b,
-  .tech-spokes {
+  .tech-orb.b {
     display: none;
   }
 
