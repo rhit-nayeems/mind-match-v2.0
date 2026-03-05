@@ -39,10 +39,13 @@ type ResultsData = {
   }>
 }
 
-const clamp01 = (v: any) => {
-  const n = Number(v ?? 0)
-  if (!isFinite(n)) return 0
-  return Math.max(0, Math.min(1, n > 1 ? n / 100 : n))
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
+
+const normalizeTrait = (v: any, fallback = 0.5) => {
+  if (v === null || v === undefined || v === '') return clamp01(fallback)
+  const n = Number(v)
+  if (!isFinite(n)) return clamp01(fallback)
+  return clamp01(n > 1 ? n / 100 : n)
 }
 
 const pct = (v?: number) => (v == null ? '-' : `${Math.round((v > 1 ? v : v * 100))}%`)
@@ -138,7 +141,7 @@ export default function Results() {
     const src = data?.profile?.traits ?? {}
     const out: Record<TraitKey, number> = {} as Record<TraitKey, number>
     TRAITS.forEach((k) => {
-      out[k] = clamp01((src as any)[k])
+      out[k] = normalizeTrait((src as any)[k], 0.5)
     })
     return out
   }, [data?.profile?.traits])
@@ -147,7 +150,7 @@ export default function Results() {
     const src = data?.recommendations?.[selectedIdx]?.traits ?? {}
     const out: Record<TraitKey, number> = {} as Record<TraitKey, number>
     TRAITS.forEach((k) => {
-      out[k] = clamp01((src as any)[k])
+      out[k] = normalizeTrait((src as any)[k], 0.5)
     })
     return out
   }, [data?.recommendations, selectedIdx])
@@ -477,3 +480,4 @@ function toPoints(
     })
     .join(' ')
 }
+
