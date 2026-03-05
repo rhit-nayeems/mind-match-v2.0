@@ -1,5 +1,5 @@
 // frontend/src/router.tsx
-import { createBrowserRouter } from 'react-router-dom'
+import { Navigate, createBrowserRouter } from 'react-router-dom'
 import App from './pages/App'
 import Landing from './pages/Landing'
 import Quiz from './pages/Quiz'
@@ -15,6 +15,7 @@ export default createBrowserRouter([
     errorElement: <RouteError />,
     children: [
       { index: true, element: <Landing /> },
+      { path: 'index.html', element: <Navigate to="/" replace /> },
       { path: 'quiz', element: <Quiz /> },
       { path: 'loading', element: <Loading /> },
       // Use the Lovable-style page by default:
