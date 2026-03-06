@@ -29,7 +29,7 @@ export default function Landing() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55 }}
-        className="surface overflow-visible md:overflow-hidden"
+        className="surface overflow-hidden"
       >
         <div className="grid min-w-0 gap-8 p-7 md:grid-cols-[1.1fr_0.9fr] md:items-center md:p-10">
           <div className="min-w-0">
@@ -72,8 +72,8 @@ export default function Landing() {
             </div>
             <div className="rounded-xl border border-cyan-200/20 bg-cyan-200/[0.04] p-3">
               <div className="code-label text-cyan-100/80">signal path</div>
-              <div className="mt-2 overflow-x-auto md:overflow-visible">
-                <p className="text-sm leading-relaxed text-zinc-200 md:min-w-max md:whitespace-nowrap">
+              <div className="mt-2 overflow-x-auto">
+                <p className="text-sm leading-relaxed text-zinc-200 whitespace-normal break-words">
                   quiz vectors -&gt; weighted similarity -&gt; diversity rerank -&gt; curated top matches
                 </p>
               </div>
