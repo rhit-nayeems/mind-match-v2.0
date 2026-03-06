@@ -29,10 +29,10 @@ export default function Landing() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55 }}
-        className="surface overflow-hidden"
+        className="surface overflow-visible md:overflow-hidden"
       >
-        <div className="grid gap-8 p-7 md:grid-cols-[1.1fr_0.9fr] md:items-center md:p-10">
-          <div>
+        <div className="grid min-w-0 gap-8 p-7 md:grid-cols-[1.1fr_0.9fr] md:items-center md:p-10">
+          <div className="min-w-0">
             <span className="outline-chip">psychology x cinema intelligence</span>
             <h1 className="headline mt-5 text-4xl leading-tight text-zinc-100 md:text-6xl">
               Stop scrolling.
@@ -49,11 +49,11 @@ export default function Landing() {
                 Run Match Sequence
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <span className="btn-ghost">~2 minute adaptive quiz</span>
+              <span className="btn-ghost max-w-full text-sm leading-tight">~2 minute adaptive quiz</span>
             </div>
           </div>
 
-          <div className="surface-soft grid h-fit content-start gap-3 self-start p-3 md:self-center">
+          <div className="surface-soft grid min-w-0 h-fit content-start gap-3 self-start p-3 md:self-center">
             <div className="rounded-xl border border-cyan-200/25 bg-black/35 p-3">
               <div className="code-label text-cyan-100/80">sample profile preview</div>
               <div className="mt-2.5 grid grid-cols-3 gap-1.5 text-xs text-zinc-300">
@@ -72,8 +72,8 @@ export default function Landing() {
             </div>
             <div className="rounded-xl border border-cyan-200/20 bg-cyan-200/[0.04] p-3">
               <div className="code-label text-cyan-100/80">signal path</div>
-              <div className="mt-2 overflow-x-auto">
-                <p className="min-w-max whitespace-nowrap text-sm text-zinc-200">
+              <div className="mt-2 overflow-x-auto md:overflow-visible">
+                <p className="text-sm leading-relaxed text-zinc-200 md:min-w-max md:whitespace-nowrap">
                   quiz vectors -&gt; weighted similarity -&gt; diversity rerank -&gt; curated top matches
                 </p>
               </div>
@@ -107,3 +107,4 @@ export default function Landing() {
     </div>
   )
 }
+
