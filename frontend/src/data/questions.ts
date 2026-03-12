@@ -71,6 +71,16 @@ function vectorFromAccumulator(acc: TraitVector, n: number): TraitVector {
   return out;
 }
 
+function traitClarity(value: number) {
+  return clamp01(Math.abs(value - 0.5) * 2);
+}
+
+function vectorClarity(vec: TraitVector) {
+  let total = 0;
+  for (const k of TRAIT_KEYS) total += traitClarity(vec[k]);
+  return clamp01(total / TRAIT_KEYS.length);
+}
+
 function shuffle<T>(items: T[]): T[] {
   const arr = [...items];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -488,12 +498,21 @@ export function answersToTraitContext(responses: Responses, questionSet?: Questi
   const personalityRatio = clamp01(answeredPers / personalityTotal);
   const moodRatio = clamp01(answeredToday / todayTotal);
 
+  const overallClarity = vectorClarity(blended);
+  const personalityClarity = vectorClarity(personality);
+  const moodClarity = vectorClarity(mood);
+
+  const overallConfidence = clamp01(0.35 * overallRatio + 0.65 * overallClarity);
+  const personalityConfidence = clamp01(0.4 * personalityRatio + 0.6 * personalityClarity);
+  const moodConfidence = clamp01(0.4 * moodRatio + 0.6 * moodClarity);
+
   const traitSupportTotal = traitCoverageCounts(questions);
   const perTrait = makeTraitVector(0.5);
   for (const k of TRAIT_KEYS) {
     const supportTotal = Math.max(1, traitSupportTotal[k]);
     const supportRatio = clamp01(supportAnswered[k] / supportTotal);
-    perTrait[k] = clamp01(0.18 + 0.42 * overallRatio + 0.4 * supportRatio);
+    const clarity = traitClarity(blended[k]);
+    perTrait[k] = clamp01(0.08 + 0.22 * overallRatio + 0.3 * supportRatio + 0.4 * clarity);
   }
 
   return {
@@ -502,9 +521,9 @@ export function answersToTraitContext(responses: Responses, questionSet?: Questi
     personality,
     mood,
     confidence: {
-      overall: overallRatio,
-      personality: personalityRatio,
-      mood: moodRatio,
+      overall: overallConfidence,
+      personality: personalityConfidence,
+      mood: moodConfidence,
       per_trait: perTrait,
     },
   };

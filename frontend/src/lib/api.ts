@@ -1,4 +1,4 @@
-﻿// frontend/src/lib/api.ts
+// frontend/src/lib/api.ts
 
 export type RecommendContext = {
   personality_traits?: Record<string, number>;
@@ -17,6 +17,9 @@ type RecommendBody = {
   session_id?: string;
   context?: RecommendContext;
 };
+
+const RECOMMEND_CACHE_TTL_MS = 5000;
+const recommendRequestCache = new Map<string, { expiresAt: number; promise: Promise<any> }>();
 
 function normalize(base: string) {
   return base.replace(/\/+$/, "");
@@ -52,20 +55,50 @@ export async function postRecommend(answers: number[], sessionId?: string, conte
   if (sessionId) body.session_id = sessionId;
   if (context) body.context = context;
 
-  const res = await fetch(`${API_BASE}/recommend`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Session-ID": sessionId || "",
-    },
-    body: JSON.stringify(body),
+  const cacheKey = JSON.stringify(body);
+  const now = Date.now();
+  const cached = recommendRequestCache.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.promise;
+  }
+
+  const promise = (async () => {
+    const res = await fetch(`${API_BASE}/recommend`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Session-ID": sessionId || "",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`API ${res.status} ${res.statusText}: ${text}`);
+    }
+    return json(res);
+  })();
+
+  recommendRequestCache.set(cacheKey, {
+    expiresAt: now + RECOMMEND_CACHE_TTL_MS,
+    promise,
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`API ${res.status} ${res.statusText}: ${text}`);
-  }
-  return json(res);
+  setTimeout(() => {
+    const current = recommendRequestCache.get(cacheKey);
+    if (current?.promise === promise && current.expiresAt <= Date.now()) {
+      recommendRequestCache.delete(cacheKey);
+    }
+  }, RECOMMEND_CACHE_TTL_MS);
+
+  promise.catch(() => {
+    const current = recommendRequestCache.get(cacheKey);
+    if (current?.promise === promise) {
+      recommendRequestCache.delete(cacheKey);
+    }
+  });
+
+  return promise;
 }
 
 export async function postEvent(payload: any, sessionId?: string) {

@@ -78,6 +78,8 @@ DISSIMILAR_MMR_PENALTY_BETA = max(0.0, _env_float("MM_DISSIMILAR_MMR_PENALTY_BET
 DISSIMILAR_HOT_MIN = max(1, _env_int("MM_DISSIMILAR_HOT_MIN", 5))
 DISSIMILAR_OVERLAP_CAP = max(0, _env_int("MM_DISSIMILAR_OVERLAP_CAP", 2))
 FORCE_DIVERSE_TAIL_SLOTS = max(0, _env_int("MM_DIVERSE_TAIL_SLOTS", 0))
+RELEVANCE_FLOOR_TEXT_BLEND = _clamp01(_env_float("MM_RELEVANCE_FLOOR_TEXT_BLEND", 0.18))
+SHOWN_EVENT_DEDUPE_MINUTES = max(1, _env_int("MM_SHOWN_EVENT_DEDUPE_MINUTES", 30))
 
 
 def init_app(app):
@@ -300,6 +302,32 @@ def _get_global_shown_counts(movie_ids: List[str], lookback_days: int = 14) -> D
     return out
 
 
+def _get_recently_logged_shown_ids(
+    session_id: str,
+    movie_ids: List[str],
+    lookback_minutes: int = 30,
+) -> Set[str]:
+    ids = [str(x) for x in movie_ids if x is not None]
+    if not session_id or not ids:
+        return set()
+
+    cutoff_dt = datetime.now(timezone.utc) - timedelta(minutes=lookback_minutes)
+    dbs = SessionLocal()
+    try:
+        rows = (
+            dbs.query(Event)
+            .filter(Event.session_id == session_id)
+            .filter(Event.movie_id.in_(ids))
+            .filter(Event.ts >= cutoff_dt)
+            .filter(Event.type == "shown")
+            .all()
+        )
+        return {str(e.movie_id) for e in rows if e.movie_id}
+    except Exception:
+        return set()
+    finally:
+        dbs.close()
+
 def _extract_trait_vec(raw: Any) -> List[float] | None:
     if not isinstance(raw, dict):
         return None
@@ -492,23 +520,26 @@ def _sample_rerank_pool(
     return picked, explore_ratio, band_size
 
 
-def _movie_trait_score(m: Dict[str, Any]) -> float:
-    return _clamp01(_safe_float(m.get("trait_score", m.get("match", 0.0)), 0.0))
+def _movie_relevance_score(m: Dict[str, Any]) -> float:
+    trait_score = _clamp01(_safe_float(m.get("trait_score", m.get("match", 0.0)), 0.0))
+    text_score = _clamp01(_safe_float(m.get("text_score", 0.0), 0.0))
+    blended = (1.0 - RELEVANCE_FLOOR_TEXT_BLEND) * trait_score + RELEVANCE_FLOOR_TEXT_BLEND * text_score
+    return max(trait_score, _clamp01(blended))
 
 
 def _apply_relevance_floor(scored: List[Dict[str, Any]], result_count: int) -> Tuple[List[Dict[str, Any]], float, str]:
     if not scored:
         return [], RELEVANCE_FLOOR_ABS, "none"
 
-    top_trait = max(_movie_trait_score(m) for m in scored)
-    floor = max(RELEVANCE_FLOOR_ABS, top_trait - RELEVANCE_FLOOR_REL)
-    filtered = [m for m in scored if _movie_trait_score(m) >= floor]
+    top_relevance = max(_movie_relevance_score(m) for m in scored)
+    floor = max(RELEVANCE_FLOOR_ABS, top_relevance - RELEVANCE_FLOOR_REL)
+    filtered = [m for m in scored if _movie_relevance_score(m) >= floor]
     if len(filtered) >= result_count:
         return filtered, floor, "strict"
 
     # Back off minimally to avoid empty/too-small sets.
-    relaxed_floor = max(0.60, top_trait - max(0.16, RELEVANCE_FLOOR_REL * 1.9))
-    filtered_relaxed = [m for m in scored if _movie_trait_score(m) >= relaxed_floor]
+    relaxed_floor = max(0.60, top_relevance - max(0.16, RELEVANCE_FLOOR_REL * 1.9))
+    filtered_relaxed = [m for m in scored if _movie_relevance_score(m) >= relaxed_floor]
     if len(filtered_relaxed) >= result_count:
         return filtered_relaxed, relaxed_floor, "relaxed"
 
@@ -516,11 +547,8 @@ def _apply_relevance_floor(scored: List[Dict[str, Any]], result_count: int) -> T
     keep_n = max(result_count * 3, result_count)
     fallback = scored[:keep_n]
     if fallback:
-        relaxed_floor = min(_movie_trait_score(m) for m in fallback)
+        relaxed_floor = min(_movie_relevance_score(m) for m in fallback)
     return fallback, relaxed_floor, "fallback"
-
-
-
 
 def _mmr_diversify(
     cands: List[Dict[str, Any]],
@@ -576,7 +604,7 @@ def _mmr_diversify(
             franchise_block = bool(root and max_per_franchise > 0 and root_count >= max_per_franchise)
             genre_block = bool(genre and max_per_primary_genre > 0 and genre_count >= max_per_primary_genre)
 
-            trait_score = _movie_trait_score(m)
+            trait_score = _movie_relevance_score(m)
             relevance_block = bool(relevance_floor is not None and trait_score < relevance_floor)
 
             dissimilar_count = max(0, int((dissimilar_counts or {}).get(mid, 0)))
@@ -807,8 +835,14 @@ def recommend():
     try:
         dbs = SessionLocal()
         now_dt = datetime.now(timezone.utc)
-
+        recently_logged_shown = _get_recently_logged_shown_ids(
+            session_id,
+            [str(m.get("id")) for m in enriched if m.get("id") is not None],
+            lookback_minutes=SHOWN_EVENT_DEDUPE_MINUTES,
+        )
         for m in enriched:
+            if str(m.get("id")) in recently_logged_shown:
+                continue
             ev = Event(
                 session_id=session_id,
                 movie_id=str(m.get("id")),

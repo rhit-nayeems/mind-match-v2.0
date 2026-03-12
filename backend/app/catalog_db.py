@@ -14,7 +14,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 
 TRAITS = ["darkness", "energy", "mood", "depth", "optimism", "novelty", "comfort", "intensity", "humor"]
-DEFAULT_CATALOG_MAX_MOVIES = 500
+DEFAULT_CATALOG_MAX_MOVIES = 0
 
 _TRAIT_QUERY_HINTS: Dict[str, List[str]] = {
     "darkness": ["dark", "noir", "bleak", "mystery", "gritty"],
@@ -57,7 +57,7 @@ def resolve_db_path() -> str:
 
 
 def resolve_catalog_limit() -> int:
-    """Max number of movies loaded into the active catalog cache."""
+    """Max number of movies loaded into the active catalog cache. 0 means no cap."""
     raw = (os.environ.get("CATALOG_MAX_MOVIES") or "").strip()
     if not raw:
         return DEFAULT_CATALOG_MAX_MOVIES
@@ -65,8 +65,7 @@ def resolve_catalog_limit() -> int:
         limit = int(raw)
     except Exception:
         return DEFAULT_CATALOG_MAX_MOVIES
-    return limit if limit > 0 else DEFAULT_CATALOG_MAX_MOVIES
-
+    return limit if limit >= 0 else DEFAULT_CATALOG_MAX_MOVIES
 
 def _connect() -> sqlite3.Connection:
     db_path = resolve_db_path()
@@ -286,8 +285,8 @@ def hybrid_candidates(
     if not records:
         return []
 
-    pre_n = max(limit, min(prefilter, len(records)))
-    pool = records[:pre_n]
+    # Score the full active catalog to avoid popularity-sliced recall loss.
+    pool = records
 
     uvec = [float(user_traits.get(k, 0.5)) for k in TRAITS]
 

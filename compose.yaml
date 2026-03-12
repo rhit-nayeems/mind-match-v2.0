@@ -5,7 +5,7 @@ services:
     environment:
       - TMDB_BEARER=${TMDB_BEARER}
       - MOVIES_DB=/app/app/datasets/movies_core.db
-      - CATALOG_MAX_MOVIES=${CATALOG_MAX_MOVIES:-500}
+      - CATALOG_MAX_MOVIES=${CATALOG_MAX_MOVIES:-0}
       - PYTHONUNBUFFERED=1
     volumes:
       - ./backend/app:/app/app

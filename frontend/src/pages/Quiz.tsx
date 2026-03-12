@@ -10,7 +10,6 @@ import {
   buildAdaptiveQuizQuestions,
   buildCoreQuizQuestions,
 } from "../data/questions";
-import { postRecommend } from "../lib/api";
 
 const PAGE_SIZE_PER_GROUP = 2;
 const APP_STATE_VERSION = "2026-03-02-2";
@@ -302,14 +301,7 @@ export default function Quiz() {
         localStorage.setItem("mm_context", JSON.stringify(requestContext));
       } catch {}
 
-      const sid = localStorage.getItem("mm_session") || "";
       rememberQuestionIds(quizQuestions.map((q) => q.id));
-      try {
-        await postRecommend(vector, sid, requestContext);
-      } catch {
-        // Results page retries if needed.
-      }
-
       navigate("/results", { state: { answers: vector, context: requestContext } });
     } finally {
       setSubmitting(false);
