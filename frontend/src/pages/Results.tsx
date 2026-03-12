@@ -71,6 +71,57 @@ function readSavedContext(): any {
   }
 }
 
+const RESULT_HISTORY_KEY = 'mm_result_history_ids'
+const PENDING_RETAKE_KEY = 'mm_pending_retake'
+const RESULT_HISTORY_MAX = 24
+
+function normalizeMovieIds(raw: unknown, limit = RESULT_HISTORY_MAX): string[] {
+  if (!Array.isArray(raw)) return []
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const item of raw) {
+    const id = String(item ?? '').trim()
+    if (!id || seen.has(id)) continue
+    seen.add(id)
+    out.push(id)
+    if (out.length >= limit) break
+  }
+  return out
+}
+
+function readStoredMovieIds(key: string): string[] {
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) return []
+    return normalizeMovieIds(JSON.parse(raw))
+  } catch {
+    return []
+  }
+}
+
+function writeStoredMovieIds(key: string, ids: string[]) {
+  try {
+    if (ids.length) localStorage.setItem(key, JSON.stringify(ids))
+    else localStorage.removeItem(key)
+  } catch {}
+}
+
+function mergeMovieIds(...lists: string[][]): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const list of lists) {
+    for (const item of list) {
+      const id = String(item ?? '').trim()
+      if (!id || seen.has(id)) continue
+      seen.add(id)
+      out.push(id)
+      if (out.length >= RESULT_HISTORY_MAX) return out
+    }
+  }
+  return out
+}
+
+
 export default function Results() {
   const loc = useLocation() as any
   const nav = useNavigate()
@@ -84,13 +135,28 @@ export default function Results() {
   const isLoading = !data
 
   function handleRetake() {
+    const currentIds = normalizeMovieIds((data?.recommendations ?? []).map((movie) => movie.id))
+    const historyIds = readStoredMovieIds(RESULT_HISTORY_KEY)
+    const savedContext = readSavedContext()
+    const parsedRound = Number(savedContext?.retake_round)
+    const nextRound = Number.isFinite(parsedRound) && parsedRound > 0 ? Math.floor(parsedRound) + 1 : 1
+    const avoidMovieIds = mergeMovieIds(currentIds, historyIds)
+
     try {
+      if (avoidMovieIds.length) {
+        localStorage.setItem(
+          PENDING_RETAKE_KEY,
+          JSON.stringify({ round: nextRound, avoid_movie_ids: avoidMovieIds })
+        )
+      } else {
+        localStorage.removeItem(PENDING_RETAKE_KEY)
+      }
       localStorage.removeItem('mm_answers')
       localStorage.removeItem('mm_context')
       localStorage.removeItem('mm_responses')
       localStorage.removeItem('mm_page')
     } catch {}
-    nav('/quiz', { replace: true, state: { reset: true } })
+    nav('/quiz?fresh=1&retake=1', { replace: true, state: { reset: true, retake: true } })
   }
 
   useEffect(() => {
@@ -111,7 +177,16 @@ export default function Results() {
     ;(async () => {
       try {
         const res = await postRecommend(answers, localStorage.getItem('mm_session') || '', context)
-        setData(res as ResultsData)
+        const resultData = res as ResultsData
+        const resultIds = normalizeMovieIds((resultData.recommendations ?? []).map((movie) => movie.id))
+        const parsedRetakeRound = Number(context?.retake_round)
+        const priorHistory =
+          Number.isFinite(parsedRetakeRound) && parsedRetakeRound > 0 ? readStoredMovieIds(RESULT_HISTORY_KEY) : []
+        writeStoredMovieIds(RESULT_HISTORY_KEY, mergeMovieIds(resultIds, priorHistory))
+        try {
+          localStorage.removeItem(PENDING_RETAKE_KEY)
+        } catch {}
+        setData(resultData)
         setSelectedIdx(0)
         setExpandedSynopsisIds(new Set())
         setSavedIds(new Set())

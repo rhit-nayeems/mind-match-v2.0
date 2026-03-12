@@ -39,6 +39,29 @@ def _safe_float(v: Any, default: float = 0.0) -> float:
 def _clamp01(v: float) -> float:
     return 0.0 if v < 0.0 else 1.0 if v > 1.0 else float(v)
 
+def _safe_int(v: Any, default: int = 0) -> int:
+    try:
+        return int(v)
+    except Exception:
+        return default
+
+
+def _normalize_movie_ids(raw: Any, limit: int = 48) -> List[str]:
+    if not isinstance(raw, list):
+        return []
+    seen: Set[str] = set()
+    out: List[str] = []
+    for item in raw:
+        mid = str(item or "").strip()
+        if not mid or mid in seen:
+            continue
+        seen.add(mid)
+        out.append(mid)
+        if len(out) >= limit:
+            break
+    return out
+
+
 
 def _env_float(name: str, default: float) -> float:
     raw = os.environ.get(name)
@@ -197,6 +220,7 @@ def _get_recently_seen_ids(session_id: str, lookback_days: int = 14) -> Set[str]
     try:
         q = dbs.query(Event).filter(Event.session_id == session_id)
         q = q.filter(Event.ts >= cutoff_dt)
+        q = q.filter(Event.type.in_(tuple(INTERACTION_TYPES)))
         return {str(e.movie_id) for e in q.all() if e.movie_id}
     except Exception:
         return set()
@@ -276,7 +300,11 @@ def _get_session_adjustments(session_id: str, lookback_days: int = 45) -> Dict[s
     return {mid: max(-0.20, min(0.20, adj)) for mid, adj in out.items()}
 
 
-def _get_global_shown_counts(movie_ids: List[str], lookback_days: int = 14) -> Dict[str, int]:
+def _get_global_shown_counts(
+    movie_ids: List[str],
+    lookback_days: int = 14,
+    exclude_session_id: str | None = None,
+) -> Dict[str, int]:
     ids = [str(x) for x in movie_ids if x is not None]
     if not ids:
         return {}
@@ -290,8 +318,10 @@ def _get_global_shown_counts(movie_ids: List[str], lookback_days: int = 14) -> D
             .filter(Event.movie_id.in_(ids))
             .filter(Event.ts >= cutoff_dt)
             .filter(Event.type == "shown")
-            .all()
         )
+        if exclude_session_id:
+            rows = rows.filter(Event.session_id != exclude_session_id)
+        rows = rows.all()
         for e in rows:
             out[str(e.movie_id)] += 1
     except Exception:
@@ -446,11 +476,17 @@ def _adaptive_lambda(user_traits: Dict[str, float], overall_conf: float, seen_co
     return max(0.45, min(0.88, lam))
 
 
-def _stable_rng(session_id: str, user_traits: Dict[str, float], overall_conf: float) -> random.Random:
+def _stable_rng(
+    session_id: str,
+    user_traits: Dict[str, float],
+    overall_conf: float,
+    variant_seed: str = "",
+) -> random.Random:
     payload = {
         "session_id": str(session_id or "anon"),
         "confidence": round(_clamp01(overall_conf), 4),
         "traits": {k: round(_clamp01(_safe_float(user_traits.get(k, 0.5), 0.5)), 4) for k in TRAIT_ORDER},
+        "variant_seed": str(variant_seed or ""),
     }
     raw = json.dumps(payload, sort_keys=True).encode("utf-8")
     seed = int(hashlib.sha256(raw).hexdigest()[:16], 16)
@@ -549,6 +585,33 @@ def _apply_relevance_floor(scored: List[Dict[str, Any]], result_count: int) -> T
     if fallback:
         relaxed_floor = min(_movie_relevance_score(m) for m in fallback)
     return fallback, relaxed_floor, "fallback"
+
+def _apply_explicit_avoidance(
+    scored: List[Dict[str, Any]],
+    avoid_ids: Set[str],
+    result_count: int,
+) -> Tuple[List[Dict[str, Any]], int, str]:
+    if not scored or not avoid_ids:
+        return scored, 0, "none"
+
+    filtered = [m for m in scored if str(m.get("id")) not in avoid_ids]
+    removed = len(scored) - len(filtered)
+    min_strict = max(result_count * 2, result_count + 2)
+    if len(filtered) >= min_strict:
+        return filtered, removed, "strict"
+
+    penalty = 0.24
+    out: List[Dict[str, Any]] = []
+    for m in scored:
+        m2 = dict(m)
+        if str(m2.get("id")) in avoid_ids:
+            rank_score = _safe_float(m2.get("rank_score", m2.get("match", 0.0)), 0.0) - penalty
+            m2["rank_score"] = round(rank_score, 6)
+            m2["retake_avoid_penalty"] = round(penalty, 6)
+        out.append(m2)
+
+    return out, removed, "demote"
+
 
 def _mmr_diversify(
     cands: List[Dict[str, Any]],
@@ -704,6 +767,10 @@ def recommend():
     mood_traits = context.get("mood_traits") if isinstance(context.get("mood_traits"), dict) else {}
     confidence = context.get("confidence") if isinstance(context.get("confidence"), dict) else {}
     overall_conf = _clamp01(_safe_float(confidence.get("overall", 0.75), 0.75))
+    retake_round = max(0, _safe_int(context.get("retake_round"), 0))
+    retake_avoid_ids = set(_normalize_movie_ids(context.get("avoid_movie_ids")))
+    if retake_avoid_ids and retake_round <= 0:
+        retake_round = 1
 
     user_traits = answers_to_traits(answers)
     profile_summary = summarize_traits(user_traits)
@@ -735,7 +802,11 @@ def recommend():
 
     movie_ids = [str(m.get("id")) for m in deduped if m.get("id") is not None]
     feedback_priors = _get_feedback_priors(movie_ids)
-    global_shown_counts = _get_global_shown_counts(movie_ids, lookback_days=GLOBAL_REPEAT_LOOKBACK_DAYS)
+    global_shown_counts = _get_global_shown_counts(
+        movie_ids,
+        lookback_days=GLOBAL_REPEAT_LOOKBACK_DAYS,
+        exclude_session_id=session_id,
+    )
     dissimilar_exposure_counts = _get_dissimilar_exposure_counts(
         movie_ids,
         user_traits=user_traits,
@@ -774,6 +845,15 @@ def recommend():
         m2["rank_score"] = round(rank_score, 6)
         scored.append(m2)
 
+    retake_avoid_mode = "none"
+    retake_avoid_removed = 0
+    if retake_avoid_ids:
+        scored, retake_avoid_removed, retake_avoid_mode = _apply_explicit_avoidance(
+            scored,
+            avoid_ids=retake_avoid_ids,
+            result_count=result_count,
+        )
+
     scored.sort(
         key=lambda x: (
             -_safe_float(x.get("rank_score"), 0.0),
@@ -786,7 +866,7 @@ def recommend():
 
     seen = _get_recently_seen_ids(session_id, lookback_days=21)
     adaptive_lambda = _adaptive_lambda(user_traits, overall_conf, seen_count=len(seen))
-    rng = _stable_rng(session_id, user_traits, overall_conf)
+    rng = _stable_rng(session_id, user_traits, overall_conf, variant_seed=f"retake:{retake_round}" if retake_round > 0 else "")
     close_mode = result_count <= 4
     if close_mode:
         adaptive_lambda = max(0.76, min(0.94, adaptive_lambda + 0.10))
@@ -882,6 +962,10 @@ def recommend():
                 "weights": {k: round(v, 4) for k, v in weights.items()},
                 "mmr_lambda": round(adaptive_lambda, 4),
                 "confidence": round(overall_conf, 4),
+                "retake_round": retake_round,
+                "retake_avoid_count": len(retake_avoid_ids),
+                "retake_avoid_removed": retake_avoid_removed,
+                "retake_avoid_mode": retake_avoid_mode,
                 "active_catalog_rows": active_rows,
                 "candidate_limit": candidate_limit,
                 "prefilter": prefilter_n,

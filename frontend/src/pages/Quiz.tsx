@@ -16,6 +16,42 @@ const APP_STATE_VERSION = "2026-03-02-2";
 const VERSION_KEY = "mm_version";
 const RECENT_QIDS_KEY = "mm_recent_question_ids";
 const RECENT_QIDS_MAX = 64;
+const PENDING_RETAKE_KEY = "mm_pending_retake";
+const RETAKE_AVOID_IDS_MAX = 24;
+
+type PendingRetakeState = {
+  round: number;
+  avoid_movie_ids: string[];
+};
+
+function normalizeMovieIds(raw: unknown, limit = RETAKE_AVOID_IDS_MAX): string[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const item of raw) {
+    const id = String(item ?? "").trim();
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+function readPendingRetake(): PendingRetakeState | null {
+  try {
+    const raw = localStorage.getItem(PENDING_RETAKE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const round = Number(parsed?.round);
+    const avoid_movie_ids = normalizeMovieIds(parsed?.avoid_movie_ids);
+    if (!Number.isFinite(round) || round < 1 || !avoid_movie_ids.length) return null;
+    return { round: Math.floor(round), avoid_movie_ids };
+  } catch {
+    return null;
+  }
+}
+
 
 function ensureSessionId(): string {
   try {
@@ -150,6 +186,7 @@ export default function Quiz() {
         localStorage.removeItem("mm_context");
         localStorage.removeItem("mm_responses");
         localStorage.removeItem("mm_page");
+        localStorage.removeItem(PENDING_RETAKE_KEY);
         localStorage.setItem(VERSION_KEY, APP_STATE_VERSION);
       } catch {}
       setResponses({});
@@ -162,6 +199,7 @@ export default function Quiz() {
 
     const search = new URLSearchParams(window.location.search);
     const reset = (loc?.state && loc.state.reset === true) || search.get("fresh") === "1";
+    const isRetake = (loc?.state && loc.state.retake === true) || search.get("retake") === "1";
 
     if (reset) {
       try {
@@ -169,6 +207,9 @@ export default function Quiz() {
         localStorage.removeItem("mm_context");
         localStorage.removeItem("mm_responses");
         localStorage.removeItem("mm_page");
+        if (!isRetake) {
+          localStorage.removeItem(PENDING_RETAKE_KEY);
+        }
         localStorage.setItem(VERSION_KEY, APP_STATE_VERSION);
       } catch {}
       setResponses({});
@@ -285,7 +326,8 @@ export default function Quiz() {
 
       const traitContext = answersToTraitContext(responses, quizQuestions);
       const vector = traitContext.blendedArray;
-      const requestContext = {
+      const pendingRetake = readPendingRetake();
+      const requestContext: any = {
         personality_traits: traitContext.personality,
         mood_traits: traitContext.mood,
         confidence: {
@@ -296,9 +338,18 @@ export default function Quiz() {
         },
       };
 
+      if (pendingRetake) {
+        requestContext.retake_round = pendingRetake.round;
+        requestContext.avoid_movie_ids = pendingRetake.avoid_movie_ids;
+      }
+
       try {
         localStorage.setItem("mm_answers", JSON.stringify(vector));
         localStorage.setItem("mm_context", JSON.stringify(requestContext));
+      } catch {}
+
+      try {
+        localStorage.removeItem(PENDING_RETAKE_KEY);
       } catch {}
 
       rememberQuestionIds(quizQuestions.map((q) => q.id));

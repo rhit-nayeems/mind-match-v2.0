@@ -10,6 +10,8 @@ export type RecommendContext = {
     per_trait?: Record<string, number>;
   };
   query_text?: string;
+  retake_round?: number;
+  avoid_movie_ids?: string[];
 };
 
 type RecommendBody = {
