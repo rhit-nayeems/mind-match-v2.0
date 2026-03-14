@@ -1,61 +1,57 @@
- flowchart LR
-    subgraph Browser["User Browser"]
-      U[User]
-      SPA[MindMatch SPA\nReact + TypeScript + Vite]
-      LS[(LocalStorage\nmm_session, mm_answers,\nmm_context, recent_question_ids)]
-      U --> SPA
-      SPA <--> LS
-    end
+---
+  title: High Level System Architecture
+---
+flowchart LR
+      subgraph Browser["User Browser"]
+        U[User]
+        SPA[MindMatch SPA\nReact + TypeScript + Vite]
+        LS[(LocalStorage\nsession + quiz state + retake state)]
+        U --> SPA
+        SPA <--> LS
+      end
 
-    subgraph FrontendService["Render Static Frontend"]
-      ROUTER[React Router\n/, /quiz, /loading, /results]
-      APIClient[API Client\npostRecommend, postEvent, getHealth]
-      SPA --> ROUTER --> APIClient
-    end
+      subgraph Frontend["Static Frontend"]
+        Router[React Router\n/, /quiz, /results]
+        QuizEngine[Adaptive Quiz + Trait Context\npersonality + mood +
+  blended profile]
+        APIClient[API Client\npostRecommend, postEvent, getHealth]
+        SPA --> Router --> QuizEngine --> APIClient
+      end
 
-    subgraph BackendService["Render Backend API (Flask + Gunicorn)"]
-      Health["GET /health"]
-      Recommend["POST /recommend"]
-      Event["POST /event"]
+      subgraph Backend["Backend API\nFlask + Gunicorn"]
+        Health[GET /health]
+        Recommend[POST /recommend]
+        Event[POST /event]
 
-      QuizProfile["Profile Builder\nanswers_to_traits + summarize_traits"]
-      Retrieval["Hybrid Retrieval\ncentered cosine + TF-IDF"]
-      Rank["Weighted Ranking\ntrait/text/feedback/session"]
-      Guards["Guardrails\nrelevance floor + freshness/dissimilar penalties"]
-      MMR["MMR Rerank\ndiversity + overlap controls"]
-      Calib["Calibration\nscore -> match %"]
-      Shown["Auto 'shown' Event Logging"]
-      Bandit["LinUCB Snapshot Update"]
+        Profile[Profile Builder\nanswers_to_traits + summary]
+        Retrieval[Hybrid Retrieval\ncentered cosine + TF-IDF]
+        Rank[Weighted Ranking\ntrait + text + feedback + session]
+        Guards[Guardrails\nrelevance floor + freshness / exposure penalties]
+        MMR[MMR Rerank\ndiversity + overlap controls]
+        Display[Display Match Score\nhybrid fit for UI]
+        Shown[Auto 'shown' Event Logging]
+      end
+        Catalog[(SQLite Catalog\nmovies_core.db / movies.db)]
+        Cache[(In-Memory Cache\nrecords + TF-IDF matrix)]
+        Events[(SQLite Event DB\nevents + linucb_snapshots)]
+      end
 
-      Recommend --> QuizProfile --> Retrieval --> Rank --> Guards --> MMR --> Calib --> Shown
-      Event --> Bandit
-    end
+      subgraph External["External Integrations"]
+        TMDB[TMDB API]
+        Ingest[tmdb_ingest.py]
+      end
 
-    subgraph DataLayer["Data Layer"]
-      Catalog[(movies_core.db\ncatalog)]
-      EventDB[(bandit.db\nevents + linucb_snapshots)]
-      Cache[(In-memory Cache\nrecords + TF-IDF matrix)]
-    end
+      APIClient -->|GET| Health
+      APIClient -->|POST answers + context + session_id| Recommend
+      APIClient -->|POST interaction events| Event
 
-    subgraph External["External Integrations"]
-      TMDB[TMDB API]
-      Ingest[tmdb_ingest.py]
-    end
+      Recommend --> Profile --> Retrieval --> Rank --> Guards --> MMR -->
+  Display --> Shown
 
-    APIClient -->|GET| Health
-    APIClient -->|POST answers + context + session_id| Recommend
-    APIClient -->|POST click/save/finish/dismiss| Event
+      Catalog --> Cache --> Retrieval
+      Events --> Rank
+      Event --> Events
+      Shown --> Events
 
-    Health -->|status + catalog rows + algo| APIClient
-    Recommend -->|profile + recommendations + algo_meta| APIClient
-    Event -->|{ ok: true }| APIClient
-
-    Retrieval --> Cache
-    Cache --> Catalog
-    Shown --> EventDB
-    Event --> EventDB
-    Bandit --> EventDB
-
-    Recommend -. enrich missing poster/meta .-> TMDB
-    Ingest --> Catalog
-  
+      Recommend -. fallback poster/meta enrichment .-> TMDB
+      Ingest --> Catalog
