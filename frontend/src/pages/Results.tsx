@@ -34,7 +34,6 @@ type ResultsData = {
     posterUrl?: string | null
     synopsis?: string
     traits?: Record<string, number>
-    fitScore?: number
     match?: number
     genre?: string[]
   }>
@@ -235,18 +234,6 @@ export default function Results() {
 
   const recs = data?.recommendations ?? []
   const selected = recs[selectedIdx]
-  const selectedCardKey = String(selected?.id ?? selectedIdx ?? 'selected')
-  const selectedSynopsis = String(selected?.synopsis ?? '').trim()
-  const canExpandSelectedSynopsis = selectedSynopsis.length > 280
-  const selectedSynopsisExpanded = expandedSynopsisIds.has(selectedCardKey)
-  const selectedVoteAverage = Number(selected?.vote_average)
-  const selectedNormalizedVote =
-    Number.isFinite(selectedVoteAverage) && selectedVoteAverage > 0
-      ? Math.max(0, Math.min(10, selectedVoteAverage))
-      : null
-  const selectedRatingSource = String(selected?.rating_source || 'TMDB')
-  const selectedFilledStars =
-    selectedNormalizedVote == null ? 0 : Math.max(0, Math.min(5, Math.round(selectedNormalizedVote / 2)))
 
   function buildEventFeatures(movie: ResultsData['recommendations'][number]) {
     return {
@@ -300,9 +287,6 @@ export default function Results() {
         <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
           <section className="lg:col-span-7">
             <h2 className="headline mb-4 text-lg text-zinc-100">Recommended Movies</h2>
-            <p className="mb-4 max-w-2xl text-sm text-zinc-400">
-              Match shows how well each movie fits your profile.
-            </p>
 
             {isLoading ? (
               <div className="grid gap-5 sm:grid-cols-2">
@@ -320,6 +304,16 @@ export default function Results() {
                 {recs.map((m, i) => {
                   const active = i === selectedIdx
                   const cardKey = String(m.id ?? i)
+                  const synopsis = String(m.synopsis ?? '').trim()
+                  const canExpandSynopsis = synopsis.length > 110
+                  const synopsisExpanded = expandedSynopsisIds.has(cardKey)
+
+                  const voteAverage = Number(m.vote_average)
+                  const normalizedVote = Number.isFinite(voteAverage) && voteAverage > 0
+                    ? Math.max(0, Math.min(10, voteAverage))
+                    : null
+                  const ratingSource = String(m.rating_source || 'TMDB')
+                  const filledStars = normalizedVote == null ? 0 : Math.max(0, Math.min(5, Math.round(normalizedVote / 2)))
 
                   return (
                     <div
@@ -355,6 +349,70 @@ export default function Results() {
                             {m.year && <span>{m.year}</span>}
                             {m.director && <span className="min-w-0 truncate">{m.director}</span>}
                           </div>
+
+                          {normalizedVote != null && (
+                            <div className="mt-1 max-w-full">
+                              <span className="inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md border border-amber-200/25 bg-amber-100/[0.08] px-2 py-0.5 text-xs">
+                                <span className="shrink-0 text-amber-100/75">{ratingSource}:</span>
+                                <span className="inline-flex shrink-0 items-center gap-0.5" aria-hidden>
+                                  {Array.from({ length: 5 }).map((_, idx) => (
+                                    <Star
+                                      key={`${cardKey}-star-${idx}`}
+                                      className={
+                                        idx < filledStars
+                                          ? 'h-2.5 w-2.5 fill-amber-300 text-amber-300'
+                                          : 'h-2.5 w-2.5 text-amber-100/35'
+                                      }
+                                    />
+                                  ))}
+                                </span>
+                                <span className="tabular-nums text-amber-200">{normalizedVote.toFixed(1)}/10</span>
+                              </span>
+                            </div>
+                          )}
+
+                          {synopsis && (
+                            <div className="mt-2">
+                              <p
+                                className={[
+                                  synopsisExpanded ? 'whitespace-normal break-words leading-relaxed' : 'line-clamp-1',
+                                  'text-sm text-zinc-300',
+                                ].join(' ')}
+                              >
+                                {synopsis}
+                              </p>
+                              {canExpandSynopsis && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setExpandedSynopsisIds((prev) => {
+                                      const next = new Set(prev)
+                                      if (next.has(cardKey)) next.delete(cardKey)
+                                      else next.add(cardKey)
+                                      return next
+                                    })
+                                  }}
+                                  className="mt-1 text-xs font-medium text-cyan-100/85 underline decoration-cyan-200/45 underline-offset-2 hover:text-cyan-100"
+                                >
+                                  {synopsisExpanded ? 'Show less' : 'Read more'}
+                                </button>
+                              )}
+                            </div>
+                          )}
+
+                          {m.genre && m.genre.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {m.genre.slice(0, 3).map((g, idx) => (
+                                <span
+                                  key={`${m.id}-${g}-${idx}`}
+                                  className="rounded-full border border-cyan-200/25 bg-cyan-100/[0.08] px-2 py-0.5 text-xs text-cyan-100/85"
+                                >
+                                  {g}
+                                </span>
+                              ))}
+                            </div>
+                          )}
 
                           <div className="mt-3">
                             <div className="flex items-center justify-between text-xs text-zinc-300">
@@ -404,54 +462,6 @@ export default function Results() {
                 </span>
               </div>
 
-              <p className="mt-3 text-sm text-zinc-400">
-                Match shows how well this movie fits your profile.
-              </p>
-
-              <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-zinc-300">
-                {selected?.year && (
-                  <span className="rounded-full border border-cyan-200/20 bg-cyan-100/[0.05] px-2.5 py-1">
-                    {selected.year}
-                  </span>
-                )}
-                {selected?.director && (
-                  <span className="rounded-full border border-cyan-200/20 bg-cyan-100/[0.05] px-2.5 py-1">
-                    Directed by {selected.director}
-                  </span>
-                )}
-                {selectedNormalizedVote != null && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/25 bg-amber-100/[0.08] px-2.5 py-1 text-amber-100/85">
-                    <span className="shrink-0">{selectedRatingSource}</span>
-                    <span className="inline-flex items-center gap-0.5" aria-hidden>
-                      {Array.from({ length: 5 }).map((_, idx) => (
-                        <Star
-                          key={`${selectedCardKey}-selected-star-${idx}`}
-                          className={
-                            idx < selectedFilledStars
-                              ? 'h-2.5 w-2.5 fill-amber-300 text-amber-300'
-                              : 'h-2.5 w-2.5 text-amber-100/35'
-                          }
-                        />
-                      ))}
-                    </span>
-                    <span className="tabular-nums">{selectedNormalizedVote.toFixed(1)}/10</span>
-                  </span>
-                )}
-              </div>
-
-              {selected?.genre && selected.genre.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {selected.genre.slice(0, 4).map((g, idx) => (
-                    <span
-                      key={`${selected?.id}-${g}-${idx}`}
-                      className="rounded-full border border-cyan-200/25 bg-cyan-100/[0.08] px-2 py-0.5 text-xs text-cyan-100/85"
-                    >
-                      {g}
-                    </span>
-                  ))}
-                </div>
-              )}
-
               <div className="mt-3 flex items-center justify-center">
                 <InlineRadar
                   keys={TRAITS as unknown as string[]}
@@ -464,36 +474,6 @@ export default function Results() {
               <p className="mt-3 text-center text-xs text-zinc-500">
                 Select a movie to see how it lines up with your profile.
               </p>
-
-              {selectedSynopsis && (
-                <div className="mt-4 border-t border-cyan-200/15 pt-4">
-                  <div className="text-xs uppercase tracking-[0.14em] text-zinc-500">about this movie</div>
-                  <p
-                    className={[
-                      canExpandSelectedSynopsis && !selectedSynopsisExpanded ? 'line-clamp-5' : 'whitespace-normal break-words leading-relaxed',
-                      'mt-2 text-sm text-zinc-300',
-                    ].join(' ')}
-                  >
-                    {selectedSynopsis}
-                  </p>
-                  {canExpandSelectedSynopsis && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setExpandedSynopsisIds((prev) => {
-                          const next = new Set(prev)
-                          if (next.has(selectedCardKey)) next.delete(selectedCardKey)
-                          else next.add(selectedCardKey)
-                          return next
-                        })
-                      }}
-                      className="mt-2 text-xs font-medium text-cyan-100/85 underline decoration-cyan-200/45 underline-offset-2 hover:text-cyan-100"
-                    >
-                      {selectedSynopsisExpanded ? 'Show less' : 'Read more'}
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
           </aside>
         </div>
