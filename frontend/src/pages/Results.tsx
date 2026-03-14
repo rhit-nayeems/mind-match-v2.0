@@ -129,8 +129,6 @@ export default function Results() {
   const [data, setData] = useState<ResultsData | null>(null)
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [expandedSynopsisIds, setExpandedSynopsisIds] = useState<Set<string>>(new Set())
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
-  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
   const clickedIdsRef = useRef<Set<string>>(new Set())
   const isLoading = !data
 
@@ -189,8 +187,6 @@ export default function Results() {
         setData(resultData)
         setSelectedIdx(0)
         setExpandedSynopsisIds(new Set())
-        setSavedIds(new Set())
-        setDismissedIds(new Set())
         clickedIdsRef.current = new Set()
 
         const allowConfetti =
@@ -238,9 +234,6 @@ export default function Results() {
 
   const recs = data?.recommendations ?? []
   const selected = recs[selectedIdx]
-  const selectedId = selected ? String(selected.id) : null
-  const selectedSaved = selectedId ? savedIds.has(selectedId) : false
-  const selectedDismissed = selectedId ? dismissedIds.has(selectedId) : false
 
   function buildEventFeatures(movie: ResultsData['recommendations'][number]) {
     return {
@@ -249,7 +242,7 @@ export default function Results() {
     }
   }
 
-  async function sendFeedback(type: 'click' | 'save' | 'dismiss', movie: ResultsData['recommendations'][number]) {
+  async function sendFeedback(type: 'click', movie: ResultsData['recommendations'][number]) {
     await postEvent(
       {
         type,
@@ -275,34 +268,6 @@ export default function Results() {
     })
   }
 
-  function handleFeedbackAction(type: 'save' | 'dismiss') {
-    if (!selected || !selectedId) return
-
-    if (type === 'save') {
-      if (savedIds.has(selectedId)) return
-      setSavedIds((prev) => new Set(prev).add(selectedId))
-    } else {
-      if (dismissedIds.has(selectedId)) return
-      setDismissedIds((prev) => new Set(prev).add(selectedId))
-    }
-
-    void sendFeedback(type, selected).catch((err) => {
-      console.error(`Failed to log ${type} event`, err)
-      if (type === 'save') {
-        setSavedIds((prev) => {
-          const next = new Set(prev)
-          next.delete(selectedId)
-          return next
-        })
-      } else {
-        setDismissedIds((prev) => {
-          const next = new Set(prev)
-          next.delete(selectedId)
-          return next
-        })
-      }
-    })
-  }
   return (
     <div className="py-4 md:py-6">
       <section className="surface p-5 md:p-8">
@@ -484,35 +449,6 @@ export default function Results() {
                   <div className="truncate font-semibold text-zinc-100">{selected?.title ?? '-'}</div>
                 </div>
                 <div className="text-sm text-zinc-300">{selected?.match != null ? pct(selected.match) : '-'} match</div>
-              </div>
-
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleFeedbackAction('save')}
-                  disabled={!selectedId || selectedSaved}
-                  className={[
-                    'rounded-xl border px-3 py-2 text-sm transition-colors',
-                    !selectedId || selectedSaved
-                      ? 'cursor-not-allowed border-emerald-200/20 bg-emerald-100/[0.08] text-emerald-100/55'
-                      : 'border-emerald-200/30 bg-emerald-100/[0.08] text-emerald-100 hover:bg-emerald-100/[0.16]',
-                  ].join(' ')}
-                >
-                  {selectedSaved ? 'Saved' : 'Save'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleFeedbackAction('dismiss')}
-                  disabled={!selectedId || selectedDismissed}
-                  className={[
-                    'rounded-xl border px-3 py-2 text-sm transition-colors',
-                    !selectedId || selectedDismissed
-                      ? 'cursor-not-allowed border-rose-200/20 bg-rose-100/[0.08] text-rose-100/55'
-                      : 'border-rose-200/30 bg-rose-100/[0.08] text-rose-100 hover:bg-rose-100/[0.16]',
-                  ].join(' ')}
-                >
-                  {selectedDismissed ? 'Noted' : 'Not for me'}
-                </button>
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-zinc-300">
