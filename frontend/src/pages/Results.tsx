@@ -416,7 +416,7 @@ export default function Results() {
 
                           <div className="mt-3">
                             <div className="flex items-center justify-between text-xs text-zinc-300">
-                              <span>fit</span>
+                              <span>match</span>
                               <span className="font-semibold text-cyan-100">{pct(m.fitScore ?? m.match)}</span>
                             </div>
                             <div className="mt-1 h-2 overflow-hidden rounded-full border border-cyan-200/20 bg-cyan-100/[0.1]">
@@ -448,7 +448,7 @@ export default function Results() {
                   <div className="text-xs uppercase tracking-[0.14em] text-zinc-500">selected</div>
                   <div className="truncate font-semibold text-zinc-100">{selected?.title ?? '-'}</div>
                 </div>
-                <div className="text-sm text-zinc-300">{(selected?.fitScore ?? selected?.match) != null ? pct(selected?.fitScore ?? selected?.match) : '-'} fit</div>
+                <div className="text-sm text-zinc-300">{(selected?.fitScore ?? selected?.match) != null ? pct(selected?.fitScore ?? selected?.match) : '-'} match</div>
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-zinc-300">
