@@ -425,7 +425,7 @@ export default function Quiz() {
         <div className="mb-5 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
           <span className="outline-chip">adaptive quiz</span>
           <span className="outline-chip">
-            {stage === "core" ? "phase 1 / core profile" : "phase 2 / precision pass"}
+            {stage === "core" ? "your taste" : "a few follow-up questions"}
           </span>
         </div>
 
@@ -440,7 +440,7 @@ export default function Quiz() {
           <div className="bar-accent h-full transition-all" style={{ width: `${progress}%` }} />
         </div>
 
-        <h1 className="headline mb-2 text-2xl text-zinc-100 md:text-3xl">Calibrate Your Movie DNA</h1>
+        <h1 className="headline mb-2 text-2xl text-zinc-100 md:text-3xl">Find Your Movie Match</h1>
         <p className="mb-6 max-w-2xl text-zinc-300">
           Answer a short sequence about your taste profile and how you feel right now.
         </p>
@@ -478,7 +478,7 @@ export default function Quiz() {
                       : "btn-neo"
                   }`}
                 >
-                  {stage === "core" ? "Refine Preferences" : submitting ? "Working..." : "See My Matches"}
+                  {stage === "core" ? "Keep Going" : submitting ? "Working..." : "See My Matches"}
                 </button>
               )}
             </div>
@@ -488,6 +488,7 @@ export default function Quiz() {
     </div>
   );
 }
+
 
 
 

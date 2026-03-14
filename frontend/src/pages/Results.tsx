@@ -273,7 +273,7 @@ export default function Results() {
       <section className="surface p-5 md:p-8">
         <header className="text-center">
           <span className="outline-chip">your movie profile</span>
-          <h1 className="headline mt-4 text-3xl text-zinc-100 md:text-4xl">Your Matches Tonight</h1>
+          <h1 className="headline mt-4 text-3xl text-zinc-100 md:text-4xl">Your Movie Matches</h1>
           <p className="mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-zinc-300 md:text-base">
             {data?.profile?.summary ?? 'Computing your profile summary...'}
           </p>
@@ -590,5 +590,6 @@ function toPoints(
     })
     .join(' ')
 }
+
 
 
