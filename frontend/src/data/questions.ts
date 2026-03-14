@@ -188,17 +188,17 @@ const TODAY_CORE_POOL: Question[] = [
     { id: "t_outlook_3", label: "Let me sit with something thoughtful.", deltas: { darkness: 0.18, mood: 0.26 } },
     { id: "t_outlook_4", label: "Lean darker.", deltas: { darkness: 0.44, intensity: 0.16, optimism: -0.22 } },
   ]),
-  q("t_comfort", "Are you in the mood for something familiar or something new tonight?", "today", "core", ["comfort", "novelty"], [
-    { id: "t_comfort_1", label: "Very familiar and comforting.", deltas: { comfort: 0.46, novelty: -0.4 } },
-    { id: "t_comfort_2", label: "Mostly familiar with a little twist.", deltas: { comfort: 0.24, novelty: -0.12 } },
-    { id: "t_comfort_3", label: "Something a bit outside the usual.", deltas: { novelty: 0.2, comfort: 0.06 } },
-    { id: "t_comfort_4", label: "Something that surprises me.", deltas: { novelty: 0.46, comfort: -0.2, intensity: 0.08 } },
+  q("t_comfort", "How adventurous are you feeling with tonight's pick?", "today", "core", ["comfort", "novelty"], [
+    { id: "t_comfort_1", label: "Keep it safe and comforting.", deltas: { comfort: 0.46, novelty: -0.4 } },
+    { id: "t_comfort_2", label: "Mostly safe, with a little variety.", deltas: { comfort: 0.24, novelty: -0.12 } },
+    { id: "t_comfort_3", label: "Push me a bit.", deltas: { novelty: 0.2, comfort: 0.06 } },
+    { id: "t_comfort_4", label: "Give me something unexpected.", deltas: { novelty: 0.46, comfort: -0.2, intensity: 0.08 } },
   ]),
-  q("t_pacing", "What kind of momentum feels right tonight?", "today", "core", ["energy", "intensity", "depth"], [
-    { id: "t_pacing_1", label: "Slow and immersive.", deltas: { mood: 0.24, depth: 0.16, energy: -0.18 } },
-    { id: "t_pacing_2", label: "Steady and easy.", deltas: { comfort: 0.14, mood: 0.12 } },
-    { id: "t_pacing_3", label: "Brisk and engaging.", deltas: { energy: 0.28, intensity: 0.14 } },
-    { id: "t_pacing_4", label: "Fast with no downtime.", deltas: { intensity: 0.44, energy: 0.24, depth: -0.2 } },
+  q("t_pacing", "How do you want tonight's movie to feel?", "today", "core", ["energy", "intensity", "depth"], [
+    { id: "t_pacing_1", label: "Slow and easy to settle into.", deltas: { mood: 0.24, depth: 0.16, energy: -0.18 } },
+    { id: "t_pacing_2", label: "Steady and well-paced.", deltas: { comfort: 0.14, mood: 0.12 } },
+    { id: "t_pacing_3", label: "Engaging and always moving.", deltas: { energy: 0.28, intensity: 0.14 } },
+    { id: "t_pacing_4", label: "Fast, intense, and nonstop.", deltas: { intensity: 0.44, energy: 0.24, depth: -0.2 } },
   ]),
 ];
 
