@@ -47,8 +47,12 @@ export function mapApiToResults(api: ApiResponse) {
       m.backdrop_path ??
       "";
 
-    const match =
-      typeof m.match === "number"
+    const fitScore =
+      typeof m.fit_score === "number"
+        ? m.fit_score
+        : typeof m.display_match === "number"
+        ? m.display_match
+        : typeof m.match === "number"
         ? m.match
         : typeof m.score === "number"
         ? m.score > 1
@@ -64,7 +68,8 @@ export function mapApiToResults(api: ApiResponse) {
       year: m.year ? Number(m.year) : undefined,
       posterUrl: normalizePoster(rawPoster),
       synopsis: m.synopsis ?? m.overview ?? "",
-      match,
+      fitScore,
+      match: fitScore,
       traits,
       genre: (m.genre ?? m.genres ?? []).slice(0, 3),
       director: m.director ?? "Unknown",

@@ -736,22 +736,17 @@ def _mmr_diversify(
     return result
 
 
-def _calibrate_matches(items: List[Dict[str, Any]]) -> None:
+def _assign_display_matches(items: List[Dict[str, Any]]) -> None:
     if not items:
         return
 
-    scores = [_safe_float(m.get("rank_score", m.get("match", 0.0)), 0.0) for m in items]
-    mu = sum(scores) / len(scores)
-    var = sum((s - mu) ** 2 for s in scores) / max(1, len(scores))
-    sd = math.sqrt(var) or 1e-6
-
-    for m, s in zip(items, scores):
-        z = (s - mu) / sd
-        p = 1.0 / (1.0 + math.exp(-1.05 * z))
-        calibrated = 0.36 + 0.60 * p
-        m["match"] = round(_clamp01(calibrated), 4)
-
-
+    for m in items:
+        # Public fit should reflect absolute hybrid relevance, not relative
+        # position within a diversified result set. Keep `match` as a
+        # backward-compatible alias for existing clients.
+        fit_score = round(_clamp01(_movie_relevance_score(m)), 4)
+        m["fit_score"] = fit_score
+        m["match"] = fit_score
 @bp.post("/recommend")
 def recommend():
     data = request.get_json(silent=True) or {}
@@ -900,7 +895,7 @@ def recommend():
         diverse_tail_slots=diverse_tail_slots,
     )
 
-    _calibrate_matches(reranked)
+    _assign_display_matches(reranked)
 
     enriched: List[Dict[str, Any]] = []
     for m in reranked:
@@ -940,6 +935,7 @@ def recommend():
                         "text": m.get("text_score"),
                         "feedback": m.get("feedback_score"),
                         "rank": m.get("rank_score"),
+                        "fit": m.get("fit_score", m.get("match")),
                         "match": m.get("match"),
                     },
                 },
