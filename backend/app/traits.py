@@ -213,67 +213,44 @@ def summarize_traits(traits: Dict[str, float]) -> str:
     g = _trait_map(traits)
     ordered: List[Tuple[str, float]] = sorted(g.items(), key=lambda kv: kv[1], reverse=True)
 
-    top1, top2, top3 = ordered[0], ordered[1], ordered[2]
-    low1 = ordered[-1]
+    top1, top2, top3 = ordered[0][0], ordered[1][0], ordered[2][0]
 
-    sig = _signature(g)
-    style = _pair_style(top1[0], top2[0])
-    spread = float(top1[1] - low1[1])
-
-    opener_map = {
-        "explorer": [
-            "You are in discovery mode tonight. Fresh ideas and movement matter to you.",
-            "Your taste is leaning adventurous right now, with a clear pull toward novelty and pace.",
-        ],
-        "reflective": [
-            "You are in a reflective zone tonight. Character and substance are doing most of the work.",
-            "Your profile leans thoughtful and grounded, with depth taking the lead.",
-        ],
-        "edge": [
-            "You are open to intensity tonight, especially when the stakes feel real.",
-            "Your profile is edge-forward right now, with tension and commitment at the center.",
-        ],
-        "bright": [
-            "You are leaning warm and upbeat tonight, with room for humor.",
-            "Your profile favors emotional lift and playfulness right now.",
-        ],
-        "atmospheric": [
-            "You are reading atmosphere-first tonight, with tone carrying a lot of weight.",
-            "Your profile prioritizes mood and texture, then depth.",
-        ],
-        "curious": [
-            "You are in a curious mode tonight, looking for ideas with substance.",
-            "Your profile points toward concept-driven stories that still have emotional depth.",
-        ],
-        "warm": [
-            "You are leaning toward warmth and emotional connection tonight.",
-            "Your profile favors comfort with heart, not empty sweetness.",
-        ],
-        "balanced": [
-            "Your profile is broad tonight, with a few clear peaks guiding the match.",
-            "You have range, and a couple of strong signals are setting the direction.",
-        ],
+    focus_labels = {
+        "darkness": "darker stories",
+        "energy": "momentum",
+        "mood": "atmosphere",
+        "depth": "substance",
+        "optimism": "warmth",
+        "novelty": "fresh ideas",
+        "comfort": "comfort",
+        "intensity": "stakes",
+        "humor": "wit",
     }
 
-    opener = _pick(opener_map.get(style, opener_map["balanced"]), sig, "opener")
+    lead = f"You lean toward {focus_labels[top1]}, {focus_labels[top2]}, and {focus_labels[top3]} tonight."
 
-    signal_sentence = (
-        f"Strongest signals right now are {DISPLAY_NAME[top1[0]]}, {DISPLAY_NAME[top2[0]]}, and {DISPLAY_NAME[top3[0]]}."
-    )
+    if g["darkness"] >= 0.65 and g["intensity"] >= 0.62:
+        mood_line = "You seem up for darker, higher-stakes stories that really commit."
+    elif g["optimism"] >= 0.62 and g["comfort"] >= 0.58:
+        mood_line = "You seem in the mood for something warmer, steadier, and easy to connect with."
+    elif g["mood"] >= 0.62 and g["depth"] >= 0.58:
+        mood_line = "You seem in the mood for something immersive with real atmosphere and depth."
+    elif g["novelty"] >= 0.62 and g["energy"] >= 0.55:
+        mood_line = "You seem open to something fresh, sharp, and a little less predictable."
+    elif g["comfort"] >= 0.60 and g["energy"] <= 0.45:
+        mood_line = "You seem to want something grounded, calm, and emotionally clear."
+    else:
+        mood_line = "You seem to want a movie with a clear tone, a strong story, and the right mood."
 
-    boundary_sentence = ""
-    if low1[1] <= 0.24:
-        boundary_sentence = f"If a title leans too hard into {LOW_PREF[low1[0]]}, it may miss the mark tonight."
+    if g["novelty"] - g["comfort"] >= 0.14:
+        fit_line = "Best fits are movies that feel fresh, focused, and a bit different."
+    elif g["comfort"] - g["novelty"] >= 0.14:
+        fit_line = "Best fits are movies that feel satisfying, grounded, and easy to settle into."
+    elif g["depth"] >= 0.62:
+        fit_line = "Best fits are movies with substance, strong character work, and a confident tone."
+    elif g["humor"] >= 0.62 and g["optimism"] >= 0.55:
+        fit_line = "Best fits are movies with heart, momentum, and a little wit."
+    else:
+        fit_line = "Best fits are movies that stay relevant to your mood without feeling too obvious."
 
-    parts = [
-        opener,
-        signal_sentence,
-        _novelty_vs_comfort(g, sig),
-        _light_vs_dark(g, sig),
-        _rhythm_line(g, sig),
-        _satisfaction_line(spread, sig),
-    ]
-    if boundary_sentence:
-        parts.append(boundary_sentence)
-
-    return " ".join(parts)
+    return " ".join([lead, mood_line, fit_line])
