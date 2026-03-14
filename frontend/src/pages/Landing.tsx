@@ -5,18 +5,18 @@ import { ArrowRight, Radar, Sparkles, ScanLine } from 'lucide-react'
 const featureCards = [
   {
     icon: Radar,
-    label: 'Trait Vectoring',
-    text: 'Maps your responses into a 9-dimensional movie preference signature.',
+    label: 'Your Movie Profile',
+    text: 'Turns your answers into a 9-part movie profile.',
   },
   {
     icon: Sparkles,
-    label: 'Hybrid Ranking',
-    text: 'Fuses profile alignment, text signals, and adaptive reranking.',
+    label: 'How Picks Are Chosen',
+    text: 'Looks at your profile, the movie itself, and a final pass to avoid repetitive picks.',
   },
   {
     icon: ScanLine,
-    label: 'Precision Pass',
-    text: 'Runs adaptive follow-up questions to reduce ambiguity before matching.',
+    label: 'Follow-Up Questions',
+    text: 'Asks a few extra questions when your answers could point in more than one direction.',
   },
 ]
 
@@ -40,8 +40,8 @@ export default function Landing() {
               Start matching.
             </h1>
             <p className="mt-5 max-w-xl text-base text-zinc-300 md:text-lg">
-              MindMatch is a transparent recommender that models your long-term taste and current mood,
-              then returns movies that feel intentionally matched, not random.
+              MindMatch looks at your usual taste and how you're feeling right now, then recommends
+              movies that feel picked for you instead of pulled at random.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -107,4 +107,5 @@ export default function Landing() {
     </div>
   )
 }
+
 

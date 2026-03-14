@@ -47,7 +47,7 @@ export const QUESTIONS: Question[] = [
     { label: 'Edge of seat', deltas: { intensity: 0.14, darkness: 0.06 } },
   ]},
   { prompt: 'Humor appetite?', choices: [
-    { label: 'Not tonight', deltas: { humor: -0.04, depth: 0.06 } },
+    { label: 'Not right now', deltas: { humor: -0.04, depth: 0.06 } },
     { label: 'A little', deltas: { humor: 0.04 } },
     { label: 'Yes please', deltas: { humor: 0.10 } },
     { label: 'Make me cackle', deltas: { humor: 0.14, optimism: 0.04 } },
@@ -59,3 +59,4 @@ export const QUESTIONS: Question[] = [
     { label: 'Pitch-black', deltas: { darkness: 0.16, depth: 0.04 } },
   ]},
 ]
+

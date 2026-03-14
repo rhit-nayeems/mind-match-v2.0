@@ -442,7 +442,7 @@ export default function Quiz() {
 
         <h1 className="headline mb-2 text-2xl text-zinc-100 md:text-3xl">Calibrate Your Movie DNA</h1>
         <p className="mb-6 max-w-2xl text-zinc-300">
-          Answer a short sequence about your taste profile and how you feel tonight.
+          Answer a short sequence about your taste profile and how you feel right now.
         </p>
 
         <div className="space-y-4">{currentQs.map((q) => renderQ(q.id, q.text, q.choices))}</div>
@@ -488,6 +488,7 @@ export default function Quiz() {
     </div>
   );
 }
+
 
 
 

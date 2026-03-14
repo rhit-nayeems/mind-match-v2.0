@@ -272,8 +272,8 @@ export default function Results() {
     <div className="py-4 md:py-6">
       <section className="surface p-5 md:p-8">
         <header className="text-center">
-          <span className="outline-chip">personal profile synthesis</span>
-          <h1 className="headline mt-4 text-3xl text-zinc-100 md:text-4xl">Your Match Matrix</h1>
+          <span className="outline-chip">your movie profile</span>
+          <h1 className="headline mt-4 text-3xl text-zinc-100 md:text-4xl">Your Matches Tonight</h1>
           <p className="mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-zinc-300 md:text-base">
             {data?.profile?.summary ?? 'Computing your profile summary...'}
           </p>
@@ -286,7 +286,7 @@ export default function Results() {
 
         <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
           <section className="lg:col-span-7">
-            <h2 className="headline mb-4 text-lg text-zinc-100">Recommended Titles</h2>
+            <h2 className="headline mb-4 text-lg text-zinc-100">Recommended Movies</h2>
 
             {isLoading ? (
               <div className="grid gap-5 sm:grid-cols-2">
@@ -441,7 +441,7 @@ export default function Results() {
           </section>
 
           <aside className="lg:col-span-5">
-            <h2 className="headline mb-4 text-lg text-zinc-100">Profile vs Selected Movie</h2>
+            <h2 className="headline mb-4 text-lg text-zinc-100">Your Profile vs This Movie</h2>
             <div className="surface-soft p-5">
               <div className="flex items-center justify-between">
                 <div className="min-w-0">
@@ -472,7 +472,7 @@ export default function Results() {
               </div>
 
               <p className="mt-3 text-center text-xs text-zinc-500">
-                Select any card to inspect trait alignment.
+                Select a movie to see how it lines up with your profile.
               </p>
             </div>
           </aside>
@@ -590,4 +590,5 @@ function toPoints(
     })
     .join(' ')
 }
+
 

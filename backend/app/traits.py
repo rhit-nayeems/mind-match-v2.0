@@ -104,7 +104,7 @@ def _novelty_vs_comfort(g: Dict[str, float], sig: str) -> str:
         return _pick(options, sig, "comfort_high")
     options = [
         "You are balanced between discovery and familiarity, so hybrid picks should feel right.",
-        "You can go either way tonight, which gives room for variety without losing fit.",
+        "You can go either way right now, which gives room for variety without losing fit.",
     ]
     return _pick(options, sig, "balanced_nc")
 
@@ -156,7 +156,7 @@ def _rhythm_line(g: Dict[str, float], sig: str) -> str:
     else:
         base = _pick(
             [
-                "Your rhythm is balanced tonight, with room for both movement and story depth.",
+                "Your rhythm is balanced right now, with room for both movement and story depth.",
                 "You are in a middle tempo range, so a measured pace should land best.",
             ],
             sig,
@@ -194,7 +194,7 @@ def _satisfaction_line(spread: float, sig: str) -> str:
         )
     return _pick(
         [
-            "Your profile is more balanced tonight, so expect a thoughtful mix that still feels like you.",
+            "Your profile is more balanced right now, so expect a thoughtful mix that still feels like you.",
             "Your signal is wide rather than narrow, so you should see a curated spread that stays relevant.",
         ],
         sig,
@@ -227,30 +227,46 @@ def summarize_traits(traits: Dict[str, float]) -> str:
         "humor": "wit",
     }
 
-    lead = f"You lean toward {focus_labels[top1]}, {focus_labels[top2]}, and {focus_labels[top3]} tonight."
+    lead_options = {
+        "darkness": "You are leaning toward something with more edge",
+        "energy": "You are leaning toward something with real momentum",
+        "mood": "You are leaning toward something with a strong atmosphere",
+        "depth": "You are leaning toward something with real substance",
+        "optimism": "You are leaning toward something warmer",
+        "novelty": "You are leaning toward something fresh",
+        "comfort": "You are leaning toward something comforting",
+        "intensity": "You are leaning toward something with more bite",
+        "humor": "You are leaning toward something with some wit",
+    }
+
+    lead = (
+        f"{lead_options[top1]}, with {focus_labels[top2]} and {focus_labels[top3]} rounding it out."
+    )
 
     if g["darkness"] >= 0.65 and g["intensity"] >= 0.62:
-        mood_line = "You seem up for darker, higher-stakes stories that really commit."
+        mood_line = "Tonight feels like a good time for something darker, tense, and fully committed to its mood."
     elif g["optimism"] >= 0.62 and g["comfort"] >= 0.58:
-        mood_line = "You seem in the mood for something warmer, steadier, and easy to connect with."
+        mood_line = "You seem more in the mood for something warm, steady, and easy to sink into."
     elif g["mood"] >= 0.62 and g["depth"] >= 0.58:
-        mood_line = "You seem in the mood for something immersive with real atmosphere and depth."
+        mood_line = "You seem to want a movie you can really fall into, with atmosphere and a little depth to it."
     elif g["novelty"] >= 0.62 and g["energy"] >= 0.55:
-        mood_line = "You seem open to something fresh, sharp, and a little less predictable."
+        mood_line = "You seem open to something sharper and less expected, as long as it still has energy."
     elif g["comfort"] >= 0.60 and g["energy"] <= 0.45:
-        mood_line = "You seem to want something grounded, calm, and emotionally clear."
+        mood_line = "You seem to want something calm, grounded, and emotionally clear instead of anything too loud."
     else:
-        mood_line = "You seem to want a movie with a clear tone, a strong story, and the right mood."
+        mood_line = "You seem to want something that feels right for where you are right now without pushing too hard in any one direction."
 
     if g["novelty"] - g["comfort"] >= 0.14:
-        fit_line = "Best fits are movies that feel fresh, focused, and a bit different."
+        fit_line = "The best picks here are probably movies that feel fresh, focused, and a little outside the obvious."
     elif g["comfort"] - g["novelty"] >= 0.14:
-        fit_line = "Best fits are movies that feel satisfying, grounded, and easy to settle into."
+        fit_line = "The best picks here are probably movies that feel satisfying, grounded, and easy to settle into."
     elif g["depth"] >= 0.62:
-        fit_line = "Best fits are movies with substance, strong character work, and a confident tone."
+        fit_line = "The best picks here are probably movies with substance, strong character work, and a confident tone."
     elif g["humor"] >= 0.62 and g["optimism"] >= 0.55:
-        fit_line = "Best fits are movies with heart, momentum, and a little wit."
+        fit_line = "The best picks here are probably movies with heart, some momentum, and a little wit."
     else:
-        fit_line = "Best fits are movies that stay relevant to your mood without feeling too obvious."
+        fit_line = "The best picks here are probably movies that match your mood without feeling too on the nose."
 
     return " ".join([lead, mood_line, fit_line])
+
+
