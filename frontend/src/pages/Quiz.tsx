@@ -372,12 +372,12 @@ export default function Quiz() {
         ].join(" ")}
       >
         <div className="mb-3 text-base font-medium text-zinc-100">{text}</div>
-        <div className="flex flex-wrap gap-2.5">
+        <div className="grid gap-2.5 sm:flex sm:flex-wrap">
           {choices.map((c: any) => {
             const checked = responses[qid] === c.id;
             const inputId = `${qid}__${c.id}`;
             return (
-              <div key={c.id} className="inline-flex">
+              <div key={c.id} className="w-full sm:inline-flex sm:w-auto">
                 <input
                   id={inputId}
                   className="peer sr-only"
@@ -397,7 +397,7 @@ export default function Quiz() {
                     }
                   }}
                   className={[
-                    "cursor-pointer select-none rounded-xl border px-3 py-2 outline-none",
+                    "w-full cursor-pointer select-none rounded-xl border px-3 py-2 text-left outline-none sm:w-auto",
                     checked
                       ? "border-cyan-100/70 bg-cyan-100/90 text-zinc-900 shadow-[0_0_0_1px_rgba(103,232,249,.5)]"
                       : "border-cyan-200/20 bg-black/35 text-zinc-200 hover:bg-cyan-200/[0.12]",
