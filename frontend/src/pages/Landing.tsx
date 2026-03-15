@@ -49,7 +49,7 @@ export default function Landing() {
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 to="/quiz"
-                className="btn-neo group relative px-6 py-3 text-[15px] shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_12px_24px_rgba(2,6,23,0.34),0_0_0_1px_rgba(103,232,249,0.08)] transition-all duration-200 hover:border-cyan-200/60 hover:text-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_16px_34px_rgba(2,6,23,0.42),0_0_26px_rgba(34,211,238,0.18)]"
+                className="btn-neo group relative px-6 py-3 text-[15px] shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_12px_24px_rgba(2,6,23,0.34),0_0_0_1px_rgba(168,196,236,0.12)] transition-all duration-200 hover:border-[#A8C4EC]/60 hover:text-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_16px_34px_rgba(12,18,34,0.42),0_0_26px_rgba(4,116,196,0.22)]"
               >
                 <span className="relative">Find My Movie</span>
                 <ArrowRight className="relative h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
@@ -59,13 +59,13 @@ export default function Landing() {
           </div>
 
           <div className="surface-soft grid min-w-0 h-fit content-start gap-3 self-start p-3 md:self-center">
-            <div className="rounded-xl border border-cyan-200/25 bg-black/35 p-3">
-              <div className="code-label text-cyan-100/80">sample profile preview</div>
+            <div className="rounded-xl border border-[#A8C4EC]/25 bg-[#262B40]/70 p-3">
+              <div className="code-label text-[#A8C4EC]/80">sample profile preview</div>
               <div className="mt-2.5 grid grid-cols-3 gap-1.5 text-xs text-zinc-300">
                 {previewMetrics.map((metric, i) => {
                   const targetWidth = `${50 + ((i * 11) % 38)}%`
                   return (
-                    <div key={metric} className="rounded-lg border border-cyan-200/20 bg-white/[0.03] px-2 py-1">
+                    <div key={metric} className="rounded-lg border border-[#A8C4EC]/20 bg-[#A8C4EC]/[0.03] px-2 py-1">
                       <div className="uppercase text-[10px] text-zinc-500">{metric}</div>
                       <div className="mt-1 h-1.5 rounded-full bg-white/10">
                         <motion.div
@@ -85,8 +85,8 @@ export default function Landing() {
                 })}
               </div>
             </div>
-            <div className="rounded-xl border border-cyan-200/20 bg-cyan-200/[0.04] p-3">
-              <div className="code-label text-cyan-100/80">signal path</div>
+            <div className="rounded-xl border border-[#A8C4EC]/20 bg-[#5379AE]/[0.08] p-3">
+              <div className="code-label text-[#A8C4EC]/80">signal path</div>
               <div className="mt-2 overflow-x-auto">
                 <p className="text-sm leading-relaxed text-zinc-200 whitespace-normal break-words">
                   quiz vectors -&gt; weighted similarity -&gt; diversity rerank -&gt; curated top matches
@@ -110,7 +110,7 @@ export default function Landing() {
               transition={{ delay: idx * 0.06, duration: 0.45 }}
               className="surface-soft p-5"
             >
-              <div className={`mb-3 inline-flex rounded-lg border border-cyan-200/20 bg-cyan-100/[0.08] p-2 ${tint}`}>
+              <div className={`mb-3 inline-flex rounded-lg border border-[#A8C4EC]/20 bg-[#5379AE]/[0.12] p-2 ${tint}`}>
                 <Icon className="h-4 w-4" />
               </div>
               <h2 className="headline text-lg text-zinc-100">{item.label}</h2>
