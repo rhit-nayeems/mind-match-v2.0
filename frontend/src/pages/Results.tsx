@@ -50,6 +50,48 @@ const normalizeTrait = (v: any, fallback = 0.5) => {
 
 const pct = (v?: number) => (v == null ? '-' : `${Math.round((v > 1 ? v : v * 100))}%`)
 
+const TRAIT_REASON_LABELS: Record<TraitKey, string> = {
+  darkness: 'darker stories',
+  energy: 'more momentum',
+  mood: 'strong atmosphere',
+  depth: 'deeper themes',
+  optimism: 'a warmer tone',
+  novelty: 'something a little less familiar',
+  comfort: 'something easy to settle into',
+  intensity: 'more emotional weight',
+  humor: 'a bit of wit',
+}
+
+function joinPhrases(parts: string[]) {
+  if (parts.length <= 1) return parts[0] ?? ''
+  if (parts.length == 2) return `${parts[0]} and ${parts[1]}`
+  return `${parts[0]}, ${parts[1]}, and ${parts[2]}`
+}
+
+function buildRecommendationReason(
+  userTraits: Record<TraitKey, number>,
+  movieTraits?: Record<TraitKey, number> | null
+) {
+  if (!movieTraits) return ''
+
+  const ranked = TRAITS.map((key) => ({
+    key,
+    score: Math.min(clamp01(userTraits[key] ?? 0.5), clamp01(movieTraits[key] ?? 0.5)) - 0.5,
+  }))
+    .filter((item) => item.score >= 0.08)
+    .sort((a, b) => b.score - a.score)
+
+  const top = (ranked.length ? ranked : TRAITS.map((key) => ({
+    key,
+    score: Math.min(clamp01(userTraits[key] ?? 0.5), clamp01(movieTraits[key] ?? 0.5)),
+  })).sort((a, b) => b.score - a.score)).slice(0, 3)
+
+  const phrases = top.map((item) => TRAIT_REASON_LABELS[item.key])
+  if (!phrases.length) return ''
+
+  return `Recommended because it lines up with your preference for ${joinPhrases(phrases)}.`
+}
+
 function readSavedAnswers(): number[] | null {
   try {
     const raw = localStorage.getItem('mm_answers')
@@ -234,6 +276,22 @@ export default function Results() {
 
   const recs = data?.recommendations ?? []
   const selected = recs[selectedIdx]
+
+  const selectedTraits = useMemo(() => {
+    const src = selected?.traits
+    if (!src || !Object.keys(src).length) return null
+
+    const out: Record<TraitKey, number> = {} as Record<TraitKey, number>
+    TRAITS.forEach((k) => {
+      out[k] = normalizeTrait((src as any)[k], 0.5)
+    })
+    return out
+  }, [selected?.traits])
+
+  const recommendationReason = useMemo(
+    () => buildRecommendationReason(userOrdered, selectedTraits),
+    [userOrdered, selectedTraits]
+  )
 
   function buildEventFeatures(movie: ResultsData['recommendations'][number]) {
     return {
@@ -461,6 +519,13 @@ export default function Results() {
                   Selected movie
                 </span>
               </div>
+
+              {recommendationReason && (
+                <div className="mt-4 rounded-xl border border-cyan-200/15 bg-black/20 p-3">
+                  <div className="text-xs uppercase tracking-[0.14em] text-zinc-500">Why this was recommended</div>
+                  <p className="mt-2 text-sm leading-relaxed text-zinc-300">{recommendationReason}</p>
+                </div>
+              )}
 
               <div className="mt-3 flex items-center justify-center">
                 <InlineRadar
