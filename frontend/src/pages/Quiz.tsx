@@ -1,6 +1,6 @@
 // frontend/src/pages/Quiz.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   DEFAULT_ADAPTIVE_PER_GROUP,
@@ -167,6 +167,7 @@ export default function Quiz() {
   const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
   const topRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
+  const [navDirection, setNavDirection] = useState<1 | -1>(1);
 
   const quizQuestions = useMemo(() => [...coreQuestions, ...adaptiveQuestions], [coreQuestions, adaptiveQuestions]);
   const pages = useMemo(() => buildPages(quizQuestions), [quizQuestions]);
@@ -270,6 +271,7 @@ export default function Quiz() {
 
   function onBack() {
     setMissingIds(new Set());
+    setNavDirection(-1);
     setPage((p) => Math.max(0, p - 1));
   }
 
@@ -279,6 +281,7 @@ export default function Quiz() {
       return;
     }
     setMissingIds(new Set());
+    setNavDirection(1);
     setPage((p) => Math.min(totalPages - 1, p + 1));
   }
 
@@ -310,6 +313,7 @@ export default function Quiz() {
     setAdaptiveQuestions(generated);
     setStage("adaptive");
     setMissingIds(new Set());
+    setNavDirection(1);
     setPage((p) => Math.min(p + 1, Math.max(0, nextPages - 1)));
     return true;
   }
@@ -368,6 +372,12 @@ export default function Quiz() {
   const introTransition = shouldReduceMotion
     ? { duration: 0 }
     : { duration: 0.38, ease: [0.22, 1, 0.36, 1] as const };
+
+  const pageEnter = shouldReduceMotion ? 0 : 18;
+  const pageExit = shouldReduceMotion ? 0 : 12;
+  const pageTransition = shouldReduceMotion
+    ? { duration: 0 }
+    : { duration: 0.18, ease: [0.22, 1, 0.36, 1] as const };
 
   const questionListVariants = shouldReduceMotion
     ? {
@@ -494,36 +504,48 @@ export default function Quiz() {
           </div>
         </motion.div>
 
-        <motion.div
-          className="space-y-6"
-          initial="hidden"
-          animate="visible"
-          variants={questionListVariants}
-        >
-          {currentTasteQs.length > 0 && (
-            <section className="space-y-4">
-              <div>
-                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">Your Movie Taste</h2>
-                <p className="mt-1 text-xs text-zinc-500">What you usually enjoy.</p>
-              </div>
-              <div className="space-y-4">
-                {currentTasteQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
-              </div>
-            </section>
-          )}
+        <div className="relative overflow-hidden">
+          <AnimatePresence mode="wait" initial={false} custom={navDirection}>
+            <motion.div
+              key={`${stage}-${page}`}
+              custom={navDirection}
+              initial={{ opacity: shouldReduceMotion ? 1 : 0, x: shouldReduceMotion ? 0 : navDirection * pageEnter }}
+              animate={{ opacity: 1, x: 0, transition: pageTransition }}
+              exit={{ opacity: shouldReduceMotion ? 1 : 0, x: shouldReduceMotion ? 0 : navDirection > 0 ? -pageExit : pageExit, transition: pageTransition }}
+            >
+              <motion.div
+                className="space-y-6"
+                initial="hidden"
+                animate="visible"
+                variants={questionListVariants}
+              >
+                {currentTasteQs.length > 0 && (
+                  <section className="space-y-4">
+                    <div>
+                      <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">Your Movie Taste</h2>
+                      <p className="mt-1 text-xs text-zinc-500">What you usually enjoy.</p>
+                    </div>
+                    <div className="space-y-4">
+                      {currentTasteQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
+                    </div>
+                  </section>
+                )}
 
-          {currentVibeQs.length > 0 && (
-            <section className="space-y-4">
-              <div>
-                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">How You Feel Right Now</h2>
-                <p className="mt-1 text-xs text-zinc-500">What fits this moment.</p>
-              </div>
-              <div className="space-y-4">
-                {currentVibeQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
-              </div>
-            </section>
-          )}
-        </motion.div>
+                {currentVibeQs.length > 0 && (
+                  <section className="space-y-4">
+                    <div>
+                      <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">How You Feel Right Now</h2>
+                      <p className="mt-1 text-xs text-zinc-500">What fits this moment.</p>
+                    </div>
+                    <div className="space-y-4">
+                      {currentVibeQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
+                    </div>
+                  </section>
+                )}
+              </motion.div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
         <div className="sticky bottom-0 left-0 right-0 mt-6">
           <div className="quiz-nav-tray px-4 py-3">
