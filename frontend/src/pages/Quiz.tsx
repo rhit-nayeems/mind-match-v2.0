@@ -481,7 +481,7 @@ export default function Quiz() {
       <AnimatePresence>
         {showIntroOverlay && (
           <motion.div
-            className="fixed inset-0 z-[60] overflow-hidden bg-slate-950/44 px-6"
+            className="fixed inset-0 z-[60] overflow-hidden bg-slate-950/62 px-6 backdrop-blur-md"
             initial={{ opacity: 1, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: shouldReduceMotion ? 0 : 1, y: shouldReduceMotion ? 0 : "-100%", transition: overlayTransition }}
