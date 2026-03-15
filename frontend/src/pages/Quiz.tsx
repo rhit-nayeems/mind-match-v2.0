@@ -249,7 +249,7 @@ export default function Quiz() {
 
     const timer = window.setTimeout(() => {
       setShowIntroOverlay(false);
-    }, 760);
+    }, 1280);
 
     return () => window.clearTimeout(timer);
   }, [shouldReduceMotion]);
@@ -382,10 +382,10 @@ export default function Quiz() {
 
   const overlayTransition = shouldReduceMotion
     ? { duration: 0 }
-    : { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const };
+    : { duration: 0.82, ease: [0.22, 1, 0.36, 1] as const };
   const overlayTextTransition = shouldReduceMotion
     ? { duration: 0 }
-    : { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const };
+    : { duration: 0.48, ease: [0.22, 1, 0.36, 1] as const };
   const pageEnter = shouldReduceMotion ? 0 : 18;
   const pageExit = shouldReduceMotion ? 0 : 12;
   const pageTransition = shouldReduceMotion
@@ -481,16 +481,16 @@ export default function Quiz() {
       <AnimatePresence>
         {showIntroOverlay && (
           <motion.div
-            className="fixed inset-0 z-[60] overflow-hidden bg-slate-950 px-6"
+            className="fixed inset-0 z-[60] overflow-hidden bg-slate-950/52 px-6 backdrop-blur-[2px]"
             initial={{ opacity: 1, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: shouldReduceMotion ? 0 : 1, y: shouldReduceMotion ? 0 : "-100%", transition: overlayTransition }}
           >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.16),transparent_42%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_46%)]" />
             <div className="relative flex min-h-screen items-center justify-center">
               <motion.div
                 className="mx-auto max-w-xl text-center"
-                initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0, transition: overlayTextTransition }}
                 exit={{ opacity: shouldReduceMotion ? 0 : 0, y: shouldReduceMotion ? 0 : -10, transition: overlayTextTransition }}
               >
