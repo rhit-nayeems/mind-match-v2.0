@@ -1849,3 +1849,15 @@ body {
     height: 1.35rem;
   }
 }
+
+.topbar-brand-core img {
+  width: 2.05rem;
+  height: 2.05rem;
+}
+
+@media (max-width: 767px) {
+  .topbar-brand-core img {
+    width: 1.82rem;
+    height: 1.82rem;
+  }
+}
