@@ -361,7 +361,7 @@ export default function Quiz() {
 
   const progress = ((page + 1) / Math.max(1, projectedTotalPages)) * 100;
 
-  const renderQ = (qid: string, text: string, choices: any[]) => {
+  const renderQ = (qid: string, text: string, helper: string, choices: any[]) => {
     const isMissing = missingIds.has(qid);
     return (
       <div
@@ -371,13 +371,14 @@ export default function Quiz() {
           isMissing ? "ring-2 ring-rose-300/70" : "",
         ].join(" ")}
       >
-        <div className="mb-3 text-base font-medium text-zinc-100">{text}</div>
-        <div className="flex flex-wrap gap-2.5">
+        <div className="text-base font-medium text-zinc-100">{text}</div>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-400">{helper}</p>
+        <div className="mt-4 grid gap-2.5 sm:flex sm:flex-wrap">
           {choices.map((c: any) => {
             const checked = responses[qid] === c.id;
             const inputId = `${qid}__${c.id}`;
             return (
-              <div key={c.id} className="inline-flex">
+              <div key={c.id} className="w-full sm:inline-flex sm:w-auto">
                 <input
                   id={inputId}
                   className="peer sr-only"
@@ -397,7 +398,7 @@ export default function Quiz() {
                     }
                   }}
                   className={[
-                    "cursor-pointer select-none rounded-xl border px-3 py-2 outline-none",
+                    "w-full cursor-pointer select-none rounded-xl border px-3 py-2 text-left outline-none sm:w-auto",
                     checked
                       ? "border-cyan-100/70 bg-cyan-100/90 text-zinc-900 shadow-[0_0_0_1px_rgba(103,232,249,.5)]"
                       : "border-cyan-200/20 bg-black/35 text-zinc-200 hover:bg-cyan-200/[0.12]",
@@ -445,7 +446,7 @@ export default function Quiz() {
           Answer a short sequence about your taste profile and how you feel right now.
         </p>
 
-        <div className="space-y-4">{currentQs.map((q) => renderQ(q.id, q.text, q.choices))}</div>
+        <div className="space-y-4">{currentQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}</div>
 
         <div className="sticky bottom-0 left-0 right-0 mt-6">
           <div className="quiz-nav-tray px-4 py-3">
