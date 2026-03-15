@@ -1,13 +1,12 @@
 import { Outlet, Link } from 'react-router-dom'
 import { Film } from 'lucide-react'
+import NeuralBackdrop from '../components/NeuralBackdrop'
 
 export default function App() {
   return (
     <div className="tech-shell">
       <div className="tech-bg" aria-hidden>
-        <div className="tech-grid" />
-        <div className="tech-orb a" />
-        <div className="tech-orb b" />
+        <NeuralBackdrop />
       </div>
 
       <div className="mx-auto w-full max-w-6xl px-4">
@@ -67,7 +66,3 @@ export default function App() {
     </div>
   )
 }
-
-
-
-

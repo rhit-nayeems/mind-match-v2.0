@@ -1762,3 +1762,19 @@ body {
     height: 14rem;
   }
 }
+
+body {
+  background: #040915;
+  background-attachment: scroll;
+}
+
+.tech-shell::before,
+.tech-shell::after,
+.tech-bg::before,
+.tech-bg::after {
+  content: none !important;
+}
+
+.tech-bg {
+  background: transparent !important;
+}
