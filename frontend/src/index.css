@@ -1386,3 +1386,175 @@ body {
   position: absolute;
   pointer-events: none;
 }
+
+:root {
+  --mm-bg: #07101a;
+  --mm-bg-soft: #0d1622;
+  --mm-panel: rgba(255, 255, 255, 0.052);
+  --mm-panel-strong: rgba(255, 255, 255, 0.1);
+  --mm-border: rgba(186, 230, 253, 0.16);
+  --mm-border-strong: rgba(186, 230, 253, 0.34);
+}
+
+body {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(34, 211, 238, 0.15), transparent 24%),
+    radial-gradient(circle at 86% 16%, rgba(96, 165, 250, 0.11), transparent 22%),
+    radial-gradient(circle at 50% 118%, rgba(251, 191, 36, 0.08), transparent 24%),
+    linear-gradient(180deg, #07101a 0%, #060b12 42%, #09111a 100%);
+  background-attachment: fixed;
+}
+
+.surface {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.035);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 18px 36px rgba(0, 0, 0, 0.36),
+    0 0 0 1px rgba(103, 232, 249, 0.08),
+    0 0 48px rgba(34, 211, 238, 0.04);
+}
+
+.surface-soft {
+  background:
+    linear-gradient(180deg, rgba(103, 232, 249, 0.08), rgba(255, 255, 255, 0.03) 32%, rgba(255, 255, 255, 0.025)),
+    rgba(255, 255, 255, 0.032);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 12px 24px rgba(0, 0, 0, 0.14);
+}
+
+.tech-bg::before,
+.tech-bg::after {
+  content: "";
+  position: absolute;
+  inset: auto;
+  pointer-events: none;
+  border-radius: 999px;
+  filter: blur(30px);
+}
+
+.tech-bg::before {
+  top: 6%;
+  left: 6%;
+  width: min(42rem, 54vw);
+  height: min(32rem, 40vw);
+  background: radial-gradient(circle at 40% 40%, rgba(34, 211, 238, 0.12), rgba(96, 165, 250, 0.06) 40%, transparent 74%);
+  opacity: 0.92;
+}
+
+.tech-bg::after {
+  right: 4%;
+  bottom: 4%;
+  width: min(34rem, 40vw);
+  height: min(28rem, 34vw);
+  background: radial-gradient(circle at 52% 50%, rgba(251, 191, 36, 0.08), rgba(96, 165, 250, 0.06) 34%, transparent 72%);
+  opacity: 0.78;
+}
+
+.tech-grid {
+  opacity: 0.22;
+  -webkit-mask-image: radial-gradient(circle at 50% 42%, black 18%, rgba(0, 0, 0, 0.76) 66%, transparent 100%);
+  mask-image: radial-gradient(circle at 50% 42%, black 18%, rgba(0, 0, 0, 0.76) 66%, transparent 100%);
+}
+
+.tech-orb {
+  background: radial-gradient(circle at 50% 50%, rgba(34, 211, 238, 0.28) 0%, rgba(96, 165, 250, 0.11) 32%, rgba(255, 255, 255, 0) 66%);
+  opacity: 0.95;
+}
+
+.tech-orb.a {
+  width: 48vw;
+  height: 48vw;
+  top: -20vw;
+  left: -10vw;
+}
+
+.tech-orb.b {
+  width: 38vw;
+  height: 38vw;
+  bottom: -11vw;
+  right: -7vw;
+}
+
+.topbar-bridge {
+  opacity: 0.56;
+  filter: blur(20px);
+}
+
+.topbar-surface {
+  background:
+    linear-gradient(110deg, rgba(103, 232, 249, 0.14), rgba(255, 255, 255, 0.03) 34%, rgba(96, 165, 250, 0.12) 72%, rgba(251, 191, 36, 0.06)),
+    rgba(255, 255, 255, 0.042);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 18px 36px rgba(0, 0, 0, 0.24),
+    0 0 0 1px rgba(103, 232, 249, 0.08),
+    0 0 44px rgba(34, 211, 238, 0.05);
+}
+
+.landing-hero,
+.quiz-shell,
+.results-shell {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 24px 54px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(103, 232, 249, 0.08),
+    0 0 72px rgba(34, 211, 238, 0.05);
+}
+
+.landing-preview,
+.landing-feature-card,
+.quiz-question-card,
+.result-card,
+.results-compare-card,
+.results-loading-card {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 18px 32px rgba(0, 0, 0, 0.18),
+    0 0 24px rgba(34, 211, 238, 0.03);
+}
+
+.landing-feature-card,
+.quiz-question-card,
+.result-card,
+.results-compare-card {
+  border-color: rgba(125, 211, 252, 0.18);
+}
+
+.quiz-question-card {
+  background:
+    linear-gradient(180deg, rgba(20, 31, 48, 0.58), rgba(255, 255, 255, 0.04)),
+    rgba(255, 255, 255, 0.032);
+}
+
+.result-card {
+  background:
+    linear-gradient(180deg, rgba(20, 31, 48, 0.56), rgba(255, 255, 255, 0.04)),
+    rgba(255, 255, 255, 0.035);
+}
+
+.results-compare-card {
+  background:
+    linear-gradient(180deg, rgba(15, 24, 38, 0.9), rgba(12, 18, 28, 0.96) 56%, rgba(28, 24, 16, 0.88)),
+    rgba(255, 255, 255, 0.035);
+}
+
+@media (max-width: 768px) {
+  body {
+    background:
+      radial-gradient(circle at 14% 10%, rgba(34, 211, 238, 0.12), transparent 26%),
+      radial-gradient(circle at 84% 18%, rgba(96, 165, 250, 0.09), transparent 24%),
+      linear-gradient(180deg, #08111a 0%, #070c14 100%);
+  }
+
+  .tech-grid {
+    opacity: 0.16;
+  }
+
+  .tech-bg::before,
+  .tech-bg::after {
+    filter: blur(24px);
+  }
+}
