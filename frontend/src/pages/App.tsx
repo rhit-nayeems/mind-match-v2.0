@@ -1,5 +1,4 @@
 import { Outlet, Link } from 'react-router-dom'
-import { Film } from 'lucide-react'
 import NeuralBackdrop from '../components/NeuralBackdrop'
 
 export default function App() {
@@ -18,7 +17,7 @@ export default function App() {
               <Link to="/" className="topbar-brand text-white">
                 <span className="topbar-brand-orbit" aria-hidden>
                   <span className="topbar-brand-core">
-                    <Film className="h-5 w-5" />
+                    <img src="/icon.png" alt="" className="h-5 w-5 rounded-[0.35rem] object-contain" loading="eager" />
                   </span>
                 </span>
 
