@@ -437,7 +437,7 @@ export default function Quiz() {
         ].join(" ")}
       >
         <div className="text-base font-medium text-zinc-100">{text}</div>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-400">{helper}</p>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-300/95">{helper}</p>
         <div className="mt-4 grid gap-2.5 sm:flex sm:flex-wrap">
           {choices.map((c: any) => {
             const checked = responses[qid] === c.id;

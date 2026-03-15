@@ -444,7 +444,7 @@ export default function Results() {
                               <p
                                 className={[
                                   synopsisExpanded ? 'whitespace-normal break-words leading-relaxed' : 'line-clamp-1',
-                                  'text-sm text-zinc-300',
+                                  'text-sm text-zinc-200/95',
                                 ].join(' ')}
                               >
                                 {synopsis}
