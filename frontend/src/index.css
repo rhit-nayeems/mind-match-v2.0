@@ -1862,3 +1862,68 @@ body {
   }
 }
 
+
+/* Performance tuning */
+.tech-bg {
+  contain: strict;
+}
+
+.tech-bg svg {
+  transform: translateZ(0);
+}
+
+.btn,
+.btn-neo {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.topbar-surface {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.landing-preview,
+.quiz-nav-tray,
+.results-compare-card {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.topbar-bridge {
+  filter: blur(10px);
+}
+
+.landing-page::before,
+.landing-page::after,
+.quiz-page::before,
+.quiz-page::after,
+.results-page::before,
+.results-page::after {
+  filter: blur(16px);
+}
+
+.landing-hero::before,
+.landing-hero::after,
+.landing-preview::before,
+.results-compare-card::before {
+  filter: blur(8px);
+}
+
+.landing-feature-grid::after,
+.results-page .lg\:col-span-7::after,
+.results-page .lg\:col-span-5::after {
+  filter: blur(18px);
+}
+
+@media (max-width: 768px) {
+  .btn,
+  .btn-neo,
+  .topbar-surface,
+  .landing-preview,
+  .quiz-nav-tray,
+  .results-compare-card {
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+}

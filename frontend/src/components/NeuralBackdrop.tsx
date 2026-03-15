@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 
 type Tone = 'cyan' | 'blue' | 'amber'
@@ -181,7 +182,9 @@ const satellites: Satellite[] = [
   { id: 'sat-9', x: 1228, y: 860, size: 2.4, tone: 'cyan' },
 ]
 
-function AmbientLights({ reducedMotion }: { reducedMotion: boolean }) {
+const pulseBranchIds = new Set(['alpha-beta-link', 'beta-gamma-link', 'beta-zeta-link', 'zeta-eta-link'])
+
+function AmbientLights() {
   return (
     <div className="absolute inset-0 overflow-hidden">
       <div className="absolute inset-0 bg-[#040915]" />
@@ -192,43 +195,36 @@ function AmbientLights({ reducedMotion }: { reducedMotion: boolean }) {
             'radial-gradient(circle at 15% 12%, rgba(34,211,238,0.11), transparent 22%), radial-gradient(circle at 78% 10%, rgba(96,165,250,0.12), transparent 22%), radial-gradient(circle at 52% 88%, rgba(251,191,36,0.08), transparent 24%), linear-gradient(180deg, #040915 0%, #050b16 48%, #030711 100%)',
         }}
       />
-
-      <motion.div
-        className="absolute left-[-12%] top-[-14%] h-[30rem] w-[30rem] rounded-full opacity-50 blur-3xl"
+      <div
+        className="absolute left-[-12%] top-[-14%] h-[28rem] w-[28rem] rounded-full opacity-[0.42] blur-[56px]"
         style={{ background: 'radial-gradient(circle at 50% 50%, rgba(34,211,238,0.11), rgba(96,165,250,0.04) 40%, transparent 72%)' }}
-        animate={reducedMotion ? undefined : { x: [0, 28, -10, 0], y: [0, 14, -10, 0], scale: [1, 1.04, 0.98, 1] }}
-        transition={{ duration: 32, repeat: Infinity, ease: 'easeInOut' }}
       />
-      <motion.div
-        className="absolute right-[-10%] top-[12%] h-[28rem] w-[28rem] rounded-full opacity-48 blur-3xl"
-        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(96,165,250,0.12), rgba(34,211,238,0.045) 42%, transparent 72%)' }}
-        animate={reducedMotion ? undefined : { x: [0, -24, 10, 0], y: [0, 14, -10, 0], scale: [1, 1.04, 0.97, 1] }}
-        transition={{ duration: 36, repeat: Infinity, ease: 'easeInOut' }}
+      <div
+        className="absolute right-[-10%] top-[12%] h-[26rem] w-[26rem] rounded-full opacity-[0.38] blur-[52px]"
+        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(96,165,250,0.11), rgba(34,211,238,0.04) 42%, transparent 72%)' }}
       />
-      <motion.div
-        className="absolute bottom-[-14%] left-1/2 h-[24rem] w-[38rem] -translate-x-1/2 rounded-full opacity-56 blur-3xl"
-        style={{ background: 'radial-gradient(circle at 50% 40%, rgba(34,211,238,0.12), rgba(251,191,36,0.08) 34%, rgba(96,165,250,0.05) 52%, transparent 76%)' }}
-        animate={reducedMotion ? undefined : { x: ['-50%', '-47%', '-52%', '-50%'], scale: [1, 1.05, 0.98, 1] }}
-        transition={{ duration: 40, repeat: Infinity, ease: 'easeInOut' }}
+      <div
+        className="absolute bottom-[-12%] left-1/2 h-[22rem] w-[34rem] -translate-x-1/2 rounded-full opacity-[0.42] blur-[56px]"
+        style={{ background: 'radial-gradient(circle at 50% 40%, rgba(34,211,238,0.11), rgba(251,191,36,0.08) 34%, rgba(96,165,250,0.04) 52%, transparent 76%)' }}
       />
     </div>
   )
 }
-
 
 function ScanBeam({ reducedMotion }: { reducedMotion: boolean }) {
   if (reducedMotion) return null
 
   return (
     <motion.div
-      className="absolute inset-y-[-10%] left-[-34%] w-[32%] rotate-[10deg] blur-2xl"
+      className="absolute inset-y-[-10%] left-[-34%] w-[26%] rotate-[10deg] blur-xl"
       style={{
         background:
-          'linear-gradient(90deg, transparent 0%, rgba(125,211,252,0.03) 18%, rgba(103,232,249,0.12) 50%, rgba(251,191,36,0.05) 78%, transparent 100%)',
+          'linear-gradient(90deg, transparent 0%, rgba(125,211,252,0.02) 18%, rgba(103,232,249,0.09) 50%, rgba(251,191,36,0.04) 78%, transparent 100%)',
+        willChange: 'transform',
       }}
       initial={{ x: '0%' }}
       animate={{ x: ['0%', '465%'] }}
-      transition={{ duration: 19, ease: 'linear', repeat: Infinity, repeatDelay: 8 }}
+      transition={{ duration: 24, ease: 'linear', repeat: Infinity, repeatDelay: 12 }}
     />
   )
 }
@@ -259,7 +255,7 @@ function NeuralNetwork({ reducedMotion }: { reducedMotion: boolean }) {
         </radialGradient>
       </defs>
 
-      <g opacity="0.14">
+      <g opacity="0.1">
         {branches.filter((branch) => branch.emphasis).map((branch) => {
           const tone = palette[branch.tone]
           return (
@@ -268,7 +264,7 @@ function NeuralNetwork({ reducedMotion }: { reducedMotion: boolean }) {
               d={branch.d}
               fill="none"
               stroke={tone.glow}
-              strokeWidth={branch.width * 4.5}
+              strokeWidth={branch.width * 3.2}
               strokeLinecap="round"
             />
           )
@@ -295,7 +291,7 @@ function NeuralNetwork({ reducedMotion }: { reducedMotion: boolean }) {
 
       {!reducedMotion && (
         <g>
-          {branches.filter((branch) => branch.pulse).map((branch) => {
+          {branches.filter((branch) => branch.pulse && pulseBranchIds.has(branch.id)).map((branch) => {
             const tone = palette[branch.tone]
             return (
               <motion.path
@@ -321,7 +317,7 @@ function NeuralNetwork({ reducedMotion }: { reducedMotion: boolean }) {
         </g>
       )}
 
-      <g opacity="0.68">
+      <g opacity="0.56">
         {satellites.map((sat) => {
           const tone = palette[sat.tone]
           return (
@@ -363,16 +359,18 @@ function ReadabilityVeil() {
   )
 }
 
-export default function NeuralBackdrop() {
+const NeuralBackdrop = memo(function NeuralBackdrop() {
   const reducedMotion = useReducedMotion()
 
   return (
     <div className="absolute inset-0 overflow-hidden" aria-hidden>
-      <AmbientLights reducedMotion={!!reducedMotion} />
+      <AmbientLights />
       <NeuralNetwork reducedMotion={!!reducedMotion} />
       <ScanBeam reducedMotion={!!reducedMotion} />
       <ReadabilityVeil />
     </div>
   )
-}
+})
+
+export default NeuralBackdrop
 
