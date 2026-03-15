@@ -1927,3 +1927,40 @@ body {
     -webkit-backdrop-filter: blur(2px);
   }
 }
+
+/* Additional performance tuning */
+.tech-bg {
+  position: absolute !important;
+}
+
+.btn,
+.btn-neo,
+.topbar-surface,
+.landing-preview,
+.quiz-nav-tray,
+.results-compare-card,
+.quiz-overlay-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.topbar-bridge {
+  filter: blur(6px);
+  opacity: 0.22;
+}
+
+.landing-page::before,
+.landing-page::after,
+.quiz-page::before,
+.quiz-page::after,
+.results-page::before,
+.results-page::after,
+.landing-hero::before,
+.landing-hero::after,
+.landing-preview::before,
+.results-compare-card::before,
+.landing-feature-grid::after,
+.results-page .lg\:col-span-7::after,
+.results-page .lg\:col-span-5::after {
+  filter: blur(10px) !important;
+}

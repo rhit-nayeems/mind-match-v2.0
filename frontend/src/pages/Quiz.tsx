@@ -497,7 +497,7 @@ export default function Quiz() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_46%)]" />
             <div className="relative flex min-h-screen items-center justify-center">
               <motion.div
-                className="quiz-overlay-card mx-auto w-full max-w-xl rounded-[28px] border border-white/10 px-6 py-8 text-center shadow-[0_24px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:px-10 sm:py-10"
+                className="quiz-overlay-card mx-auto w-full max-w-xl rounded-[28px] border border-white/10 px-6 py-8 text-center shadow-[0_24px_80px_rgba(2,6,23,0.45)] sm:px-10 sm:py-10"
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0, transition: overlayTextTransition }}
                 exit={{ opacity: shouldReduceMotion ? 0 : 0, y: shouldReduceMotion ? 0 : -10, transition: overlayTextTransition }}
@@ -626,3 +626,4 @@ export default function Quiz() {
     </>
   );
 }
+

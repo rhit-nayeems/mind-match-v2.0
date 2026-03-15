@@ -394,7 +394,7 @@ export default function Results() {
                         }
                       }}
                       className={[
-                        'result-card group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-200 will-change-transform',
+                        'result-card group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-200',
                         active ? 'result-card-active' : '',
                       ].join(' ')}
                     >
@@ -668,4 +668,5 @@ function toPoints(
     })
     .join(' ')
 }
+
 
