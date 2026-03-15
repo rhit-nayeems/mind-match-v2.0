@@ -1,5 +1,5 @@
 import { Outlet, Link } from 'react-router-dom'
-import { Film, Sparkles } from 'lucide-react'
+import { Film } from 'lucide-react'
 
 export default function App() {
   return (
@@ -17,21 +17,30 @@ export default function App() {
         <div className="topbar-shell">
           <div className="topbar-bridge" aria-hidden />
 
-          <header className="surface topbar-surface px-5 py-4 md:px-6 md:py-4">
-            <div className="flex items-center justify-between gap-4">
-              <Link to="/" className="flex items-center gap-3 text-white">
-                <span className="grid h-10 w-10 place-items-center rounded-xl border border-cyan-200/30 bg-cyan-100/[0.1] text-cyan-100">
-                  <Film className="h-4.5 w-4.5" />
+          <header className="surface topbar-surface px-4 py-4 md:px-5 md:py-5">
+            <div className="topbar-layout">
+              <Link to="/" className="topbar-brand text-white">
+                <span className="topbar-brand-orbit" aria-hidden>
+                  <span className="topbar-brand-core">
+                    <Film className="h-5 w-5" />
+                  </span>
                 </span>
-                <span>
-                  <span className="headline block text-[1.05rem] leading-tight tracking-tight">MindMatch</span>
-                  <span className="code-label text-cyan-100/70">adaptive recommender</span>
+
+                <span className="topbar-brand-copy">
+                  <span className="code-label topbar-brand-kicker">movie taste signal</span>
+                  <span className="headline topbar-brand-title">MindMatch</span>
+                  <span className="topbar-brand-meta">
+                    <span className="topbar-brand-chip code-label">adaptive recommender</span>
+                    <span className="topbar-brand-connector" aria-hidden />
+                  </span>
                 </span>
               </Link>
 
-              <div className="hidden md:inline-flex items-center gap-1.5 rounded-lg border border-cyan-200/20 bg-cyan-100/[0.05] px-3 py-1.5 text-[11px] uppercase tracking-[0.12em] text-cyan-100/70">
-                <Sparkles className="h-3.5 w-3.5" />
-                personalized recommendations
+              <div className="topbar-trace" aria-hidden>
+                <span className="topbar-trace-line" />
+                <span className="topbar-trace-node a" />
+                <span className="topbar-trace-line short" />
+                <span className="topbar-trace-node b" />
               </div>
             </div>
           </header>

@@ -415,3 +415,269 @@ body {
   -webkit-backdrop-filter: blur(8px);
 }
 
+
+
+.topbar-shell {
+  position: relative;
+  margin-top: 0.9rem;
+}
+
+.topbar-bridge {
+  position: absolute;
+  left: 1.1rem;
+  right: 22%;
+  bottom: -1.55rem;
+  height: 4rem;
+  pointer-events: none;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, rgba(34, 211, 238, 0.18), rgba(96, 165, 250, 0.08) 55%, rgba(255, 255, 255, 0)),
+    radial-gradient(circle at 18% 50%, rgba(34, 211, 238, 0.22), transparent 42%);
+  opacity: 0.44;
+  filter: blur(18px);
+}
+
+.topbar-surface {
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--mm-accent) 28%, var(--mm-border) 72%);
+  background:
+    linear-gradient(110deg, rgba(103, 232, 249, 0.12), rgba(255, 255, 255, 0.02) 34%, rgba(96, 165, 250, 0.11) 72%, rgba(251, 191, 36, 0.05)),
+    rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.topbar-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: min(32rem, 100%);
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03), transparent),
+    radial-gradient(circle at 18% 50%, rgba(34, 211, 238, 0.16), transparent 42%);
+  pointer-events: none;
+}
+
+.topbar-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, transparent 0, transparent 54%, rgba(103, 232, 249, 0.1) 54.4%, rgba(103, 232, 249, 0.1) 54.7%, transparent 55.1%),
+    linear-gradient(0deg, transparent 0, transparent 66%, rgba(96, 165, 250, 0.08) 66.3%, rgba(96, 165, 250, 0.08) 66.6%, transparent 67%);
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.topbar-layout {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 4.9rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.topbar-brand {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 1rem;
+}
+
+.topbar-brand-orbit {
+  position: relative;
+  display: grid;
+  width: 4.25rem;
+  height: 4.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 1.4rem;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.13), transparent 38%),
+    linear-gradient(145deg, rgba(34, 211, 238, 0.18), rgba(15, 23, 42, 0.2) 52%, rgba(96, 165, 250, 0.2));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 18px 30px rgba(2, 6, 23, 0.24),
+    0 0 0 1px rgba(103, 232, 249, 0.08);
+}
+
+.topbar-brand-orbit::before {
+  content: "";
+  position: absolute;
+  inset: 0.35rem;
+  border: 1px solid rgba(103, 232, 249, 0.16);
+  border-radius: 1.1rem;
+  opacity: 0.8;
+}
+
+.topbar-brand-core {
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  place-items: center;
+  border: 1px solid rgba(103, 232, 249, 0.32);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(103, 232, 249, 0.22), rgba(255, 255, 255, 0.05));
+  color: #d9fbff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 0 22px rgba(34, 211, 238, 0.12);
+}
+
+.topbar-brand-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.topbar-brand-kicker {
+  margin-bottom: 0.25rem;
+  color: rgba(214, 244, 251, 0.56);
+}
+
+.topbar-brand-title {
+  color: #f3fdff;
+  font-size: clamp(1.35rem, 2vw, 1.9rem);
+  line-height: 0.95;
+  text-shadow: 0 8px 24px rgba(2, 6, 23, 0.35);
+}
+
+.topbar-brand-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 0.55rem;
+}
+
+.topbar-brand-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(103, 232, 249, 0.24);
+  border-radius: 999px;
+  padding: 0.38rem 0.78rem;
+  color: #dcfbff;
+  background: linear-gradient(180deg, rgba(103, 232, 249, 0.14), rgba(255, 255, 255, 0.03));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.topbar-brand-chip::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: rgba(34, 211, 238, 0.95);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.6);
+}
+
+.topbar-brand-connector {
+  position: relative;
+  display: block;
+  width: min(18vw, 8rem);
+  min-width: 3rem;
+  height: 1px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(103, 232, 249, 0.56), rgba(96, 165, 250, 0.18), transparent);
+}
+
+.topbar-brand-connector::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 18%;
+  width: 0.32rem;
+  height: 0.32rem;
+  border-radius: 999px;
+  transform: translateY(-50%);
+  background: rgba(96, 165, 250, 0.72);
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.35);
+}
+
+.topbar-trace {
+  display: none;
+  flex: 1;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  opacity: 0.85;
+}
+
+.topbar-trace-line {
+  display: block;
+  width: min(16vw, 7rem);
+  height: 1px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(103, 232, 249, 0.08), rgba(103, 232, 249, 0.4), rgba(96, 165, 250, 0.08));
+}
+
+.topbar-trace-line.short {
+  width: min(10vw, 4rem);
+  opacity: 0.75;
+}
+
+.topbar-trace-node {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: rgba(214, 244, 251, 0.9);
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.32);
+}
+
+.topbar-trace-node.b {
+  background: rgba(251, 191, 36, 0.88);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.22);
+}
+
+@media (min-width: 768px) {
+  .topbar-trace {
+    display: flex;
+  }
+}
+
+@media (max-width: 767px) {
+  .topbar-bridge {
+    left: 0.75rem;
+    right: 2.5rem;
+    bottom: -1.35rem;
+  }
+
+  .topbar-layout {
+    min-height: 4.4rem;
+  }
+
+  .topbar-brand {
+    gap: 0.85rem;
+  }
+
+  .topbar-brand-orbit {
+    width: 3.75rem;
+    height: 3.75rem;
+    border-radius: 1.2rem;
+  }
+
+  .topbar-brand-core {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.9rem;
+  }
+
+  .topbar-brand-title {
+    font-size: 1.45rem;
+  }
+
+  .topbar-brand-meta {
+    gap: 0.6rem;
+  }
+
+  .topbar-brand-chip {
+    padding: 0.34rem 0.68rem;
+    font-size: 0.68rem;
+  }
+
+  .topbar-brand-connector {
+    width: 3rem;
+  }
+}
