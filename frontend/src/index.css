@@ -1851,13 +1851,14 @@ body {
 }
 
 .topbar-brand-core img {
-  width: 2.05rem;
-  height: 2.05rem;
+  width: 2.45rem;
+  height: 2.45rem;
 }
 
 @media (max-width: 767px) {
   .topbar-brand-core img {
-    width: 1.82rem;
-    height: 1.82rem;
+    width: 2.1rem;
+    height: 2.1rem;
   }
 }
+
