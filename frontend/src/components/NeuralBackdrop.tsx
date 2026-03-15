@@ -215,20 +215,6 @@ function AmbientLights({ reducedMotion }: { reducedMotion: boolean }) {
   )
 }
 
-function StructuredGrid() {
-  return (
-    <div
-      className="absolute inset-0 opacity-45"
-      style={{
-        backgroundImage:
-          'linear-gradient(rgba(186,230,253,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(186,230,253,0.06) 1px, transparent 1px)',
-        backgroundSize: '84px 84px',
-        maskImage: 'radial-gradient(circle at 50% 40%, black 12%, rgba(0,0,0,0.84) 56%, transparent 92%)',
-        WebkitMaskImage: 'radial-gradient(circle at 50% 40%, black 12%, rgba(0,0,0,0.84) 56%, transparent 92%)',
-      }}
-    />
-  )
-}
 
 function ScanBeam({ reducedMotion }: { reducedMotion: boolean }) {
   if (reducedMotion) return null
@@ -383,10 +369,10 @@ export default function NeuralBackdrop() {
   return (
     <div className="absolute inset-0 overflow-hidden" aria-hidden>
       <AmbientLights reducedMotion={!!reducedMotion} />
-      <StructuredGrid />
       <NeuralNetwork reducedMotion={!!reducedMotion} />
       <ScanBeam reducedMotion={!!reducedMotion} />
       <ReadabilityVeil />
     </div>
   )
 }
+
