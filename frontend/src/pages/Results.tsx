@@ -34,6 +34,7 @@ type ResultsData = {
     posterUrl?: string | null
     synopsis?: string
     traits?: Record<string, number>
+    fitScore?: number
     match?: number
     genre?: string[]
   }>
