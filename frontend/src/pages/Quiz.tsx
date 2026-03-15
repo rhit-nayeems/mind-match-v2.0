@@ -166,6 +166,7 @@ export default function Quiz() {
   const shouldReduceMotion = useReducedMotion();
   const [navDirection, setNavDirection] = useState<1 | -1>(1);
   const [showIntroOverlay, setShowIntroOverlay] = useState(true);
+  const [showSubmitOverlay, setShowSubmitOverlay] = useState(false);
 
   const quizQuestions = useMemo(() => [...coreQuestions, ...adaptiveQuestions], [coreQuestions, adaptiveQuestions]);
   const pages = useMemo(() => buildPages(quizQuestions), [quizQuestions]);
@@ -334,14 +335,12 @@ export default function Quiz() {
       setMissingIds(computeMissingOnPage(page));
       return;
     }
-
     if (stage === "core") {
       if (startAdaptivePhase()) return;
     }
-
+    let shouldHideSubmitOverlay = false;
     try {
       setSubmitting(true);
-
       const traitContext = answersToTraitContext(responses, quizQuestions);
       const vector = traitContext.blendedArray;
       const pendingRetake = readPendingRetake();
@@ -355,30 +354,38 @@ export default function Quiz() {
           per_trait: traitContext.confidence.per_trait,
         },
       };
-
       if (pendingRetake) {
         requestContext.retake_round = pendingRetake.round;
         requestContext.avoid_movie_ids = pendingRetake.avoid_movie_ids;
       }
-
       try {
         localStorage.setItem("mm_answers", JSON.stringify(vector));
         localStorage.setItem("mm_context", JSON.stringify(requestContext));
       } catch {}
-
       try {
         localStorage.removeItem(PENDING_RETAKE_KEY);
       } catch {}
-
       rememberQuestionIds(quizQuestions.map((q) => q.id));
+      if (!shouldReduceMotion) {
+        shouldHideSubmitOverlay = true;
+        setShowSubmitOverlay(true);
+        await new Promise((resolve) => window.setTimeout(resolve, 1080));
+      }
+      shouldHideSubmitOverlay = false;
       navigate("/results", { state: { answers: vector, context: requestContext } });
     } finally {
+      if (shouldHideSubmitOverlay) {
+        setShowSubmitOverlay(false);
+      }
       setSubmitting(false);
     }
   }
-
   const progress = ((page + 1) / Math.max(1, projectedTotalPages)) * 100;
   const progressPct = Math.round(progress);
+  const overlayTitle = showSubmitOverlay ? "Building your movie profile..." : "Let's find your movie.";
+  const overlayBody = showSubmitOverlay
+    ? ""
+    : "A few quick questions will help us understand your taste and what feels right tonight.";
 
   const overlayTransition = shouldReduceMotion
     ? { duration: 0 }
@@ -479,7 +486,7 @@ export default function Quiz() {
   return (
     <>
       <AnimatePresence>
-        {showIntroOverlay && (
+        {(showIntroOverlay || showSubmitOverlay) && (
           <motion.div
             className="fixed inset-0 z-[60] overflow-hidden bg-slate-950/52 px-6"
             initial={{ opacity: 1, y: 0 }}
@@ -494,10 +501,12 @@ export default function Quiz() {
                 animate={{ opacity: 1, y: 0, transition: overlayTextTransition }}
                 exit={{ opacity: shouldReduceMotion ? 0 : 0, y: shouldReduceMotion ? 0 : -10, transition: overlayTextTransition }}
               >
-                <h1 className="headline text-4xl leading-tight text-zinc-100 md:text-5xl">Let's find your movie.</h1>
-                <p className="mt-4 text-base leading-relaxed text-zinc-300 md:text-lg">
-                  A few quick questions will help us understand your taste and what feels right tonight.
-                </p>
+                <h1 className="headline text-4xl leading-tight text-zinc-100 md:text-5xl">{overlayTitle}</h1>
+                {overlayBody ? (
+                  <p className="mt-4 text-base leading-relaxed text-zinc-300 md:text-lg">
+                    {overlayBody}
+                  </p>
+                ) : null}
               </motion.div>
             </div>
           </motion.div>
