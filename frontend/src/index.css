@@ -1778,3 +1778,36 @@ body {
 .tech-bg {
   background: transparent !important;
 }
+
+.topbar-bridge {
+  opacity: 0.34;
+  filter: blur(16px);
+}
+
+.topbar-surface {
+  background:
+    linear-gradient(105deg, rgba(103, 232, 249, 0.11), rgba(255, 255, 255, 0.03) 34%, rgba(96, 165, 250, 0.08) 70%, rgba(251, 191, 36, 0.04)),
+    rgba(255, 255, 255, 0.045);
+}
+
+.topbar-surface::before {
+  width: min(30rem, 100%);
+  opacity: 0.42;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03), transparent),
+    radial-gradient(circle at 18% 50%, rgba(34, 211, 238, 0.14), transparent 42%);
+}
+
+.landing-page::before {
+  width: min(32rem, 54vw);
+  height: min(24rem, 38vw);
+  opacity: 0.42;
+  background: radial-gradient(circle at 32% 34%, rgba(34, 211, 238, 0.14), rgba(96, 165, 250, 0.06) 40%, transparent 74%);
+}
+
+.landing-hero::before {
+  width: 26rem;
+  height: 26rem;
+  opacity: 0.36;
+  background: radial-gradient(circle at 50% 50%, rgba(34, 211, 238, 0.13), rgba(96, 165, 250, 0.05) 36%, transparent 72%);
+}

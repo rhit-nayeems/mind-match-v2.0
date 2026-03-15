@@ -9,6 +9,9 @@ type Soma = {
   r: number
   halo: number
   tone: Tone
+  haloOpacity?: number
+  ringOpacity?: number
+  coreOpacity?: number
 }
 
 type Branch = {
@@ -58,13 +61,13 @@ const palette: Record<Tone, { stroke: string; glow: string; ring: string; core: 
 }
 
 const somas: Soma[] = [
-  { id: 'alpha', x: 184, y: 232, r: 18, halo: 74, tone: 'cyan' },
-  { id: 'beta', x: 520, y: 182, r: 15, halo: 62, tone: 'blue' },
-  { id: 'gamma', x: 918, y: 262, r: 20, halo: 80, tone: 'amber' },
-  { id: 'delta', x: 1278, y: 212, r: 17, halo: 72, tone: 'cyan' },
-  { id: 'epsilon', x: 356, y: 618, r: 23, halo: 92, tone: 'amber' },
-  { id: 'zeta', x: 804, y: 520, r: 27, halo: 108, tone: 'cyan' },
-  { id: 'eta', x: 1244, y: 640, r: 21, halo: 84, tone: 'blue' },
+  { id: 'alpha', x: 184, y: 232, r: 18, halo: 58, tone: 'cyan', haloOpacity: 0.24, ringOpacity: 0.32, coreOpacity: 0.8 },
+  { id: 'beta', x: 520, y: 182, r: 15, halo: 40, tone: 'blue', haloOpacity: 0.16, ringOpacity: 0.22, coreOpacity: 0.62 },
+  { id: 'gamma', x: 918, y: 262, r: 20, halo: 76, tone: 'amber' },
+  { id: 'delta', x: 1278, y: 212, r: 17, halo: 68, tone: 'cyan' },
+  { id: 'epsilon', x: 356, y: 618, r: 23, halo: 88, tone: 'amber' },
+  { id: 'zeta', x: 804, y: 520, r: 27, halo: 104, tone: 'cyan' },
+  { id: 'eta', x: 1244, y: 640, r: 21, halo: 80, tone: 'blue' },
 ]
 
 const branches: Branch[] = [
@@ -186,24 +189,24 @@ function AmbientLights({ reducedMotion }: { reducedMotion: boolean }) {
         className="absolute inset-0 opacity-95"
         style={{
           background:
-            'radial-gradient(circle at 16% 12%, rgba(34,211,238,0.18), transparent 24%), radial-gradient(circle at 78% 10%, rgba(96,165,250,0.14), transparent 22%), radial-gradient(circle at 52% 88%, rgba(251,191,36,0.08), transparent 24%), linear-gradient(180deg, #040915 0%, #050b16 48%, #030711 100%)',
+            'radial-gradient(circle at 15% 12%, rgba(34,211,238,0.11), transparent 22%), radial-gradient(circle at 78% 10%, rgba(96,165,250,0.12), transparent 22%), radial-gradient(circle at 52% 88%, rgba(251,191,36,0.08), transparent 24%), linear-gradient(180deg, #040915 0%, #050b16 48%, #030711 100%)',
         }}
       />
 
       <motion.div
-        className="absolute left-[-10%] top-[-12%] h-[34rem] w-[34rem] rounded-full opacity-75 blur-3xl"
-        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(34,211,238,0.16), rgba(96,165,250,0.06) 40%, transparent 72%)' }}
-        animate={reducedMotion ? undefined : { x: [0, 32, -12, 0], y: [0, 18, -12, 0], scale: [1, 1.06, 0.98, 1] }}
+        className="absolute left-[-12%] top-[-14%] h-[30rem] w-[30rem] rounded-full opacity-50 blur-3xl"
+        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(34,211,238,0.11), rgba(96,165,250,0.04) 40%, transparent 72%)' }}
+        animate={reducedMotion ? undefined : { x: [0, 28, -10, 0], y: [0, 14, -10, 0], scale: [1, 1.04, 0.98, 1] }}
         transition={{ duration: 32, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className="absolute right-[-10%] top-[12%] h-[28rem] w-[28rem] rounded-full opacity-55 blur-3xl"
-        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(96,165,250,0.14), rgba(34,211,238,0.05) 42%, transparent 72%)' }}
+        className="absolute right-[-10%] top-[12%] h-[28rem] w-[28rem] rounded-full opacity-48 blur-3xl"
+        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(96,165,250,0.12), rgba(34,211,238,0.045) 42%, transparent 72%)' }}
         animate={reducedMotion ? undefined : { x: [0, -24, 10, 0], y: [0, 14, -10, 0], scale: [1, 1.04, 0.97, 1] }}
         transition={{ duration: 36, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className="absolute bottom-[-14%] left-1/2 h-[24rem] w-[38rem] -translate-x-1/2 rounded-full opacity-60 blur-3xl"
+        className="absolute bottom-[-14%] left-1/2 h-[24rem] w-[38rem] -translate-x-1/2 rounded-full opacity-56 blur-3xl"
         style={{ background: 'radial-gradient(circle at 50% 40%, rgba(34,211,238,0.12), rgba(251,191,36,0.08) 34%, rgba(96,165,250,0.05) 52%, transparent 76%)' }}
         animate={reducedMotion ? undefined : { x: ['-50%', '-47%', '-52%', '-50%'], scale: [1, 1.05, 0.98, 1] }}
         transition={{ duration: 40, repeat: Infinity, ease: 'easeInOut' }}
@@ -247,7 +250,7 @@ function ScanBeam({ reducedMotion }: { reducedMotion: boolean }) {
 function NeuralNetwork({ reducedMotion }: { reducedMotion: boolean }) {
   return (
     <svg
-      className="absolute inset-0 h-full w-full opacity-95"
+      className="absolute inset-0 h-full w-full opacity-90"
       viewBox="0 0 1600 1000"
       preserveAspectRatio="xMidYMid slice"
       aria-hidden
@@ -270,7 +273,7 @@ function NeuralNetwork({ reducedMotion }: { reducedMotion: boolean }) {
         </radialGradient>
       </defs>
 
-      <g opacity="0.18">
+      <g opacity="0.14">
         {branches.filter((branch) => branch.emphasis).map((branch) => {
           const tone = palette[branch.tone]
           return (
@@ -332,12 +335,12 @@ function NeuralNetwork({ reducedMotion }: { reducedMotion: boolean }) {
         </g>
       )}
 
-      <g opacity="0.78">
+      <g opacity="0.68">
         {satellites.map((sat) => {
           const tone = palette[sat.tone]
           return (
             <g key={sat.id} transform={`translate(${sat.x} ${sat.y})`}>
-              <circle r={sat.size * 2.8} fill={tone.halo} opacity="0.55" />
+              <circle r={sat.size * 2.8} fill={tone.halo} opacity="0.45" />
               <circle r={sat.size} fill={tone.core} />
             </g>
           )
@@ -349,11 +352,11 @@ function NeuralNetwork({ reducedMotion }: { reducedMotion: boolean }) {
           const tone = palette[soma.tone]
           return (
             <g key={soma.id} transform={`translate(${soma.x} ${soma.y})`}>
-              <circle r={soma.halo} fill={tone.halo} opacity="0.42" />
-              <circle r={soma.r + 9} fill="none" stroke={tone.ring} strokeWidth="1" opacity="0.45" />
-              <circle r={soma.r + 4} fill="none" stroke={tone.stroke} strokeWidth="1.15" opacity="0.46" />
-              <circle r={soma.r} fill={`url(#soma-${soma.tone})`} stroke={tone.core} strokeWidth="1.15" />
-              <circle r={Math.max(3, soma.r * 0.22)} fill="#f8fdff" opacity="0.84" />
+              <circle r={soma.halo} fill={tone.halo} opacity={soma.haloOpacity ?? 0.42} />
+              <circle r={soma.r + 9} fill="none" stroke={tone.ring} strokeWidth="1" opacity={soma.ringOpacity ?? 0.45} />
+              <circle r={soma.r + 4} fill="none" stroke={tone.stroke} strokeWidth="1.15" opacity={soma.ringOpacity ?? 0.46} />
+              <circle r={soma.r} fill={`url(#soma-${soma.tone})`} stroke={tone.core} strokeWidth="1.15" opacity={soma.coreOpacity ?? 1} />
+              <circle r={Math.max(3, soma.r * 0.22)} fill="#f8fdff" opacity={soma.coreOpacity ? Math.min(0.84, soma.coreOpacity) : 0.84} />
             </g>
           )
         })}
