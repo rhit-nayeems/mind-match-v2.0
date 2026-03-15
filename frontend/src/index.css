@@ -416,16 +416,6 @@ body {
   pointer-events: none;
 }
 
-.topbar-surface::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(90deg, transparent 0, transparent 54%, rgba(103, 232, 249, 0.1) 54.4%, rgba(103, 232, 249, 0.1) 54.7%, transparent 55.1%),
-    linear-gradient(0deg, transparent 0, transparent 66%, rgba(96, 165, 250, 0.08) 66.3%, rgba(96, 165, 250, 0.08) 66.6%, transparent 67%);
-  opacity: 0.65;
-  pointer-events: none;
-}
 
 .topbar-layout {
   position: relative;
@@ -529,28 +519,6 @@ body {
   box-shadow: 0 0 12px rgba(34, 211, 238, 0.6);
 }
 
-.topbar-brand-connector {
-  position: relative;
-  display: block;
-  width: min(18vw, 8rem);
-  min-width: 3rem;
-  height: 1px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(103, 232, 249, 0.56), rgba(96, 165, 250, 0.18), transparent);
-}
-
-.topbar-brand-connector::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 18%;
-  width: 0.32rem;
-  height: 0.32rem;
-  border-radius: 999px;
-  transform: translateY(-50%);
-  background: rgba(96, 165, 250, 0.72);
-  box-shadow: 0 0 10px rgba(96, 165, 250, 0.35);
-}
 
 
 @media (max-width: 767px) {
@@ -593,10 +561,8 @@ body {
     font-size: 0.68rem;
   }
 
-  .topbar-brand-connector {
-    width: 3rem;
-  }
 }
+
 
 
 

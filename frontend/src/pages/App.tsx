@@ -27,7 +27,6 @@ export default function App() {
                   <span className="headline topbar-brand-title">MindMatch</span>
                   <span className="topbar-brand-meta">
                     <span className="topbar-brand-chip code-label">adaptive recommender</span>
-                    <span className="topbar-brand-connector" aria-hidden />
                   </span>
                 </span>
               </Link>
