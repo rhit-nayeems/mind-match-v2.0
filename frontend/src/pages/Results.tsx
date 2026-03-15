@@ -341,7 +341,7 @@ export default function Results() {
           <span className="outline-chip">your movie profile</span>
           <h1 className="headline mt-4 text-3xl text-zinc-100 md:text-4xl">Your Movie Matches</h1>
           <p className="mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-zinc-300 md:text-base">
-            {withoutPeriods(data?.profile?.summary ?? 'Computing your profile summary...')}
+            {data?.profile?.summary ?? 'Computing your profile summary...'}
           </p>
           <div className="mt-5">
             <button onClick={handleRetake} className="btn-ghost results-retake-btn">
@@ -668,3 +668,4 @@ function toPoints(
     })
     .join(' ')
 }
+
