@@ -53,7 +53,6 @@ function readPendingRetake(): PendingRetakeState | null {
   }
 }
 
-
 function ensureSessionId(): string {
   try {
     let sid = localStorage.getItem("mm_session");
@@ -67,8 +66,6 @@ function ensureSessionId(): string {
     return String(Date.now());
   }
 }
-
-
 
 function readRecentQuestionIds(): string[] {
   try {
@@ -168,6 +165,7 @@ export default function Quiz() {
   const topRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
   const [navDirection, setNavDirection] = useState<1 | -1>(1);
+  const [showIntroOverlay, setShowIntroOverlay] = useState(true);
 
   const quizQuestions = useMemo(() => [...coreQuestions, ...adaptiveQuestions], [coreQuestions, adaptiveQuestions]);
   const pages = useMemo(() => buildPages(quizQuestions), [quizQuestions]);
@@ -242,6 +240,19 @@ export default function Quiz() {
     return;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (shouldReduceMotion) {
+      setShowIntroOverlay(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowIntroOverlay(false);
+    }, 760);
+
+    return () => window.clearTimeout(timer);
+  }, [shouldReduceMotion]);
 
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -369,10 +380,12 @@ export default function Quiz() {
   const progress = ((page + 1) / Math.max(1, projectedTotalPages)) * 100;
   const progressPct = Math.round(progress);
 
-  const introTransition = shouldReduceMotion
+  const overlayTransition = shouldReduceMotion
     ? { duration: 0 }
-    : { duration: 0.38, ease: [0.22, 1, 0.36, 1] as const };
-
+    : { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const };
+  const overlayTextTransition = shouldReduceMotion
+    ? { duration: 0 }
+    : { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const };
   const pageEnter = shouldReduceMotion ? 0 : 18;
   const pageExit = shouldReduceMotion ? 0 : 12;
   const pageTransition = shouldReduceMotion
@@ -387,7 +400,7 @@ export default function Quiz() {
     : {
         hidden: {},
         visible: {
-          transition: { delayChildren: 0.16, staggerChildren: 0.06 },
+          transition: { staggerChildren: 0.06 },
         },
       };
 
@@ -464,135 +477,144 @@ export default function Quiz() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-2 pb-24 pt-4 md:px-4">
-      <div className="surface p-5 md:p-7">
-        <div ref={topRef} />
-
-        <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={introTransition}
-        >
-          <div className="mb-5 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
-            <span className="outline-chip">adaptive quiz</span>
-            <span className="outline-chip">
-              {stage === "core" ? "your taste" : "a few follow-up questions"}
-            </span>
-          </div>
-
-          <div className="mb-2 flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-500">
-            <span>Progress</span>
-            <span>{progressPct}%</span>
-          </div>
-
-          <div
-            role="progressbar"
-            aria-label="Quiz progress"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={progressPct}
-            className="mb-6 h-2.5 w-full overflow-hidden rounded-full border border-cyan-200/25 bg-cyan-100/[0.08]"
+    <>
+      <AnimatePresence>
+        {showIntroOverlay && (
+          <motion.div
+            className="fixed inset-0 z-[60] overflow-hidden bg-slate-950 px-6"
+            initial={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: shouldReduceMotion ? 0 : 1, y: shouldReduceMotion ? 0 : "-100%", transition: overlayTransition }}
           >
-            <div className="bar-accent h-full transition-all" style={{ width: `${progress}%` }} />
-          </div>
-
-          <div className="mb-6 max-w-2xl">
-            <h1 className="headline text-3xl leading-tight text-zinc-100 md:text-4xl">Let's find your movie.</h1>
-            <p className="mt-3 text-base leading-relaxed text-zinc-300 md:text-lg">
-              A few quick questions will help us understand your taste and what feels right tonight.
-            </p>
-          </div>
-        </motion.div>
-
-        <div className="relative overflow-hidden">
-          <AnimatePresence mode="wait" initial={false} custom={navDirection}>
-            <motion.div
-              key={`${stage}-${page}`}
-              custom={navDirection}
-              initial={{ opacity: shouldReduceMotion ? 1 : 0, x: shouldReduceMotion ? 0 : navDirection * pageEnter }}
-              animate={{ opacity: 1, x: 0, transition: pageTransition }}
-              exit={{ opacity: shouldReduceMotion ? 1 : 0, x: shouldReduceMotion ? 0 : navDirection > 0 ? -pageExit : pageExit, transition: pageTransition }}
-            >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.16),transparent_42%)]" />
+            <div className="relative flex min-h-screen items-center justify-center">
               <motion.div
-                className="space-y-6"
-                initial="hidden"
-                animate="visible"
-                variants={questionListVariants}
+                className="mx-auto max-w-xl text-center"
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0, transition: overlayTextTransition }}
+                exit={{ opacity: shouldReduceMotion ? 0 : 0, y: shouldReduceMotion ? 0 : -10, transition: overlayTextTransition }}
               >
-                {currentTasteQs.length > 0 && (
-                  <section className="space-y-4">
-                    <div>
-                      <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">Your Movie Taste</h2>
-                      <p className="mt-1 text-xs text-zinc-500">What you usually enjoy.</p>
-                    </div>
-                    <div className="space-y-4">
-                      {currentTasteQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
-                    </div>
-                  </section>
-                )}
-
-                {currentVibeQs.length > 0 && (
-                  <section className="space-y-4">
-                    <div>
-                      <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">How You Feel Right Now</h2>
-                      <p className="mt-1 text-xs text-zinc-500">What fits this moment.</p>
-                    </div>
-                    <div className="space-y-4">
-                      {currentVibeQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
-                    </div>
-                  </section>
-                )}
+                <h1 className="headline text-4xl leading-tight text-zinc-100 md:text-5xl">Let's find your movie.</h1>
+                <p className="mt-4 text-base leading-relaxed text-zinc-300 md:text-lg">
+                  A few quick questions will help us understand your taste and what feels right tonight.
+                </p>
               </motion.div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        <div className="sticky bottom-0 left-0 right-0 mt-6">
-          <div className="quiz-nav-tray px-4 py-3">
-            <div className="mx-auto flex max-w-4xl items-center justify-between">
-              <button
-                type="button"
-                onClick={onBack}
-                disabled={page === 0}
-                className={`rounded-xl border px-4 py-2 ${
-                  page === 0
-                    ? "cursor-not-allowed border-white/10 bg-white/[0.03] text-zinc-600"
-                    : "border-cyan-200/25 bg-cyan-100/[0.08] text-zinc-100 hover:bg-cyan-100/[0.16]"
-                }`}
+      <div className="mx-auto max-w-4xl px-2 pb-24 pt-4 md:px-4">
+        <div className="surface p-5 md:p-7">
+          <div ref={topRef} />
+
+          <div>
+            <div className="mb-5 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
+              <span className="outline-chip">adaptive quiz</span>
+              <span className="outline-chip">
+                {stage === "core" ? "your taste" : "a few follow-up questions"}
+              </span>
+            </div>
+
+            <div className="mb-2 flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-500">
+              <span>Progress</span>
+              <span>{progressPct}%</span>
+            </div>
+
+            <div
+              role="progressbar"
+              aria-label="Quiz progress"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={progressPct}
+              className="mb-8 h-2.5 w-full overflow-hidden rounded-full border border-cyan-200/25 bg-cyan-100/[0.08]"
+            >
+              <div className="bar-accent h-full transition-all" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden">
+            <AnimatePresence mode="wait" initial={false} custom={navDirection}>
+              <motion.div
+                key={`${stage}-${page}`}
+                custom={navDirection}
+                initial={{ opacity: shouldReduceMotion ? 1 : 0, x: shouldReduceMotion ? 0 : navDirection * pageEnter }}
+                animate={{ opacity: 1, x: 0, transition: pageTransition }}
+                exit={{ opacity: shouldReduceMotion ? 1 : 0, x: shouldReduceMotion ? 0 : navDirection > 0 ? -pageExit : pageExit, transition: pageTransition }}
               >
-                &larr; Back
-              </button>
+                <motion.div
+                  className="space-y-6"
+                  initial="hidden"
+                  animate="visible"
+                  variants={questionListVariants}
+                >
+                  {currentTasteQs.length > 0 && (
+                    <section className="space-y-4">
+                      <div>
+                        <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">Your Movie Taste</h2>
+                        <p className="mt-1 text-xs text-zinc-500">What you usually enjoy.</p>
+                      </div>
+                      <div className="space-y-4">
+                        {currentTasteQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
+                      </div>
+                    </section>
+                  )}
 
-              {page < totalPages - 1 ? (
-                <button type="button" onClick={onNext} className="btn-neo px-5 py-2">
-                  Next &rarr;
-                </button>
-              ) : (
+                  {currentVibeQs.length > 0 && (
+                    <section className="space-y-4">
+                      <div>
+                        <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">How You Feel Right Now</h2>
+                        <p className="mt-1 text-xs text-zinc-500">What fits this moment.</p>
+                      </div>
+                      <div className="space-y-4">
+                        {currentVibeQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
+                      </div>
+                    </section>
+                  )}
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          <div className="sticky bottom-0 left-0 right-0 mt-6">
+            <div className="quiz-nav-tray px-4 py-3">
+              <div className="mx-auto flex max-w-4xl items-center justify-between">
                 <button
                   type="button"
-                  onClick={onPrimaryAction}
-                  disabled={submitting}
-                  className={`rounded-2xl px-5 py-2 font-medium ${
-                    submitting
-                      ? "cursor-not-allowed border border-white/10 bg-white/[0.05] text-zinc-500"
-                      : "btn-neo"
+                  onClick={onBack}
+                  disabled={page === 0}
+                  className={`rounded-xl border px-4 py-2 ${
+                    page === 0
+                      ? "cursor-not-allowed border-white/10 bg-white/[0.03] text-zinc-600"
+                      : "border-cyan-200/25 bg-cyan-100/[0.08] text-zinc-100 hover:bg-cyan-100/[0.16]"
                   }`}
                 >
-                  {stage === "core" ? "Keep Going" : submitting ? "Working..." : "See My Matches"}
+                  &larr; Back
                 </button>
-              )}
+
+                {page < totalPages - 1 ? (
+                  <button type="button" onClick={onNext} className="btn-neo px-5 py-2">
+                    Next &rarr;
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onPrimaryAction}
+                    disabled={submitting}
+                    className={`rounded-2xl px-5 py-2 font-medium ${
+                      submitting
+                        ? "cursor-not-allowed border border-white/10 bg-white/[0.05] text-zinc-500"
+                        : "btn-neo"
+                    }`}
+                  >
+                    {stage === "core" ? "Keep Going" : submitting ? "Working..." : "See My Matches"}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
-
-
-
-
-
-
-
-
