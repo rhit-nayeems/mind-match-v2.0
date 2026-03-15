@@ -32,13 +32,6 @@ export default function App() {
                   </span>
                 </span>
               </Link>
-
-              <div className="topbar-trace" aria-hidden>
-                <span className="topbar-trace-line" />
-                <span className="topbar-trace-node a" />
-                <span className="topbar-trace-line short" />
-                <span className="topbar-trace-node b" />
-              </div>
             </div>
           </header>
         </div>
@@ -76,6 +69,7 @@ export default function App() {
     </div>
   )
 }
+
 
 
 

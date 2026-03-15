@@ -567,46 +567,6 @@ body {
   box-shadow: 0 0 10px rgba(96, 165, 250, 0.35);
 }
 
-.topbar-trace {
-  display: none;
-  flex: 1;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  opacity: 0.85;
-}
-
-.topbar-trace-line {
-  display: block;
-  width: min(16vw, 7rem);
-  height: 1px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(103, 232, 249, 0.08), rgba(103, 232, 249, 0.4), rgba(96, 165, 250, 0.08));
-}
-
-.topbar-trace-line.short {
-  width: min(10vw, 4rem);
-  opacity: 0.75;
-}
-
-.topbar-trace-node {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 999px;
-  background: rgba(214, 244, 251, 0.9);
-  box-shadow: 0 0 16px rgba(34, 211, 238, 0.32);
-}
-
-.topbar-trace-node.b {
-  background: rgba(251, 191, 36, 0.88);
-  box-shadow: 0 0 16px rgba(251, 191, 36, 0.22);
-}
-
-@media (min-width: 768px) {
-  .topbar-trace {
-    display: flex;
-  }
-}
 
 @media (max-width: 767px) {
   .topbar-bridge {
@@ -652,5 +612,6 @@ body {
     width: 3rem;
   }
 }
+
 
 
