@@ -242,7 +242,7 @@ export default function Results() {
               particleCount: 22,
               spread: 48,
               origin: { y: 0.72 },
-              colors: ['#A8C4EC', '#5379AE', '#F2C94C'],
+              colors: ['#67e8f9', '#93c5fd', '#fbbf24'],
               scalar: 0.66,
               ticks: 120,
               disableForReducedMotion: true,
@@ -393,11 +393,11 @@ export default function Results() {
                       }}
                       className={[
                         'group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-200 will-change-transform',
-                        'border-[#A8C4EC]/18 bg-[#A8C4EC]/[0.03] hover:-translate-y-1 hover:border-[#A8C4EC]/40 hover:bg-[#5379AE]/[0.12] hover:shadow-[0_16px_34px_rgba(2,6,23,0.34)]',
-                        active ? 'border-[#A8C4EC]/70 shadow-[0_0_0_1px_rgba(4,116,196,.38)]' : '',
+                        'bg-cyan-100/[0.03] border-cyan-200/20 hover:-translate-y-1 hover:border-cyan-100/40 hover:bg-cyan-100/[0.08] hover:shadow-[0_16px_34px_rgba(2,6,23,0.34)]',
+                        active ? 'border-cyan-100/70 shadow-[0_0_0_1px_rgba(103,232,249,.45)]' : '',
                       ].join(' ')}
                     >
-                      <span className="absolute left-3 top-3 inline-flex h-7 min-w-7 items-center justify-center rounded-full border border-[#A8C4EC]/30 bg-[#262B40]/90 px-2 text-xs font-semibold text-[#EAF3FF] shadow-[0_8px_18px_rgba(2,6,23,0.32)] transition-colors duration-200 group-hover:border-[#A8C4EC]/45 group-hover:bg-[#262B40]/95">
+                      <span className="absolute left-3 top-3 inline-flex h-7 min-w-7 items-center justify-center rounded-full border border-cyan-200/30 bg-slate-950/82 px-2 text-xs font-semibold text-cyan-100 shadow-[0_8px_18px_rgba(2,6,23,0.32)] transition-colors duration-200 group-hover:border-cyan-100/45 group-hover:bg-slate-950/92">
                         {i + 1}
                       </span>
 
@@ -461,7 +461,7 @@ export default function Results() {
                                       return next
                                     })
                                   }}
-                                  className="mt-1 text-xs font-medium text-[#A8C4EC]/90 underline decoration-[#A8C4EC]/40 underline-offset-2 hover:text-[#EAF3FF]"
+                                  className="mt-1 text-xs font-medium text-cyan-100/85 underline decoration-cyan-200/45 underline-offset-2 hover:text-cyan-100"
                                 >
                                   {synopsisExpanded ? 'Show less' : 'Read more'}
                                 </button>
@@ -474,7 +474,7 @@ export default function Results() {
                               {m.genre.slice(0, 3).map((g, idx) => (
                                 <span
                                   key={`${m.id}-${g}-${idx}`}
-                                  className="rounded-full border border-[#A8C4EC]/22 bg-[#5379AE]/[0.12] px-2 py-0.5 text-xs text-[#DCEBFF]/90"
+                                  className="rounded-full border border-cyan-200/25 bg-cyan-100/[0.08] px-2 py-0.5 text-xs text-cyan-100/85"
                                 >
                                   {g}
                                 </span>
@@ -485,9 +485,9 @@ export default function Results() {
                           <div className="mt-3">
                             <div className="flex items-center justify-between text-xs text-zinc-300">
                               <span>match</span>
-                              <span className="font-semibold text-[#A8C4EC]">{pct(m.fitScore ?? m.match)}</span>
+                              <span className="font-semibold text-cyan-100">{pct(m.fitScore ?? m.match)}</span>
                             </div>
-                            <div className="mt-1 h-2 overflow-hidden rounded-full border border-[#A8C4EC]/18 bg-[#A8C4EC]/[0.09]">
+                            <div className="mt-1 h-2 overflow-hidden rounded-full border border-cyan-200/20 bg-cyan-100/[0.1]">
                               <div
                                 className="bar-accent h-full rounded-full"
                                 style={{
@@ -521,7 +521,7 @@ export default function Results() {
 
               <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-zinc-300">
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#0474C4]" aria-hidden />
+                  <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" aria-hidden />
                   Your profile
                 </span>
                 <span className="inline-flex items-center gap-1.5">
@@ -531,7 +531,7 @@ export default function Results() {
               </div>
 
               {recommendationReason && (
-                <div className="mt-4 rounded-xl border border-[#A8C4EC]/15 bg-[#262B40]/45 p-3">
+                <div className="mt-4 rounded-xl border border-cyan-200/15 bg-black/20 p-3">
                   <div className="text-xs uppercase tracking-[0.14em] text-zinc-500">Why this was recommended</div>
                   <p className="mt-2 text-sm leading-relaxed text-zinc-300">{recommendationReason}</p>
                 </div>
@@ -594,8 +594,8 @@ function InlineRadar({
   const pointsUser = toPoints(spokes, user, rMax, cx, cy)
   const pointsMovie = movie ? toPoints(spokes, movie, rMax, cx, cy) : null
 
-  const userFill = 'rgba(4,116,196,0.22)'
-  const userStroke = 'rgba(168,196,236,0.95)'
+  const userFill = 'rgba(34,211,238,0.20)'
+  const userStroke = 'rgba(34,211,238,0.95)'
   const movieFill = 'rgba(251,191,36,0.18)'
   const movieStroke = 'rgba(251,191,36,0.95)'
 

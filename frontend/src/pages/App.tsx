@@ -20,16 +20,16 @@ export default function App() {
           <header className="surface topbar-surface px-5 py-4 md:px-6 md:py-4">
             <div className="flex items-center justify-between gap-4">
               <Link to="/" className="flex items-center gap-3 text-white">
-                <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#A8C4EC]/30 bg-[#A8C4EC]/[0.1] text-[#EAF3FF]">
+                <span className="grid h-10 w-10 place-items-center rounded-xl border border-cyan-200/30 bg-cyan-100/[0.1] text-cyan-100">
                   <Film className="h-4.5 w-4.5" />
                 </span>
                 <span>
                   <span className="headline block text-[1.05rem] leading-tight tracking-tight">MindMatch</span>
-                  <span className="code-label text-[#A8C4EC]/75">adaptive recommender</span>
+                  <span className="code-label text-cyan-100/70">adaptive recommender</span>
                 </span>
               </Link>
 
-              <div className="hidden md:inline-flex items-center gap-1.5 rounded-lg border border-[#A8C4EC]/20 bg-[#5379AE]/[0.12] px-3 py-1.5 text-[11px] uppercase tracking-[0.12em] text-[#A8C4EC]/80">
+              <div className="hidden md:inline-flex items-center gap-1.5 rounded-lg border border-cyan-200/20 bg-cyan-100/[0.05] px-3 py-1.5 text-[11px] uppercase tracking-[0.12em] text-cyan-100/70">
                 <Sparkles className="h-3.5 w-3.5" />
                 personalized recommendations
               </div>
@@ -39,7 +39,7 @@ export default function App() {
 
         <main className="pb-12 pt-5 md:pt-6">
           <Outlet />
-          <footer className="mt-12 border-t border-[#A8C4EC]/12 pt-7 text-[11px] text-zinc-400/80">
+          <footer className="mt-12 border-t border-cyan-200/12 pt-7 text-[11px] text-zinc-400/80">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <p>(c) {new Date().getFullYear()} MindMatch. All rights reserved.</p>
               <a
@@ -55,7 +55,7 @@ export default function App() {
                 href="https://www.themoviedb.org/"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-[#A8C4EC]/75 transition-colors hover:text-[#EAF3FF]"
+                className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-cyan-100/70 transition-colors hover:text-cyan-50"
               >
                 <img src="/tmdb-logo.svg" alt="TMDB logo" className="h-5 w-5 rounded-sm" loading="lazy" />
                 <span className="text-[9px] uppercase tracking-[0.14em]">TMDB Data Source</span>

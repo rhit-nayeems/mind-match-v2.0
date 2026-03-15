@@ -432,7 +432,7 @@ export default function Quiz() {
         key={qid}
         variants={questionCardVariants}
         className={[
-          "rounded-2xl border border-[#A8C4EC]/20 bg-[#A8C4EC]/[0.04] p-5 transition-colors",
+          "rounded-2xl border p-5 transition-colors bg-cyan-100/[0.03] border-cyan-200/20",
           isMissing ? "ring-2 ring-rose-300/70" : "",
         ].join(" ")}
       >
@@ -465,10 +465,10 @@ export default function Quiz() {
                   className={[
                     "w-full cursor-pointer select-none rounded-xl border px-3 py-2 text-left outline-none sm:w-auto",
                     checked
-                      ? "border-[#A8C4EC]/80 bg-[#A8C4EC]/92 text-[#1B2438] shadow-[0_0_0_1px_rgba(4,116,196,.45)]"
-                      : "border-[#A8C4EC]/18 bg-[#262B40]/75 text-zinc-200 hover:bg-[#5379AE]/[0.16]",
-                    "focus-visible:ring-2 focus-visible:ring-[#A8C4EC]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#262B40]",
-                    "peer-focus-visible:ring-2 peer-focus-visible:ring-[#A8C4EC]/80 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[#262B40]",
+                      ? "border-cyan-100/70 bg-cyan-100/90 text-zinc-900 shadow-[0_0_0_1px_rgba(103,232,249,.5)]"
+                      : "border-cyan-200/20 bg-black/35 text-zinc-200 hover:bg-cyan-200/[0.12]",
+                    "focus-visible:ring-2 focus-visible:ring-cyan-200/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
+                    "peer-focus-visible:ring-2 peer-focus-visible:ring-cyan-200/80 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-black",
                   ].join(" ")}
                 >
                   {c.label}
@@ -488,15 +488,15 @@ export default function Quiz() {
       <AnimatePresence>
         {(showIntroOverlay || showSubmitOverlay) && (
           <motion.div
-            className="fixed inset-0 z-[60] overflow-hidden bg-[#262B40]/50 px-6"
+            className="fixed inset-0 z-[60] overflow-hidden bg-slate-950/52 px-6"
             initial={{ opacity: 1, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: shouldReduceMotion ? 0 : 1, y: shouldReduceMotion ? 0 : "-100%", transition: overlayTransition }}
           >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(168,196,236,0.18),transparent_46%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_46%)]" />
             <div className="relative flex min-h-screen items-center justify-center">
               <motion.div
-                className="mx-auto w-full max-w-xl rounded-[28px] border border-[#A8C4EC]/14 bg-[#262B40]/78 px-6 py-8 text-center shadow-[0_24px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:px-10 sm:py-10"
+                className="mx-auto w-full max-w-xl rounded-[28px] border border-white/10 bg-slate-950/72 px-6 py-8 text-center shadow-[0_24px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:px-10 sm:py-10"
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0, transition: overlayTextTransition }}
                 exit={{ opacity: shouldReduceMotion ? 0 : 0, y: shouldReduceMotion ? 0 : -10, transition: overlayTextTransition }}
@@ -536,7 +536,7 @@ export default function Quiz() {
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={progressPct}
-              className="mb-8 h-2.5 w-full overflow-hidden rounded-full border border-[#A8C4EC]/25 bg-[#A8C4EC]/[0.08]"
+              className="mb-8 h-2.5 w-full overflow-hidden rounded-full border border-cyan-200/25 bg-cyan-100/[0.08]"
             >
               <div className="bar-accent h-full transition-all" style={{ width: `${progress}%` }} />
             </div>
@@ -560,7 +560,7 @@ export default function Quiz() {
                   {currentTasteQs.length > 0 && (
                     <section className="space-y-4">
                       <div>
-                        <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-[#A8C4EC]/90">Your Movie Taste</h2>
+                        <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">Your Movie Taste</h2>
                         <p className="mt-1 text-xs text-zinc-500">What you usually enjoy.</p>
                       </div>
                       <div className="space-y-4">
@@ -572,7 +572,7 @@ export default function Quiz() {
                   {currentVibeQs.length > 0 && (
                     <section className="space-y-4">
                       <div>
-                        <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-[#A8C4EC]/90">How You Feel Right Now</h2>
+                        <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">How You Feel Right Now</h2>
                         <p className="mt-1 text-xs text-zinc-500">What fits this moment.</p>
                       </div>
                       <div className="space-y-4">
@@ -595,7 +595,7 @@ export default function Quiz() {
                   className={`rounded-xl border px-4 py-2 ${
                     page === 0
                       ? "cursor-not-allowed border-white/10 bg-white/[0.03] text-zinc-600"
-                      : "border-[#A8C4EC]/25 bg-[#5379AE]/[0.12] text-zinc-100 hover:bg-[#5379AE]/[0.2]"
+                      : "border-cyan-200/25 bg-cyan-100/[0.08] text-zinc-100 hover:bg-cyan-100/[0.16]"
                   }`}
                 >
                   &larr; Back
