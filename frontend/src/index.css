@@ -1811,3 +1811,41 @@ body {
   opacity: 0.36;
   background: radial-gradient(circle at 50% 50%, rgba(34, 211, 238, 0.13), rgba(96, 165, 250, 0.05) 36%, transparent 72%);
 }
+
+.topbar-brand-orbit {
+  background:
+    linear-gradient(145deg, rgba(34, 211, 238, 0.16), rgba(15, 23, 42, 0.18) 52%, rgba(96, 165, 250, 0.16));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 14px 24px rgba(2, 6, 23, 0.2),
+    0 0 0 1px rgba(103, 232, 249, 0.08);
+}
+
+.topbar-brand-orbit::before {
+  content: none;
+}
+
+.topbar-brand-core {
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.topbar-brand-core img {
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.35rem;
+  object-fit: contain;
+}
+
+@media (max-width: 767px) {
+  .topbar-brand-core img {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+}
