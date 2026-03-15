@@ -38,18 +38,18 @@ type Satellite = {
 
 const palette: Record<Tone, { stroke: string; glow: string; ring: string; core: string; halo: string }> = {
   cyan: {
-    stroke: 'rgba(92, 113, 205, 0.42)',
-    glow: 'rgba(50, 75, 166, 0.2)',
-    ring: 'rgba(141, 156, 224, 0.24)',
-    core: '#a7b7f0',
-    halo: 'rgba(50, 75, 166, 0.12)',
+    stroke: 'rgba(125, 211, 252, 0.42)',
+    glow: 'rgba(34, 211, 238, 0.22)',
+    ring: 'rgba(165, 243, 252, 0.22)',
+    core: '#9eefff',
+    halo: 'rgba(34, 211, 238, 0.12)',
   },
   blue: {
     stroke: 'rgba(147, 197, 253, 0.38)',
     glow: 'rgba(96, 165, 250, 0.18)',
-    ring: 'rgba(172, 186, 235, 0.2)',
-    core: '#cad4fb',
-    halo: 'rgba(83, 105, 194, 0.1)',
+    ring: 'rgba(191, 219, 254, 0.2)',
+    core: '#c9e1ff',
+    halo: 'rgba(96, 165, 250, 0.1)',
   },
   amber: {
     stroke: 'rgba(251, 191, 36, 0.32)',
@@ -189,25 +189,25 @@ function AmbientLights({ reducedMotion }: { reducedMotion: boolean }) {
         className="absolute inset-0 opacity-95"
         style={{
           background:
-            'radial-gradient(circle at 15% 12%, rgba(50,75,166,0.14), transparent 22%), radial-gradient(circle at 78% 10%, rgba(83,105,194,0.12), transparent 22%), radial-gradient(circle at 52% 88%, rgba(251,191,36,0.08), transparent 24%), linear-gradient(180deg, #040915 0%, #050b16 48%, #030711 100%)',
+            'radial-gradient(circle at 15% 12%, rgba(34,211,238,0.11), transparent 22%), radial-gradient(circle at 78% 10%, rgba(96,165,250,0.12), transparent 22%), radial-gradient(circle at 52% 88%, rgba(251,191,36,0.08), transparent 24%), linear-gradient(180deg, #040915 0%, #050b16 48%, #030711 100%)',
         }}
       />
 
       <motion.div
         className="absolute left-[-12%] top-[-14%] h-[30rem] w-[30rem] rounded-full opacity-50 blur-3xl"
-        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(50,75,166,0.13), rgba(92,113,205,0.05) 40%, transparent 72%)' }}
+        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(34,211,238,0.11), rgba(96,165,250,0.04) 40%, transparent 72%)' }}
         animate={reducedMotion ? undefined : { x: [0, 28, -10, 0], y: [0, 14, -10, 0], scale: [1, 1.04, 0.98, 1] }}
         transition={{ duration: 32, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="absolute right-[-10%] top-[12%] h-[28rem] w-[28rem] rounded-full opacity-48 blur-3xl"
-        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(92,113,205,0.12), rgba(50,75,166,0.045) 42%, transparent 72%)' }}
+        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(96,165,250,0.12), rgba(34,211,238,0.045) 42%, transparent 72%)' }}
         animate={reducedMotion ? undefined : { x: [0, -24, 10, 0], y: [0, 14, -10, 0], scale: [1, 1.04, 0.97, 1] }}
         transition={{ duration: 36, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="absolute bottom-[-14%] left-1/2 h-[24rem] w-[38rem] -translate-x-1/2 rounded-full opacity-56 blur-3xl"
-        style={{ background: 'radial-gradient(circle at 50% 40%, rgba(50,75,166,0.14), rgba(251,191,36,0.08) 34%, rgba(92,113,205,0.05) 52%, transparent 76%)' }}
+        style={{ background: 'radial-gradient(circle at 50% 40%, rgba(34,211,238,0.12), rgba(251,191,36,0.08) 34%, rgba(96,165,250,0.05) 52%, transparent 76%)' }}
         animate={reducedMotion ? undefined : { x: ['-50%', '-47%', '-52%', '-50%'], scale: [1, 1.05, 0.98, 1] }}
         transition={{ duration: 40, repeat: Infinity, ease: 'easeInOut' }}
       />
@@ -224,7 +224,7 @@ function ScanBeam({ reducedMotion }: { reducedMotion: boolean }) {
       className="absolute inset-y-[-10%] left-[-34%] w-[32%] rotate-[10deg] blur-2xl"
       style={{
         background:
-          'linear-gradient(90deg, transparent 0%, rgba(92,113,205,0.03) 18%, rgba(92,113,205,0.12) 50%, rgba(251,191,36,0.05) 78%, transparent 100%)',
+          'linear-gradient(90deg, transparent 0%, rgba(125,211,252,0.03) 18%, rgba(103,232,249,0.12) 50%, rgba(251,191,36,0.05) 78%, transparent 100%)',
       }}
       initial={{ x: '0%' }}
       animate={{ x: ['0%', '465%'] }}
@@ -375,5 +375,4 @@ export default function NeuralBackdrop() {
     </div>
   )
 }
-
 
