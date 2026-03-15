@@ -2,7 +2,6 @@ import { memo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 
 type Tone = 'cyan' | 'blue' | 'amber'
-type BackdropMode = 'full' | 'lite'
 
 type Soma = {
   id: string
@@ -183,8 +182,7 @@ const satellites: Satellite[] = [
   { id: 'sat-9', x: 1228, y: 860, size: 2.4, tone: 'cyan' },
 ]
 
-const fullPulseBranchIds = new Set(['alpha-beta-link', 'beta-gamma-link', 'beta-zeta-link', 'zeta-eta-link'])
-const litePulseBranchIds = new Set(['beta-zeta-link'])
+const pulseBranchIds = new Set(['alpha-beta-link', 'beta-gamma-link', 'beta-zeta-link', 'zeta-eta-link'])
 
 function AmbientLights() {
   return (
@@ -213,8 +211,8 @@ function AmbientLights() {
   )
 }
 
-function ScanBeam({ reducedMotion, mode }: { reducedMotion: boolean; mode: BackdropMode }) {
-  if (reducedMotion || mode === 'lite') return null
+function ScanBeam({ reducedMotion }: { reducedMotion: boolean }) {
+  if (reducedMotion) return null
 
   return (
     <motion.div
@@ -231,12 +229,10 @@ function ScanBeam({ reducedMotion, mode }: { reducedMotion: boolean; mode: Backd
   )
 }
 
-function NeuralNetwork({ reducedMotion, mode }: { reducedMotion: boolean; mode: BackdropMode }) {
-  const activePulseBranchIds = mode === 'full' ? fullPulseBranchIds : litePulseBranchIds
-
+function NeuralNetwork({ reducedMotion }: { reducedMotion: boolean }) {
   return (
     <svg
-      className={mode === 'full' ? 'absolute inset-0 h-full w-full opacity-90' : 'absolute inset-0 h-full w-full opacity-[0.78]'}
+      className="absolute inset-0 h-full w-full opacity-90"
       viewBox="0 0 1600 1000"
       preserveAspectRatio="xMidYMid slice"
       aria-hidden
@@ -295,7 +291,7 @@ function NeuralNetwork({ reducedMotion, mode }: { reducedMotion: boolean; mode: 
 
       {!reducedMotion && (
         <g>
-          {branches.filter((branch) => branch.pulse && activePulseBranchIds.has(branch.id)).map((branch) => {
+          {branches.filter((branch) => branch.pulse && pulseBranchIds.has(branch.id)).map((branch) => {
             const tone = palette[branch.tone]
             return (
               <motion.path
@@ -321,7 +317,7 @@ function NeuralNetwork({ reducedMotion, mode }: { reducedMotion: boolean; mode: 
         </g>
       )}
 
-      <g opacity={mode === 'full' ? 0.56 : 0.42}>
+      <g opacity="0.56">
         {satellites.map((sat) => {
           const tone = palette[sat.tone]
           return (
@@ -363,19 +359,20 @@ function ReadabilityVeil() {
   )
 }
 
-const NeuralBackdrop = memo(function NeuralBackdrop({ mode = 'full' }: { mode?: BackdropMode }) {
+const NeuralBackdrop = memo(function NeuralBackdrop() {
   const reducedMotion = useReducedMotion()
 
   return (
     <div className="absolute inset-0 overflow-hidden" aria-hidden>
       <AmbientLights />
-      <NeuralNetwork reducedMotion={!!reducedMotion} mode={mode} />
-      <ScanBeam reducedMotion={!!reducedMotion} mode={mode} />
+      <NeuralNetwork reducedMotion={!!reducedMotion} />
+      <ScanBeam reducedMotion={!!reducedMotion} />
       <ReadabilityVeil />
     </div>
   )
 })
 
 export default NeuralBackdrop
+
 
 

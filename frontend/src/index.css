@@ -1929,9 +1929,6 @@ body {
 }
 
 /* Additional performance tuning */
-.tech-bg {
-  position: absolute !important;
-}
 
 .btn,
 .btn-neo,
@@ -1964,3 +1961,4 @@ body {
 .results-page .lg\:col-span-5::after {
   filter: blur(10px) !important;
 }
+

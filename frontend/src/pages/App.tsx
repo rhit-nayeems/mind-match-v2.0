@@ -1,14 +1,12 @@
-import { Outlet, Link, useLocation } from 'react-router-dom'
+import { Outlet, Link } from 'react-router-dom'
 import NeuralBackdrop from '../components/NeuralBackdrop'
 
 export default function App() {
-  const location = useLocation()
-  const backdropMode = location.pathname === '/' ? 'full' : 'lite'
 
   return (
     <div className="tech-shell">
       <div className="tech-bg" aria-hidden>
-        <NeuralBackdrop mode={backdropMode} />
+        <NeuralBackdrop />
       </div>
 
       <div className="mx-auto w-full max-w-6xl px-4">
