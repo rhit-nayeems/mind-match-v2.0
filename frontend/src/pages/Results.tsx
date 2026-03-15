@@ -264,30 +264,36 @@ export default function Results() {
     })
     return out
   }, [data?.profile?.traits])
-
-  const movieOrdered = useMemo(() => {
-    const src = data?.recommendations?.[selectedIdx]?.traits ?? {}
-    const out: Record<TraitKey, number> = {} as Record<TraitKey, number>
-    TRAITS.forEach((k) => {
-      out[k] = normalizeTrait((src as any)[k], 0.5)
-    })
-    return out
-  }, [data?.recommendations, selectedIdx])
-
   const recs = data?.recommendations ?? []
-  const selected = recs[selectedIdx]
-
-  const selectedTraits = useMemo(() => {
-    const src = selected?.traits
-    if (!src || !Object.keys(src).length) return null
-
+  const sortedRecs = useMemo(
+    () =>
+      recs
+        .map((movie, index) => ({ movie, index, matchValue: normalizeTrait(movie.match, 0) }))
+        .sort((a, b) => {
+          if (b.matchValue !== a.matchValue) return b.matchValue - a.matchValue
+          return a.index - b.index
+        })
+        .map(({ movie }) => movie),
+    [recs]
+  )
+  const selected = sortedRecs[selectedIdx]
+  const movieOrdered = useMemo(() => {
+    const src = selected?.traits ?? {}
     const out: Record<TraitKey, number> = {} as Record<TraitKey, number>
     TRAITS.forEach((k) => {
       out[k] = normalizeTrait((src as any)[k], 0.5)
     })
     return out
   }, [selected?.traits])
-
+  const selectedTraits = useMemo(() => {
+    const src = selected?.traits
+    if (!src || !Object.keys(src).length) return null
+    const out: Record<TraitKey, number> = {} as Record<TraitKey, number>
+    TRAITS.forEach((k) => {
+      out[k] = normalizeTrait((src as any)[k], 0.5)
+    })
+    return out
+  }, [selected?.traits])
   const recommendationReason = useMemo(
     () => buildRecommendationReason(userOrdered, selectedTraits),
     [userOrdered, selectedTraits]
@@ -313,7 +319,7 @@ export default function Results() {
 
   function handleSelectMovie(index: number) {
     setSelectedIdx(index)
-    const movie = recs[index]
+    const movie = sortedRecs[index]
     if (!movie) return
 
     const movieId = String(movie.id)
@@ -359,7 +365,7 @@ export default function Results() {
               </div>
             ) : (
               <div className="grid gap-5 sm:grid-cols-2">
-                {recs.map((m, i) => {
+                {sortedRecs.map((m, i) => {
                   const active = i === selectedIdx
                   const cardKey = String(m.id ?? i)
                   const synopsis = String(m.synopsis ?? '').trim()
@@ -386,17 +392,21 @@ export default function Results() {
                         }
                       }}
                       className={[
-                        'w-full overflow-hidden rounded-2xl border p-4 text-left transition-all',
-                        'bg-cyan-100/[0.03] hover:bg-cyan-100/[0.1] border-cyan-200/20',
+                        'group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-200 will-change-transform',
+                        'bg-cyan-100/[0.03] border-cyan-200/20 hover:-translate-y-1 hover:border-cyan-100/40 hover:bg-cyan-100/[0.08] hover:shadow-[0_16px_34px_rgba(2,6,23,0.34)]',
                         active ? 'border-cyan-100/70 shadow-[0_0_0_1px_rgba(103,232,249,.45)]' : '',
                       ].join(' ')}
                     >
-                      <div className="flex gap-4">
+                      <span className="absolute left-3 top-3 inline-flex h-7 min-w-7 items-center justify-center rounded-full border border-cyan-200/30 bg-slate-950/82 px-2 text-xs font-semibold text-cyan-100 shadow-[0_8px_18px_rgba(2,6,23,0.32)] transition-colors duration-200 group-hover:border-cyan-100/45 group-hover:bg-slate-950/92">
+                        {i + 1}
+                      </span>
+
+                      <div className="flex gap-4 pt-2">
                         <div className="w-24 shrink-0">
                           <MoviePoster
                             posterUrl={m.posterUrl || undefined}
                             title={m.title}
-                            className="h-36 w-24 rounded-xl bg-black/40"
+                            className="h-36 w-24 rounded-xl bg-black/40 transition-transform duration-300 group-hover:scale-[1.03]"
                           />
                         </div>
 
