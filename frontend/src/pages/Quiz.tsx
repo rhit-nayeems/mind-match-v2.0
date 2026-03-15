@@ -363,6 +363,7 @@ export default function Quiz() {
   }
 
   const progress = ((page + 1) / Math.max(1, projectedTotalPages)) * 100;
+  const progressPct = Math.round(progress);
 
   const introTransition = shouldReduceMotion
     ? { duration: 0 }
@@ -469,12 +470,17 @@ export default function Quiz() {
             </span>
           </div>
 
+          <div className="mb-2 flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-500">
+            <span>Progress</span>
+            <span>{progressPct}%</span>
+          </div>
+
           <div
             role="progressbar"
             aria-label="Quiz progress"
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-valuenow={Math.round(progress)}
+            aria-valuenow={progressPct}
             className="mb-6 h-2.5 w-full overflow-hidden rounded-full border border-cyan-200/25 bg-cyan-100/[0.08]"
           >
             <div className="bar-accent h-full transition-all" style={{ width: `${progress}%` }} />
@@ -560,6 +566,7 @@ export default function Quiz() {
     </div>
   );
 }
+
 
 
 
