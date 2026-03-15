@@ -5,17 +5,17 @@ import { ArrowRight, Radar, Sparkles, ScanLine } from 'lucide-react'
 const featureCards = [
   {
     icon: Radar,
-    label: 'Your Movie Profile',
+    label: 'Your Taste Profile',
     text: 'Turns your answers into a 9-part movie profile.',
   },
   {
     icon: Sparkles,
-    label: 'How Picks Are Chosen',
+    label: 'How Recommendations Work',
     text: 'Looks at your profile, the movie itself, and a final pass to avoid repetitive picks.',
   },
   {
     icon: ScanLine,
-    label: 'Follow-Up Questions',
+    label: 'Adaptive Follow-Up Questions',
     text: 'Asks a few extra questions when your answers could point in more than one direction.',
   },
 ]
@@ -40,14 +40,16 @@ export default function Landing() {
               Start matching.
             </h1>
             <p className="mt-5 max-w-xl text-base text-zinc-300 md:text-lg">
-              MindMatch looks at your usual taste and how you're feeling right now, then recommends
-              movies that feel picked for you instead of pulled at random.
+              A smarter movie recommender that understands your taste and your mood.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link to="/quiz" className="btn-neo">
-                Find My Movie
-                <ArrowRight className="h-4 w-4" />
+              <Link
+                to="/quiz"
+                className="btn-neo group relative px-6 py-3 text-[15px] shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_12px_24px_rgba(2,6,23,0.34),0_0_0_1px_rgba(103,232,249,0.08)] transition-all duration-200 hover:border-cyan-200/60 hover:text-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_16px_34px_rgba(2,6,23,0.42),0_0_26px_rgba(34,211,238,0.18)]"
+              >
+                <span className="relative">Find My Movie</span>
+                <ArrowRight className="relative h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
               </Link>
               <span className="btn-ghost max-w-full text-sm leading-tight">~2 minute adaptive quiz</span>
             </div>
@@ -107,6 +109,3 @@ export default function Landing() {
     </div>
   )
 }
-
-
-
