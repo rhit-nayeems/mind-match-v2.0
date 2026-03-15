@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, Radar, Sparkles, ScanLine } from 'lucide-react'
 
 const featureCards = [
@@ -20,9 +20,12 @@ const featureCards = [
   },
 ]
 
+const previewMetrics = ['depth', 'novelty', 'comfort', 'energy', 'mood', 'humor']
 const iconTintClasses = ['icon-tint-1', 'icon-tint-2', 'icon-tint-3']
 
 export default function Landing() {
+  const shouldReduceMotion = useReducedMotion()
+
   return (
     <div className="py-10 md:py-16">
       <motion.section
@@ -59,17 +62,27 @@ export default function Landing() {
             <div className="rounded-xl border border-cyan-200/25 bg-black/35 p-3">
               <div className="code-label text-cyan-100/80">sample profile preview</div>
               <div className="mt-2.5 grid grid-cols-3 gap-1.5 text-xs text-zinc-300">
-                {['depth', 'novelty', 'comfort', 'energy', 'mood', 'humor'].map((k, i) => (
-                  <div key={k} className="rounded-lg border border-cyan-200/20 bg-white/[0.03] px-2 py-1">
-                    <div className="uppercase text-[10px] text-zinc-500">{k}</div>
-                    <div className="mt-1 h-1.5 rounded-full bg-white/10">
-                      <div
-                        className="bar-accent h-full rounded-full"
-                        style={{ width: `${50 + ((i * 11) % 38)}%` }}
-                      />
+                {previewMetrics.map((metric, i) => {
+                  const targetWidth = `${50 + ((i * 11) % 38)}%`
+                  return (
+                    <div key={metric} className="rounded-lg border border-cyan-200/20 bg-white/[0.03] px-2 py-1">
+                      <div className="uppercase text-[10px] text-zinc-500">{metric}</div>
+                      <div className="mt-1 h-1.5 rounded-full bg-white/10">
+                        <motion.div
+                          className="bar-accent h-full rounded-full origin-left"
+                          style={{ width: targetWidth }}
+                          initial={shouldReduceMotion ? false : { scaleX: 0 }}
+                          animate={{ scaleX: 1 }}
+                          transition={
+                            shouldReduceMotion
+                              ? { duration: 0 }
+                              : { duration: 0.42, delay: 0.18 + i * 0.08, ease: [0.22, 1, 0.36, 1] as const }
+                          }
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
             <div className="rounded-xl border border-cyan-200/20 bg-cyan-200/[0.04] p-3">
