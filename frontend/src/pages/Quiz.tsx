@@ -132,6 +132,10 @@ function buildPages<T extends { choices: { group: string }[] }>(qs: T[]) {
   return pages;
 }
 
+function withoutPeriods(text: string) {
+  return text.replace(/\./g, "")
+}
+
 export default function Quiz() {
   const navigate = useNavigate();
   const loc = useLocation() as any;
@@ -382,10 +386,10 @@ export default function Quiz() {
   }
   const progress = ((page + 1) / Math.max(1, projectedTotalPages)) * 100;
   const progressPct = Math.round(progress);
-  const overlayTitle = showSubmitOverlay ? "Building your movie profile..." : "Let's find your movie.";
+  const overlayTitle = showSubmitOverlay ? withoutPeriods("Building your movie profile...") : withoutPeriods("Let's find your movie.");
   const overlayBody = showSubmitOverlay
     ? ""
-    : "A few quick questions will help us understand your taste and what feels right tonight.";
+    : withoutPeriods("A few quick questions will help us understand your taste and what feels right tonight.");
 
   const overlayTransition = shouldReduceMotion
     ? { duration: 0 }
@@ -436,8 +440,8 @@ export default function Quiz() {
           isMissing ? "ring-2 ring-rose-300/70" : "",
         ].join(" ")}
       >
-        <div className="text-base font-medium text-zinc-100">{text}</div>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-300/95">{helper}</p>
+        <div className="text-base font-medium text-zinc-100">{withoutPeriods(text)}</div>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-300/95">{withoutPeriods(helper)}</p>
         <div className="mt-4 grid gap-2.5 sm:flex sm:flex-wrap">
           {choices.map((c: any) => {
             const checked = responses[qid] === c.id;
@@ -471,14 +475,14 @@ export default function Quiz() {
                     "peer-focus-visible:ring-2 peer-focus-visible:ring-cyan-200/80 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-black",
                   ].join(" ")}
                 >
-                  {c.label}
+                  {withoutPeriods(c.label)}
                 </label>
               </div>
             );
           })}
         </div>
 
-        {isMissing && <div className="mt-3 text-sm text-zinc-200">Please select an option.</div>}
+        {isMissing && <div className="mt-3 text-sm text-zinc-200">Please select an option</div>}
       </motion.div>
     );
   };
@@ -561,7 +565,7 @@ export default function Quiz() {
                     <section className="space-y-4">
                       <div>
                         <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">Your Movie Taste</h2>
-                        <p className="mt-1 text-xs text-zinc-500">What you usually enjoy.</p>
+                        <p className="mt-1 text-xs text-zinc-500">What you usually enjoy</p>
                       </div>
                       <div className="space-y-4">
                         {currentTasteQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
@@ -573,7 +577,7 @@ export default function Quiz() {
                     <section className="space-y-4">
                       <div>
                         <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">How You Feel Right Now</h2>
-                        <p className="mt-1 text-xs text-zinc-500">What fits this moment.</p>
+                        <p className="mt-1 text-xs text-zinc-500">What fits this moment</p>
                       </div>
                       <div className="space-y-4">
                         {currentVibeQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
@@ -616,7 +620,7 @@ export default function Quiz() {
                         : "btn-neo"
                     }`}
                   >
-                    {stage === "core" ? "Keep Going" : submitting ? "Working..." : "See My Matches"}
+                    {stage === "core" ? "Keep Going" : submitting ? "Working" : "See My Matches"}
                   </button>
                 )}
               </div>
@@ -627,3 +631,4 @@ export default function Quiz() {
     </>
   );
 }
+

@@ -6,17 +6,17 @@ const featureCards = [
   {
     icon: Radar,
     label: 'Your Taste Profile',
-    text: 'Turns your answers into a 9-part movie profile.',
+    text: 'Turns your answers into a 9-part movie profile',
   },
   {
     icon: Sparkles,
     label: 'How Recommendations Work',
-    text: 'Looks at your profile, the movie itself, and a final pass to avoid repetitive picks.',
+    text: 'Looks at your profile, the movie itself, and a final pass to avoid repetitive picks',
   },
   {
     icon: ScanLine,
     label: 'Adaptive Follow-Up Questions',
-    text: 'Asks a few extra questions when your answers could point in more than one direction.',
+    text: 'Asks a few extra questions when your answers could point in more than one direction',
   },
 ]
 
@@ -38,12 +38,12 @@ export default function Landing() {
           <div className="min-w-0">
             <span className="outline-chip">adaptive movie recommendation engine</span>
             <h1 className="headline mt-5 text-4xl leading-tight text-zinc-100 md:text-6xl">
-              Stop scrolling.
+              Stop scrolling
               <br />
-              Start matching.
+              Start matching
             </h1>
             <p className="mt-7 max-w-xl text-base text-zinc-300 md:text-lg">
-              A smarter movie recommender that understands your taste and your mood.
+              A smarter movie recommender that combines your taste and current mood to find movies you'll actually want to watch
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -122,4 +122,5 @@ export default function Landing() {
     </div>
   )
 }
+
 

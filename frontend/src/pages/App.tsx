@@ -27,7 +27,6 @@ export default function App() {
                 </span>
 
                 <span className="topbar-brand-copy">
-                  <span className="code-label topbar-brand-kicker">movie taste signal</span>
                   <span className="headline topbar-brand-title">MindMatch</span>
                   <span className="topbar-brand-meta">
                     <span className="topbar-brand-chip code-label">adaptive recommender</span>
@@ -50,7 +49,7 @@ export default function App() {
           <Outlet />
           <footer className="mt-12 border-t border-cyan-200/12 pt-7 text-[11px] text-zinc-400/80">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <p>(c) {new Date().getFullYear()} MindMatch. All rights reserved.</p>
+              <p>(c) {new Date().getFullYear()} MindMatch All rights reserved</p>
               <a
                 href="mailto:aimindmatch@gmail.com"
                 className="w-fit text-zinc-400/85 underline-offset-4 transition-colors hover:text-white hover:underline"
@@ -70,7 +69,7 @@ export default function App() {
                 <span className="text-[9px] uppercase tracking-[0.14em]">TMDB Data Source</span>
               </a>
               <p className="mt-2 text-[10px] leading-relaxed text-zinc-500/80">
-                This product uses the TMDB API but is not endorsed or certified by TMDB.
+                This product uses the TMDB API but is not endorsed or certified by TMDB
               </p>
             </div>
           </footer>
@@ -79,3 +78,5 @@ export default function App() {
     </div>
   )
 }
+
+

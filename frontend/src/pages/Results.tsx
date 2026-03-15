@@ -51,6 +51,8 @@ const normalizeTrait = (v: any, fallback = 0.5) => {
 
 const pct = (v?: number) => (v == null ? '-' : `${Math.round((v > 1 ? v : v * 100))}%`)
 
+const withoutPeriods = (text: string) => text.replace(/\./g, '')
+
 const TRAIT_REASON_LABELS: Record<TraitKey, string> = {
   darkness: 'darker stories',
   energy: 'more momentum',
@@ -90,7 +92,7 @@ function buildRecommendationReason(
   const phrases = top.map((item) => TRAIT_REASON_LABELS[item.key])
   if (!phrases.length) return ''
 
-  return `Recommended because it lines up with your preference for ${joinPhrases(phrases)}.`
+  return `Recommended because it lines up with your preference for ${joinPhrases(phrases)}`
 }
 
 function readSavedAnswers(): number[] | null {
@@ -340,7 +342,7 @@ export default function Results() {
           <span className="outline-chip">your movie profile</span>
           <h1 className="headline mt-4 text-3xl text-zinc-100 md:text-4xl">Your Movie Matches</h1>
           <p className="mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-zinc-300 md:text-base">
-            {data?.profile?.summary ?? 'Computing your profile summary...'}
+            {withoutPeriods(data?.profile?.summary ?? 'Computing your profile summary...')}
           </p>
           <div className="mt-5">
             <button onClick={handleRetake} className="btn-ghost">
@@ -548,7 +550,7 @@ export default function Results() {
               </div>
 
               <p className="mt-3 text-center text-xs text-zinc-500">
-                Select a movie to see how it lines up with your profile.
+                Select a movie to see how it lines up with your profile
               </p>
             </div>
           </aside>
@@ -666,6 +668,7 @@ function toPoints(
     })
     .join(' ')
 }
+
 
 
 
