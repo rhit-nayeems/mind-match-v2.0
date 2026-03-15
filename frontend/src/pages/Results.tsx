@@ -402,7 +402,7 @@ export default function Results() {
                       </span>
 
                       <div className="flex gap-4 pt-2">
-                        <div className="w-24 shrink-0">
+                        <div className="w-24 shrink-0 pt-5">
                           <MoviePoster
                             posterUrl={m.posterUrl || undefined}
                             title={m.title}
