@@ -54,7 +54,7 @@ export default function Landing() {
                 <span className="relative">Find My Movie</span>
                 <ArrowRight className="relative h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
               </Link>
-              <span className="btn-ghost max-w-full text-sm leading-tight">~2 minute adaptive quiz</span>
+              <span className="max-w-full text-sm leading-tight text-zinc-400">~2 minute adaptive quiz</span>
             </div>
           </div>
 
@@ -122,3 +122,4 @@ export default function Landing() {
     </div>
   )
 }
+
