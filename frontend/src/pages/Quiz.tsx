@@ -1,5 +1,6 @@
 // frontend/src/pages/Quiz.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   DEFAULT_ADAPTIVE_PER_GROUP,
@@ -165,6 +166,7 @@ export default function Quiz() {
   const [submitting, setSubmitting] = useState(false);
   const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
   const topRef = useRef<HTMLDivElement>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   const quizQuestions = useMemo(() => [...coreQuestions, ...adaptiveQuestions], [coreQuestions, adaptiveQuestions]);
   const pages = useMemo(() => buildPages(quizQuestions), [quizQuestions]);
@@ -361,11 +363,42 @@ export default function Quiz() {
 
   const progress = ((page + 1) / Math.max(1, projectedTotalPages)) * 100;
 
+  const introTransition = shouldReduceMotion
+    ? { duration: 0 }
+    : { duration: 0.38, ease: [0.22, 1, 0.36, 1] as const };
+
+  const questionListVariants = shouldReduceMotion
+    ? {
+        hidden: {},
+        visible: { transition: { staggerChildren: 0 } },
+      }
+    : {
+        hidden: {},
+        visible: {
+          transition: { delayChildren: 0.16, staggerChildren: 0.06 },
+        },
+      };
+
+  const questionCardVariants = shouldReduceMotion
+    ? {
+        hidden: { opacity: 1, y: 0 },
+        visible: { opacity: 1, y: 0 },
+      }
+    : {
+        hidden: { opacity: 0, y: 14 },
+        visible: {
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] as const },
+        },
+      };
+
   const renderQ = (qid: string, text: string, helper: string, choices: any[]) => {
     const isMissing = missingIds.has(qid);
     return (
-      <div
+      <motion.div
         key={qid}
+        variants={questionCardVariants}
         className={[
           "rounded-2xl border p-5 transition-colors bg-cyan-100/[0.03] border-cyan-200/20",
           isMissing ? "ring-2 ring-rose-300/70" : "",
@@ -414,7 +447,7 @@ export default function Quiz() {
         </div>
 
         {isMissing && <div className="mt-3 text-sm text-zinc-200">Please select an option.</div>}
-      </div>
+      </motion.div>
     );
   };
 
@@ -423,30 +456,45 @@ export default function Quiz() {
       <div className="surface p-5 md:p-7">
         <div ref={topRef} />
 
-        <div className="mb-5 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
-          <span className="outline-chip">adaptive quiz</span>
-          <span className="outline-chip">
-            {stage === "core" ? "your taste" : "a few follow-up questions"}
-          </span>
-        </div>
-
-        <div
-          role="progressbar"
-          aria-label="Quiz progress"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.round(progress)}
-          className="mb-6 h-2.5 w-full overflow-hidden rounded-full border border-cyan-200/25 bg-cyan-100/[0.08]"
+        <motion.div
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={introTransition}
         >
-          <div className="bar-accent h-full transition-all" style={{ width: `${progress}%` }} />
-        </div>
+          <div className="mb-5 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
+            <span className="outline-chip">adaptive quiz</span>
+            <span className="outline-chip">
+              {stage === "core" ? "your taste" : "a few follow-up questions"}
+            </span>
+          </div>
 
-        <h1 className="headline mb-2 text-2xl text-zinc-100 md:text-3xl">Find Your Movie Match</h1>
-        <p className="mb-6 max-w-2xl text-zinc-300">
-          Answer a short sequence about your taste profile and how you feel right now.
-        </p>
+          <div
+            role="progressbar"
+            aria-label="Quiz progress"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progress)}
+            className="mb-6 h-2.5 w-full overflow-hidden rounded-full border border-cyan-200/25 bg-cyan-100/[0.08]"
+          >
+            <div className="bar-accent h-full transition-all" style={{ width: `${progress}%` }} />
+          </div>
 
-        <div className="space-y-4">{currentQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}</div>
+          <div className="mb-6 max-w-2xl">
+            <h1 className="headline text-3xl leading-tight text-zinc-100 md:text-4xl">Let's find your movie.</h1>
+            <p className="mt-3 text-base leading-relaxed text-zinc-300 md:text-lg">
+              A few quick questions will help us understand your taste and what feels right tonight.
+            </p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="space-y-4"
+          initial="hidden"
+          animate="visible"
+          variants={questionListVariants}
+        >
+          {currentQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
+        </motion.div>
 
         <div className="sticky bottom-0 left-0 right-0 mt-6">
           <div className="quiz-nav-tray px-4 py-3">
