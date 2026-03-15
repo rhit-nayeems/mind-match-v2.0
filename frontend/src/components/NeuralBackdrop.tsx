@@ -182,8 +182,6 @@ const satellites: Satellite[] = [
   { id: 'sat-9', x: 1228, y: 860, size: 2.4, tone: 'cyan' },
 ]
 
-const pulseBranchIds = new Set(['alpha-beta-link', 'beta-gamma-link', 'beta-zeta-link', 'zeta-eta-link'])
-
 function AmbientLights() {
   return (
     <div className="absolute inset-0 overflow-hidden">
@@ -291,7 +289,7 @@ function NeuralNetwork({ reducedMotion }: { reducedMotion: boolean }) {
 
       {!reducedMotion && (
         <g>
-          {branches.filter((branch) => branch.pulse && pulseBranchIds.has(branch.id)).map((branch) => {
+          {branches.filter((branch) => branch.pulse).map((branch) => {
             const tone = palette[branch.tone]
             return (
               <motion.path
@@ -373,6 +371,7 @@ const NeuralBackdrop = memo(function NeuralBackdrop() {
 })
 
 export default NeuralBackdrop
+
 
 
 
