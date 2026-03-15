@@ -172,6 +172,7 @@ export default function Quiz() {
   const pages = useMemo(() => buildPages(quizQuestions), [quizQuestions]);
   const totalPages = pages.length;
   const currentQs = pages[page] ?? [];
+  const { personality: currentTasteQs, today: currentVibeQs } = useMemo(() => splitByGroup(currentQs), [currentQs]);
 
   const projectedTotalPages =
     stage === "core"
@@ -488,12 +489,34 @@ export default function Quiz() {
         </motion.div>
 
         <motion.div
-          className="space-y-4"
+          className="space-y-6"
           initial="hidden"
           animate="visible"
           variants={questionListVariants}
         >
-          {currentQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
+          {currentTasteQs.length > 0 && (
+            <section className="space-y-4">
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">Your Movie Taste</h2>
+                <p className="mt-1 text-xs text-zinc-500">What you usually enjoy.</p>
+              </div>
+              <div className="space-y-4">
+                {currentTasteQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
+              </div>
+            </section>
+          )}
+
+          {currentVibeQs.length > 0 && (
+            <section className="space-y-4">
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">How You Feel Right Now</h2>
+                <p className="mt-1 text-xs text-zinc-500">What fits this moment.</p>
+              </div>
+              <div className="space-y-4">
+                {currentVibeQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
+              </div>
+            </section>
+          )}
         </motion.div>
 
         <div className="sticky bottom-0 left-0 right-0 mt-6">
