@@ -178,21 +178,6 @@ body {
 
 
 
-.tech-nodes {
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(circle at 14% 22%, rgba(34, 211, 238, 0.4) 0 1.5px, transparent 2px),
-    radial-gradient(circle at 28% 36%, rgba(96, 165, 250, 0.28) 0 1px, transparent 1.7px),
-    radial-gradient(circle at 44% 18%, rgba(251, 191, 36, 0.2) 0 1.3px, transparent 2px),
-    radial-gradient(circle at 61% 34%, rgba(96, 165, 250, 0.3) 0 1.2px, transparent 1.9px),
-    radial-gradient(circle at 78% 24%, rgba(34, 211, 238, 0.32) 0 1.4px, transparent 2px),
-    radial-gradient(circle at 86% 40%, rgba(96, 165, 250, 0.24) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 20% 58%, rgba(34, 211, 238, 0.2) 0 1.1px, transparent 1.8px),
-    radial-gradient(circle at 52% 62%, rgba(96, 165, 250, 0.34) 0 1.3px, transparent 2px),
-    radial-gradient(circle at 72% 58%, rgba(251, 191, 36, 0.2) 0 1.1px, transparent 1.8px);
-  opacity: 0.38;
-}
 
 .tech-orb {
   position: absolute;
@@ -612,6 +597,7 @@ body {
     width: 3rem;
   }
 }
+
 
 
 
