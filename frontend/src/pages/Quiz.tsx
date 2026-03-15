@@ -133,7 +133,7 @@ function buildPages<T extends { choices: { group: string }[] }>(qs: T[]) {
 }
 
 function withoutPeriods(text: string) {
-  return text.replace(/\./g, "")
+  return text.replace(/\./g, "");
 }
 
 export default function Quiz() {
@@ -232,7 +232,6 @@ export default function Quiz() {
       return;
     }
 
-    // Always start fresh on quiz entry/refresh.
     try {
       localStorage.removeItem("mm_responses");
       localStorage.removeItem("mm_page");
@@ -436,12 +435,12 @@ export default function Quiz() {
         key={qid}
         variants={questionCardVariants}
         className={[
-          "rounded-2xl border p-5 transition-colors bg-cyan-100/[0.03] border-cyan-200/20",
-          isMissing ? "ring-2 ring-rose-300/70" : "",
+          "quiz-question-card rounded-2xl border p-5 transition-colors",
+          isMissing ? "quiz-question-card-missing ring-2 ring-rose-300/70" : "",
         ].join(" ")}
       >
-        <div className="text-base font-medium text-zinc-100">{withoutPeriods(text)}</div>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-300/95">{withoutPeriods(helper)}</p>
+        <div className="quiz-question-title text-base font-medium text-zinc-50">{withoutPeriods(text)}</div>
+        <p className="quiz-question-helper mt-2 text-sm leading-relaxed text-zinc-200/90">{withoutPeriods(helper)}</p>
         <div className="mt-4 grid gap-2.5 sm:flex sm:flex-wrap">
           {choices.map((c: any) => {
             const checked = responses[qid] === c.id;
@@ -467,10 +466,8 @@ export default function Quiz() {
                     }
                   }}
                   className={[
-                    "w-full cursor-pointer select-none rounded-xl border px-3 py-2 text-left outline-none sm:w-auto",
-                    checked
-                      ? "border-cyan-100/70 bg-cyan-100/90 text-zinc-900 shadow-[0_0_0_1px_rgba(103,232,249,.5)]"
-                      : "border-cyan-200/20 bg-black/35 text-zinc-200 hover:bg-cyan-200/[0.12]",
+                    "quiz-choice w-full cursor-pointer select-none rounded-xl border px-3 py-2 text-left outline-none sm:w-auto",
+                    checked ? "quiz-choice-selected" : "quiz-choice-idle",
                     "focus-visible:ring-2 focus-visible:ring-cyan-200/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
                     "peer-focus-visible:ring-2 peer-focus-visible:ring-cyan-200/80 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-black",
                   ].join(" ")}
@@ -482,7 +479,7 @@ export default function Quiz() {
           })}
         </div>
 
-        {isMissing && <div className="mt-3 text-sm text-zinc-200">Please select an option</div>}
+        {isMissing && <div className="quiz-missing-note mt-3 text-sm text-zinc-100">Please select an option</div>}
       </motion.div>
     );
   };
@@ -492,7 +489,7 @@ export default function Quiz() {
       <AnimatePresence>
         {(showIntroOverlay || showSubmitOverlay) && (
           <motion.div
-            className="fixed inset-0 z-[60] overflow-hidden bg-slate-950/52 px-6"
+            className="quiz-overlay fixed inset-0 z-[60] overflow-hidden bg-slate-950/52 px-6"
             initial={{ opacity: 1, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: shouldReduceMotion ? 0 : 1, y: shouldReduceMotion ? 0 : "-100%", transition: overlayTransition }}
@@ -500,7 +497,7 @@ export default function Quiz() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_46%)]" />
             <div className="relative flex min-h-screen items-center justify-center">
               <motion.div
-                className="mx-auto w-full max-w-xl rounded-[28px] border border-white/10 bg-slate-950/72 px-6 py-8 text-center shadow-[0_24px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:px-10 sm:py-10"
+                className="quiz-overlay-card mx-auto w-full max-w-xl rounded-[28px] border border-white/10 px-6 py-8 text-center shadow-[0_24px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:px-10 sm:py-10"
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0, transition: overlayTextTransition }}
                 exit={{ opacity: shouldReduceMotion ? 0 : 0, y: shouldReduceMotion ? 0 : -10, transition: overlayTextTransition }}
@@ -517,19 +514,19 @@ export default function Quiz() {
         )}
       </AnimatePresence>
 
-      <div className="mx-auto max-w-4xl px-2 pb-24 pt-4 md:px-4">
-        <div className="surface p-5 md:p-7">
+      <div className="quiz-page mx-auto max-w-4xl px-2 pb-24 pt-4 md:px-4">
+        <div className="surface quiz-shell p-5 md:p-7">
           <div ref={topRef} />
 
-          <div>
-            <div className="mb-5 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
+          <div className="quiz-header">
+            <div className="quiz-stage-pills mb-5 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
               <span className="outline-chip">adaptive quiz</span>
               <span className="outline-chip">
                 {stage === "core" ? "your taste" : "a few follow-up questions"}
               </span>
             </div>
 
-            <div className="mb-2 flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-500">
+            <div className="quiz-progress-meta mb-2 flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-400">
               <span>Progress</span>
               <span>{progressPct}%</span>
             </div>
@@ -540,7 +537,7 @@ export default function Quiz() {
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={progressPct}
-              className="mb-8 h-2.5 w-full overflow-hidden rounded-full border border-cyan-200/25 bg-cyan-100/[0.08]"
+              className="quiz-progress-track mb-8 h-2.5 w-full overflow-hidden rounded-full border"
             >
               <div className="bar-accent h-full transition-all" style={{ width: `${progress}%` }} />
             </div>
@@ -562,10 +559,10 @@ export default function Quiz() {
                   variants={questionListVariants}
                 >
                   {currentTasteQs.length > 0 && (
-                    <section className="space-y-4">
+                    <section className="quiz-question-section space-y-4">
                       <div>
-                        <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">Your Movie Taste</h2>
-                        <p className="mt-1 text-xs text-zinc-500">What you usually enjoy</p>
+                        <h2 className="quiz-section-title text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/90">Your Movie Taste</h2>
+                        <p className="quiz-section-note mt-1 text-xs text-zinc-400">What you usually enjoy</p>
                       </div>
                       <div className="space-y-4">
                         {currentTasteQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
@@ -574,10 +571,10 @@ export default function Quiz() {
                   )}
 
                   {currentVibeQs.length > 0 && (
-                    <section className="space-y-4">
+                    <section className="quiz-question-section space-y-4">
                       <div>
-                        <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/85">How You Feel Right Now</h2>
-                        <p className="mt-1 text-xs text-zinc-500">What fits this moment</p>
+                        <h2 className="quiz-section-title text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/90">How You Feel Right Now</h2>
+                        <p className="quiz-section-note mt-1 text-xs text-zinc-400">What fits this moment</p>
                       </div>
                       <div className="space-y-4">
                         {currentVibeQs.map((q) => renderQ(q.id, q.text, q.helper, q.choices))}
@@ -591,22 +588,21 @@ export default function Quiz() {
 
           <div className="sticky bottom-0 left-0 right-0 mt-6">
             <div className="quiz-nav-tray px-4 py-3">
-              <div className="mx-auto flex max-w-4xl items-center justify-between">
+              <div className="mx-auto flex max-w-4xl items-center justify-between gap-4">
                 <button
                   type="button"
                   onClick={onBack}
                   disabled={page === 0}
-                  className={`rounded-xl border px-4 py-2 ${
-                    page === 0
-                      ? "cursor-not-allowed border-white/10 bg-white/[0.03] text-zinc-600"
-                      : "border-cyan-200/25 bg-cyan-100/[0.08] text-zinc-100 hover:bg-cyan-100/[0.16]"
-                  }`}
+                  className={[
+                    "quiz-back-btn rounded-xl border px-4 py-2",
+                    page === 0 ? "quiz-back-btn-disabled" : "quiz-back-btn-enabled",
+                  ].join(" ")}
                 >
                   &larr; Back
                 </button>
 
                 {page < totalPages - 1 ? (
-                  <button type="button" onClick={onNext} className="btn-neo px-5 py-2">
+                  <button type="button" onClick={onNext} className="btn-neo quiz-forward-btn px-5 py-2">
                     Next &rarr;
                   </button>
                 ) : (
@@ -614,11 +610,10 @@ export default function Quiz() {
                     type="button"
                     onClick={onPrimaryAction}
                     disabled={submitting}
-                    className={`rounded-2xl px-5 py-2 font-medium ${
-                      submitting
-                        ? "cursor-not-allowed border border-white/10 bg-white/[0.05] text-zinc-500"
-                        : "btn-neo"
-                    }`}
+                    className={[
+                      "quiz-forward-btn rounded-2xl px-5 py-2 font-medium",
+                      submitting ? "quiz-forward-btn-disabled border border-white/10 bg-white/[0.05] text-zinc-500" : "btn-neo",
+                    ].join(" ")}
                   >
                     {stage === "core" ? "Keep Going" : submitting ? "Working" : "See My Matches"}
                   </button>
@@ -631,4 +626,3 @@ export default function Quiz() {
     </>
   );
 }
-

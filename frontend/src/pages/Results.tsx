@@ -166,7 +166,6 @@ function mergeMovieIds(...lists: string[][]): string[] {
   return out
 }
 
-
 export default function Results() {
   const loc = useLocation() as any
   const nav = useNavigate()
@@ -336,16 +335,16 @@ export default function Results() {
   }
 
   return (
-    <div className="py-4 md:py-6">
-      <section className="surface p-5 md:p-8">
-        <header className="text-center">
+    <div className="results-page py-4 md:py-6">
+      <section className="surface results-shell p-5 md:p-8">
+        <header className="results-hero text-center">
           <span className="outline-chip">your movie profile</span>
           <h1 className="headline mt-4 text-3xl text-zinc-100 md:text-4xl">Your Movie Matches</h1>
           <p className="mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-zinc-300 md:text-base">
             {withoutPeriods(data?.profile?.summary ?? 'Computing your profile summary...')}
           </p>
           <div className="mt-5">
-            <button onClick={handleRetake} className="btn-ghost">
+            <button onClick={handleRetake} className="btn-ghost results-retake-btn">
               Retake Quiz
             </button>
           </div>
@@ -353,12 +352,12 @@ export default function Results() {
 
         <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
           <section className="lg:col-span-7">
-            <h2 className="headline mb-4 text-lg text-zinc-100">Recommended Movies</h2>
+            <h2 className="headline results-section-title mb-4 text-lg text-zinc-50">Recommended Movies</h2>
 
             {isLoading ? (
               <div className="grid gap-5 sm:grid-cols-2">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="surface-soft p-4">
+                  <div key={i} className="surface-soft results-loading-card p-4">
                     <div className="skeleton mb-3 h-36 w-24" />
                     <div className="skeleton mb-2 h-4 w-40" />
                     <div className="skeleton mb-2 h-3 w-52" />
@@ -395,12 +394,11 @@ export default function Results() {
                         }
                       }}
                       className={[
-                        'group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-200 will-change-transform',
-                        'bg-cyan-100/[0.03] border-cyan-200/20 hover:-translate-y-1 hover:border-cyan-100/40 hover:bg-cyan-100/[0.08] hover:shadow-[0_16px_34px_rgba(2,6,23,0.34)]',
-                        active ? 'border-cyan-100/70 shadow-[0_0_0_1px_rgba(103,232,249,.45)]' : '',
+                        'result-card group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-200 will-change-transform',
+                        active ? 'result-card-active' : '',
                       ].join(' ')}
                     >
-                      <span className="absolute left-3 top-3 inline-flex h-7 min-w-7 items-center justify-center rounded-full border border-cyan-200/30 bg-slate-950/82 px-2 text-xs font-semibold text-cyan-100 shadow-[0_8px_18px_rgba(2,6,23,0.32)] transition-colors duration-200 group-hover:border-cyan-100/45 group-hover:bg-slate-950/92">
+                      <span className="result-rank-badge absolute left-3 top-3 inline-flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-xs font-semibold transition-colors duration-200">
                         {i + 1}
                       </span>
 
@@ -409,22 +407,22 @@ export default function Results() {
                           <MoviePoster
                             posterUrl={m.posterUrl || undefined}
                             title={m.title}
-                            className="h-36 w-24 rounded-xl bg-black/40 transition-transform duration-300 group-hover:scale-[1.03]"
+                            className="result-poster h-36 w-24 rounded-xl bg-black/40 transition-transform duration-300 group-hover:scale-[1.03]"
                           />
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <h3 className="line-clamp-1 text-base font-semibold text-zinc-100 md:text-lg">{m.title}</h3>
+                          <h3 className="line-clamp-1 text-base font-semibold text-zinc-50 md:text-lg">{m.title}</h3>
 
-                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+                          <div className="result-meta mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-300/70">
                             {m.year && <span>{m.year}</span>}
                             {m.director && <span className="min-w-0 truncate">{m.director}</span>}
                           </div>
 
                           {normalizedVote != null && (
                             <div className="mt-1 max-w-full">
-                              <span className="inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md border border-amber-200/25 bg-amber-100/[0.08] px-2 py-0.5 text-xs">
-                                <span className="shrink-0 text-amber-100/75">{ratingSource}:</span>
+                              <span className="result-rating-chip inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md px-2 py-0.5 text-xs">
+                                <span className="shrink-0 text-amber-100/80">{ratingSource}:</span>
                                 <span className="inline-flex shrink-0 items-center gap-0.5" aria-hidden>
                                   {Array.from({ length: 5 }).map((_, idx) => (
                                     <Star
@@ -447,7 +445,7 @@ export default function Results() {
                               <p
                                 className={[
                                   synopsisExpanded ? 'whitespace-normal break-words leading-relaxed' : 'line-clamp-1',
-                                  'text-sm text-zinc-200/95',
+                                  'result-synopsis text-sm text-zinc-100/88',
                                 ].join(' ')}
                               >
                                 {synopsis}
@@ -464,7 +462,7 @@ export default function Results() {
                                       return next
                                     })
                                   }}
-                                  className="mt-1 text-xs font-medium text-cyan-100/85 underline decoration-cyan-200/45 underline-offset-2 hover:text-cyan-100"
+                                  className="result-inline-link mt-1 text-xs font-medium underline decoration-cyan-200/45 underline-offset-2 hover:text-cyan-100"
                                 >
                                   {synopsisExpanded ? 'Show less' : 'Read more'}
                                 </button>
@@ -477,7 +475,7 @@ export default function Results() {
                               {m.genre.slice(0, 3).map((g, idx) => (
                                 <span
                                   key={`${m.id}-${g}-${idx}`}
-                                  className="rounded-full border border-cyan-200/25 bg-cyan-100/[0.08] px-2 py-0.5 text-xs text-cyan-100/85"
+                                  className="result-genre-chip rounded-full px-2 py-0.5 text-xs text-cyan-50/90"
                                 >
                                   {g}
                                 </span>
@@ -486,11 +484,11 @@ export default function Results() {
                           )}
 
                           <div className="mt-3">
-                            <div className="flex items-center justify-between text-xs text-zinc-300">
+                            <div className="flex items-center justify-between text-xs text-zinc-200/85">
                               <span>match</span>
-                              <span className="font-semibold text-cyan-100">{pct(m.fitScore ?? m.match)}</span>
+                              <span className="font-semibold text-cyan-50">{pct(m.fitScore ?? m.match)}</span>
                             </div>
-                            <div className="mt-1 h-2 overflow-hidden rounded-full border border-cyan-200/20 bg-cyan-100/[0.1]">
+                            <div className="result-match-track mt-1 h-2 overflow-hidden rounded-full border">
                               <div
                                 className="bar-accent h-full rounded-full"
                                 style={{
@@ -512,35 +510,35 @@ export default function Results() {
           </section>
 
           <aside className="lg:col-span-5">
-            <h2 className="headline mb-4 text-lg text-zinc-100">Your Profile vs This Movie</h2>
-            <div className="surface-soft p-5">
-              <div className="flex items-center justify-between">
+            <h2 className="headline results-section-title mb-4 text-lg text-zinc-50">Your Profile vs This Movie</h2>
+            <div className="surface-soft results-compare-card p-5">
+              <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
-                  <div className="text-xs uppercase tracking-[0.14em] text-zinc-500">selected</div>
-                  <div className="truncate font-semibold text-zinc-100">{selected?.title ?? '-'}</div>
+                  <div className="results-selected-label text-xs uppercase tracking-[0.14em] text-zinc-500">selected</div>
+                  <div className="truncate font-semibold text-zinc-50">{selected?.title ?? '-'}</div>
                 </div>
-                <div className="text-sm text-zinc-300">{(selected?.fitScore ?? selected?.match) != null ? pct(selected?.fitScore ?? selected?.match) : '-'} match</div>
+                <div className="text-sm text-zinc-200/90">{(selected?.fitScore ?? selected?.match) != null ? pct(selected?.fitScore ?? selected?.match) : '-'} match</div>
               </div>
 
-              <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-zinc-300">
+              <div className="results-legend mt-3 flex flex-wrap items-center gap-4 text-xs text-zinc-200/85">
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" aria-hidden />
+                  <span className="h-2.5 w-2.5 rounded-full bg-cyan-300" aria-hidden />
                   Your profile
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400" aria-hidden />
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-300" aria-hidden />
                   Selected movie
                 </span>
               </div>
 
               {recommendationReason && (
-                <div className="mt-4 rounded-xl border border-cyan-200/15 bg-black/20 p-3">
+                <div className="results-reason-card mt-4 rounded-xl p-3">
                   <div className="text-xs uppercase tracking-[0.14em] text-zinc-500">Why this was recommended</div>
-                  <p className="mt-2 text-sm leading-relaxed text-zinc-300">{recommendationReason}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-zinc-200/90">{recommendationReason}</p>
                 </div>
               )}
 
-              <div className="mt-3 flex items-center justify-center">
+              <div className="results-radar-wrap mt-4 flex items-center justify-center">
                 <InlineRadar
                   keys={TRAITS as unknown as string[]}
                   user={userOrdered}
@@ -549,7 +547,7 @@ export default function Results() {
                 />
               </div>
 
-              <p className="mt-3 text-center text-xs text-zinc-500">
+              <p className="results-helper-copy mt-3 text-center text-xs text-zinc-400">
                 Select a movie to see how it lines up with your profile
               </p>
             </div>
@@ -597,19 +595,21 @@ function InlineRadar({
   const pointsUser = toPoints(spokes, user, rMax, cx, cy)
   const pointsMovie = movie ? toPoints(spokes, movie, rMax, cx, cy) : null
 
-  const userFill = 'rgba(34,211,238,0.20)'
-  const userStroke = 'rgba(34,211,238,0.95)'
-  const movieFill = 'rgba(251,191,36,0.18)'
-  const movieStroke = 'rgba(251,191,36,0.95)'
+  const ringStroke = 'rgba(125,211,252,0.16)'
+  const spokeStroke = 'rgba(165,243,252,0.11)'
+  const userFill = 'rgba(34,211,238,0.16)'
+  const userStroke = 'rgba(103,232,249,0.96)'
+  const movieFill = 'rgba(251,191,36,0.14)'
+  const movieStroke = 'rgba(251,191,36,0.94)'
 
   return (
     <svg width={size} height={size} role="img" aria-label="Trait radar chart" style={{ overflow: 'visible' }}>
       {[0.25, 0.5, 0.75, 1].map((p) => (
-        <circle key={p} cx={cx} cy={cy} r={rMax * p} fill="none" stroke="rgba(255,255,255,.18)" />
+        <circle key={p} cx={cx} cy={cy} r={rMax * p} fill="none" stroke={ringStroke} />
       ))}
 
       {spokes.map((s) => (
-        <line key={s.key} x1={cx} y1={cy} x2={s.x} y2={s.y} stroke="rgba(255,255,255,.14)" />
+        <line key={s.key} x1={cx} y1={cy} x2={s.x} y2={s.y} stroke={spokeStroke} />
       ))}
 
       {pointsMovie && (
@@ -640,7 +640,7 @@ function InlineRadar({
             y={ly}
             textAnchor={anchor}
             dominantBaseline={baseline}
-            fill="rgba(255,255,255,.78)"
+            fill="rgba(255,255,255,.82)"
             fontSize="11"
             style={{ textTransform: 'capitalize' }}
           >
@@ -668,7 +668,3 @@ function toPoints(
     })
     .join(' ')
 }
-
-
-
-
