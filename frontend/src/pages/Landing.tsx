@@ -36,13 +36,13 @@ export default function Landing() {
       >
         <div className="grid min-w-0 gap-8 p-7 md:grid-cols-[1.1fr_0.9fr] md:items-center md:p-10">
           <div className="min-w-0">
-            <span className="outline-chip">psychology x cinema intelligence</span>
+            <span className="outline-chip">adaptive movie recommendation engine</span>
             <h1 className="headline mt-5 text-4xl leading-tight text-zinc-100 md:text-6xl">
               Stop scrolling.
               <br />
               Start matching.
             </h1>
-            <p className="mt-5 max-w-xl text-base text-zinc-300 md:text-lg">
+            <p className="mt-7 max-w-xl text-base text-zinc-300 md:text-lg">
               A smarter movie recommender that understands your taste and your mood.
             </p>
 
