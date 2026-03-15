@@ -249,7 +249,7 @@ export default function Quiz() {
 
     const timer = window.setTimeout(() => {
       setShowIntroOverlay(false);
-    }, 1280);
+    }, 1520);
 
     return () => window.clearTimeout(timer);
   }, [shouldReduceMotion]);
@@ -481,7 +481,7 @@ export default function Quiz() {
       <AnimatePresence>
         {showIntroOverlay && (
           <motion.div
-            className="fixed inset-0 z-[60] overflow-hidden bg-slate-950/52 px-6 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[60] overflow-hidden bg-slate-950/44 px-6"
             initial={{ opacity: 1, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: shouldReduceMotion ? 0 : 1, y: shouldReduceMotion ? 0 : "-100%", transition: overlayTransition }}
@@ -489,7 +489,7 @@ export default function Quiz() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_46%)]" />
             <div className="relative flex min-h-screen items-center justify-center">
               <motion.div
-                className="mx-auto max-w-xl text-center"
+                className="mx-auto w-full max-w-xl rounded-[28px] border border-white/10 bg-slate-950/78 px-6 py-8 text-center shadow-[0_24px_80px_rgba(2,6,23,0.45)] sm:px-10 sm:py-10"
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0, transition: overlayTextTransition }}
                 exit={{ opacity: shouldReduceMotion ? 0 : 0, y: shouldReduceMotion ? 0 : -10, transition: overlayTextTransition }}
