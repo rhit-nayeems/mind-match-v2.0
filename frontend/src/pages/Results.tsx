@@ -562,7 +562,7 @@ export default function Results() {
                   keys={TRAITS as unknown as string[]}
                   user={userOrdered}
                   movie={movieOrdered}
-                  size={isCompactViewport ? 300 : 360}
+                  size={isCompactViewport ? 360 : 440}
                 />
               </div>
 
@@ -588,19 +588,18 @@ function InlineRadar({
   movie?: Record<string, number>
   size?: number
 }) {
-  const compact = size <= 320
-  const fontPx = compact ? 9.5 : 11
-  const charPx = compact ? 7.1 : 7.4
-  const edgePad = compact ? 18 : 14
-  const labelGap = compact ? 12 : 16
-  const svgPad = compact ? 42 : 28
+  const compact = size <= 380
+  const fontPx = compact ? 10.5 : 11.5
+  const charPx = compact ? 6.7 : 7.1
+  const edgePad = compact ? 12 : 14
+  const labelGap = compact ? 10 : 12
 
   const maxLabelWidth = Math.max(...keys.map((k) => k.length * charPx))
   const half = size / 2
-  const sideReserve = maxLabelWidth + edgePad + labelGap
-  const topBottomReserve = fontPx + edgePad + labelGap
+  const sideReserve = maxLabelWidth + edgePad
+  const topBottomReserve = fontPx + edgePad
 
-  const rMax = Math.max(0, Math.min(half - sideReserve, half - topBottomReserve))
+  const rMax = Math.max(0, Math.min(half - sideReserve - labelGap, half - topBottomReserve - labelGap))
 
   const cx = half
   const cy = half
@@ -625,12 +624,11 @@ function InlineRadar({
 
   return (
     <svg
-      width={size}
-      height={size}
-      viewBox={`${-svgPad} ${-svgPad} ${size + svgPad * 2} ${size + svgPad * 2}`}
+      width="100%"
+      viewBox={`0 0 ${size} ${size}`}
       role="img"
       aria-label="Trait radar chart"
-      style={{ display: 'block', margin: '0 auto', overflow: 'visible' }}
+      style={{ display: 'block', margin: '0 auto', height: 'auto', overflow: 'visible' }}
     >
       {[0.25, 0.5, 0.75, 1].map((p) => (
         <circle key={p} cx={cx} cy={cy} r={rMax * p} fill="none" stroke={ringStroke} />
@@ -696,6 +694,7 @@ function toPoints(
     })
     .join(' ')
 }
+
 
 
 
