@@ -996,13 +996,16 @@ body {
 .quiz-question-card {
   position: relative;
   overflow: hidden;
-  border-color: rgba(103, 232, 249, 0.18);
+  border-color: rgba(125, 211, 252, 0.22);
   background:
-    linear-gradient(180deg, rgba(15, 23, 42, 0.52), rgba(255, 255, 255, 0.03)),
-    rgba(255, 255, 255, 0.025);
+    linear-gradient(180deg, rgba(20, 31, 48, 0.62), rgba(255, 255, 255, 0.045)),
+    rgba(10, 17, 28, 0.34);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 14px 30px rgba(0, 0, 0, 0.18);
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 16px 32px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(186, 230, 253, 0.05);
+  backdrop-filter: blur(6px) saturate(116%);
+  -webkit-backdrop-filter: blur(6px) saturate(116%);
   transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
 
@@ -1032,11 +1035,18 @@ body {
 }
 
 .quiz-question-title {
-  color: #f8fafc;
+  color: #f8fbff;
+  font-size: 1.3rem;
+  line-height: 1.34;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-shadow: 0 10px 24px rgba(2, 6, 23, 0.18);
 }
 
 .quiz-question-helper {
-  color: rgba(228, 228, 235, 0.78);
+  color: rgba(226, 232, 240, 0.76);
+  font-size: 0.96rem;
+  line-height: 1.68;
 }
 
 .quiz-choice {
@@ -1527,8 +1537,8 @@ body {
 
 .quiz-question-card {
   background:
-    linear-gradient(180deg, rgba(20, 31, 48, 0.58), rgba(255, 255, 255, 0.04)),
-    rgba(255, 255, 255, 0.032);
+    linear-gradient(180deg, rgba(24, 36, 56, 0.62), rgba(255, 255, 255, 0.05)),
+    rgba(10, 17, 28, 0.36);
 }
 
 .result-card {
@@ -2038,3 +2048,4 @@ body {
     color: rgba(226, 232, 240, 0.76);
   }
 }
+
