@@ -2049,3 +2049,8 @@ body {
   }
 }
 
+.quiz-page::before,
+.quiz-page::after,
+.quiz-shell::before {
+  content: none;
+}
