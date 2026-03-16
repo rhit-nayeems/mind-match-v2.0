@@ -53,22 +53,54 @@ const pct = (v?: number) => (v == null ? '-' : `${Math.round((v > 1 ? v : v * 10
 
 const withoutPeriods = (text: string) => text.replace(/\./g, '')
 
-const TRAIT_REASON_LABELS: Record<TraitKey, string> = {
-  darkness: 'darker stories',
-  energy: 'more momentum',
+const TRAIT_REASON_PHRASES: Record<TraitKey, string> = {
+  darkness: 'darker, moodier stories',
+  energy: 'movies with more momentum',
   mood: 'strong atmosphere',
-  depth: 'deeper themes',
+  depth: 'emotional depth',
   optimism: 'a warmer tone',
-  novelty: 'something a little less familiar',
-  comfort: 'something easy to settle into',
-  intensity: 'more emotional weight',
-  humor: 'a bit of wit',
+  novelty: 'ideas that feel fresh',
+  comfort: 'something grounded and familiar',
+  intensity: 'stronger emotional stakes',
+  humor: 'a lighter, wittier touch',
+}
+
+const TRAIT_REASON_PAIR_OVERRIDES: Record<string, string> = {
+  'comfort|depth': 'Because you enjoy grounded stories with real emotional depth.',
+  'comfort|humor': 'Because you enjoy easygoing films with a lighter touch.',
+  'comfort|optimism': 'Because you enjoy warmer films that still feel grounded.',
+  'darkness|depth': 'Because you enjoy darker films with real emotional depth.',
+  'darkness|intensity': 'Because you enjoy darker stories with stronger emotional stakes.',
+  'darkness|mood': 'Because you respond to moodier films with strong atmosphere.',
+  'depth|mood': 'Because you respond to strong atmosphere and emotional depth.',
+  'depth|novelty': 'Because you like thoughtful films that still feel fresh.',
+  'energy|humor': 'Because you enjoy lively films with a lighter touch.',
+  'energy|novelty': 'Because you like films with more momentum and a less predictable edge.',
+  'humor|optimism': 'Because you like lighter films with warmth and wit.',
 }
 
 function joinPhrases(parts: string[]) {
   if (parts.length <= 1) return parts[0] ?? ''
   if (parts.length == 2) return `${parts[0]} and ${parts[1]}`
   return `${parts[0]}, ${parts[1]}, and ${parts[2]}`
+}
+
+function stableReasonVariant(keys: TraitKey[]) {
+  return keys.join('|').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % 3
+}
+
+function buildFallbackRecommendationReason(keys: TraitKey[]) {
+  const phrases = keys.slice(0, 2).map((key) => TRAIT_REASON_PHRASES[key])
+  if (!phrases.length) return ''
+
+  const phraseList = joinPhrases(phrases)
+  const templates = [
+    `Because you're drawn to ${phraseList}.`,
+    `This fits your taste for ${phraseList}.`,
+    `You tend to respond to ${phraseList}, and this leans that way.`,
+  ]
+
+  return templates[stableReasonVariant(keys)]
 }
 
 function buildRecommendationReason(
@@ -89,10 +121,15 @@ function buildRecommendationReason(
     score: Math.min(clamp01(userTraits[key] ?? 0.5), clamp01(movieTraits[key] ?? 0.5)),
   })).sort((a, b) => b.score - a.score)).slice(0, 3)
 
-  const phrases = top.map((item) => TRAIT_REASON_LABELS[item.key])
-  if (!phrases.length) return ''
+  const keys = top.map((item) => item.key)
+  if (!keys.length) return ''
 
-  return `Recommended because it lines up with your preference for ${joinPhrases(phrases)}`
+  const pairKey = keys.slice(0, 2).sort().join('|')
+  if (pairKey && TRAIT_REASON_PAIR_OVERRIDES[pairKey]) {
+    return TRAIT_REASON_PAIR_OVERRIDES[pairKey]
+  }
+
+  return buildFallbackRecommendationReason(keys)
 }
 
 function readSavedAnswers(): number[] | null {
@@ -694,6 +731,7 @@ function toPoints(
     })
     .join(' ')
 }
+
 
 
 
