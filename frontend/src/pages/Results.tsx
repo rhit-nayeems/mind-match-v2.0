@@ -171,6 +171,9 @@ export default function Results() {
   const nav = useNavigate()
 
   const [data, setData] = useState<ResultsData | null>(null)
+  const [isCompactViewport, setIsCompactViewport] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 480 : false
+  )
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [expandedSynopsisIds, setExpandedSynopsisIds] = useState<Set<string>>(new Set())
   const clickedIdsRef = useRef<Set<string>>(new Set())
@@ -200,6 +203,22 @@ export default function Results() {
     } catch {}
     nav('/quiz?fresh=1&retake=1', { replace: true, state: { reset: true, retake: true } })
   }
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const media = window.matchMedia('(max-width: 479px)')
+    const syncViewport = () => setIsCompactViewport(media.matches)
+    syncViewport()
+
+    if (typeof media.addEventListener === 'function') {
+      media.addEventListener('change', syncViewport)
+      return () => media.removeEventListener('change', syncViewport)
+    }
+
+    media.addListener(syncViewport)
+    return () => media.removeListener(syncViewport)
+  }, [])
 
   useEffect(() => {
     const answers: number[] | null = Array.isArray(loc.state?.answers) ? loc.state.answers : readSavedAnswers()
@@ -543,7 +562,7 @@ export default function Results() {
                   keys={TRAITS as unknown as string[]}
                   user={userOrdered}
                   movie={movieOrdered}
-                  size={360}
+                  size={isCompactViewport ? 300 : 360}
                 />
               </div>
 
@@ -569,10 +588,12 @@ function InlineRadar({
   movie?: Record<string, number>
   size?: number
 }) {
-  const fontPx = 11
-  const charPx = 7
-  const edgePad = 14
-  const labelGap = 16
+  const compact = size <= 320
+  const fontPx = compact ? 9.5 : 11
+  const charPx = compact ? 7.1 : 7.4
+  const edgePad = compact ? 18 : 14
+  const labelGap = compact ? 12 : 16
+  const svgPad = compact ? 42 : 28
 
   const maxLabelWidth = Math.max(...keys.map((k) => k.length * charPx))
   const half = size / 2
@@ -603,7 +624,14 @@ function InlineRadar({
   const movieStroke = 'rgba(251,191,36,0.94)'
 
   return (
-    <svg width={size} height={size} role="img" aria-label="Trait radar chart" style={{ overflow: 'visible' }}>
+    <svg
+      width={size}
+      height={size}
+      viewBox={`${-svgPad} ${-svgPad} ${size + svgPad * 2} ${size + svgPad * 2}`}
+      role="img"
+      aria-label="Trait radar chart"
+      style={{ display: 'block', margin: '0 auto', overflow: 'visible' }}
+    >
       {[0.25, 0.5, 0.75, 1].map((p) => (
         <circle key={p} cx={cx} cy={cy} r={rMax * p} fill="none" stroke={ringStroke} />
       ))}
@@ -641,7 +669,7 @@ function InlineRadar({
             textAnchor={anchor}
             dominantBaseline={baseline}
             fill="rgba(255,255,255,.82)"
-            fontSize="11"
+            fontSize={fontPx}
             style={{ textTransform: 'capitalize' }}
           >
             {s.key}
@@ -668,5 +696,6 @@ function toPoints(
     })
     .join(' ')
 }
+
 
 

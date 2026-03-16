@@ -466,7 +466,7 @@ export default function Quiz() {
                     }
                   }}
                   className={[
-                    "quiz-choice w-full cursor-pointer select-none rounded-xl border px-3 py-2 text-left outline-none sm:w-auto",
+                    "quiz-choice block w-full cursor-pointer select-none rounded-xl border px-3 py-2 text-left leading-snug outline-none whitespace-normal sm:w-auto",
                     checked ? "quiz-choice-selected" : "quiz-choice-idle",
                     "focus-visible:ring-2 focus-visible:ring-cyan-200/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
                     "peer-focus-visible:ring-2 peer-focus-visible:ring-cyan-200/80 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-black",
@@ -626,4 +626,5 @@ export default function Quiz() {
     </>
   );
 }
+
 

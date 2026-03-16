@@ -1345,6 +1345,7 @@ body {
 .results-radar-wrap svg {
   width: min(100%, 360px);
   height: auto;
+  margin-inline: auto;
 }
 
 .results-helper-copy {
@@ -1870,6 +1871,7 @@ body {
 
 .tech-bg svg {
   transform: translateZ(0);
+  transform-origin: center center;
 }
 
 .btn,
@@ -1926,6 +1928,11 @@ body {
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
   }
+
+  .tech-bg svg {
+    transform: translate3d(0, 0, 0) scale(0.84);
+    opacity: 0.74;
+  }
 }
 
 /* Additional performance tuning */
@@ -1961,4 +1968,5 @@ body {
 .results-page .lg\:col-span-5::after {
   filter: blur(10px) !important;
 }
+
 
