@@ -1,4 +1,4 @@
-# MindMatch - Industrial Edition
+# MindMatch
 
 MindMatch is a psychology-driven movie recommender with:
 - Hybrid retrieval (trait + text)
