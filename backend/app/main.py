@@ -2,6 +2,7 @@ from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import hashlib
+from functools import cmp_to_key
 import json
 import math
 import os
@@ -15,7 +16,14 @@ from .traits import answers_to_traits, summarize_traits
 from .bandit import LinUCB, features
 from .db import Event, SessionLocal, init_db
 from .tmdb import enrich_movie_by_title_year
-from app.catalog_db import count_rows, count_total_rows, resolve_catalog_limit, resolve_db_path, top_matches
+from app.catalog_db import (
+    count_rows,
+    count_total_rows,
+    resolve_active_catalog_variant,
+    resolve_catalog_limit,
+    resolve_db_path,
+    top_matches,
+)
 
 bp = Blueprint("main", __name__)
 
@@ -90,6 +98,14 @@ RERANK_EXPLORE_MAX = _clamp01(_env_float("MM_RERANK_EXPLORE_MAX", 0.32))
 MAX_PER_PRIMARY_GENRE = max(1, _env_int("MM_MAX_PER_PRIMARY_GENRE", 2))
 MAX_PER_FRANCHISE = max(1, _env_int("MM_MAX_PER_FRANCHISE", 1))
 RESULT_COUNT = max(2, min(10, _env_int("MM_RESULT_COUNT", 4)))
+CANDIDATE_LIMIT_MIN = max(40, _env_int("MM_CANDIDATE_LIMIT_MIN", 40))
+CANDIDATE_LIMIT_MAX = max(CANDIDATE_LIMIT_MIN, _env_int("MM_CANDIDATE_LIMIT_MAX", 140))
+CANDIDATE_LIMIT_RATIO = max(0.0, _env_float("MM_CANDIDATE_LIMIT_RATIO", 0.30))
+RERANK_POOL_MIN = max(RESULT_COUNT * 8, _env_int("MM_RERANK_POOL_MIN", RESULT_COUNT * 8))
+RERANK_POOL_MAX = max(RERANK_POOL_MIN, _env_int("MM_RERANK_POOL_MAX", 96))
+RERANK_POOL_RATIO = max(0.0, _env_float("MM_RERANK_POOL_RATIO", 0.72))
+FINAL_TIEBREAK_RANK_EPS = max(0.0, _env_float("MM_FINAL_TIEBREAK_RANK_EPS", 0.01))
+FINAL_TIEBREAK_FIT_EPS = max(0.0, _env_float("MM_FINAL_TIEBREAK_FIT_EPS", 0.015))
 RELEVANCE_FLOOR_ABS = _clamp01(_env_float("MM_RELEVANCE_FLOOR_ABS", 0.72))
 RELEVANCE_FLOOR_REL = max(0.0, _env_float("MM_RELEVANCE_FLOOR_REL", 0.08))
 GLOBAL_REPEAT_BETA = max(0.0, _env_float("MM_GLOBAL_REPEAT_BETA", 0.012))
@@ -100,7 +116,6 @@ DISSIMILAR_PENALTY_BETA = max(0.0, _env_float("MM_DISSIMILAR_PENALTY_BETA", 0.00
 DISSIMILAR_MMR_PENALTY_BETA = max(0.0, _env_float("MM_DISSIMILAR_MMR_PENALTY_BETA", 0.008))
 DISSIMILAR_HOT_MIN = max(1, _env_int("MM_DISSIMILAR_HOT_MIN", 5))
 DISSIMILAR_OVERLAP_CAP = max(0, _env_int("MM_DISSIMILAR_OVERLAP_CAP", 2))
-FORCE_DIVERSE_TAIL_SLOTS = max(0, _env_int("MM_DIVERSE_TAIL_SLOTS", 0))
 RELEVANCE_FLOOR_TEXT_BLEND = _clamp01(_env_float("MM_RELEVANCE_FLOOR_TEXT_BLEND", 0.18))
 SHOWN_EVENT_DEDUPE_MINUTES = max(1, _env_int("MM_SHOWN_EVENT_DEDUPE_MINUTES", 30))
 
@@ -148,6 +163,7 @@ def health():
         "catalog_rows": rows,
         "catalog_total_rows": total_rows,
         "catalog_active_limit": active_limit,
+        "catalog_variant": resolve_active_catalog_variant(db_path),
         "db_path": db_path.replace("\\", "/"),
         "algo": ALGO_TAG,
     }
@@ -552,7 +568,7 @@ def _sample_rerank_pool(
         picked_idx.append(picked_global)
 
     picked = [band[i] for i in picked_idx]
-    picked.sort(key=lambda m: _safe_float(m.get("rank_score", m.get("match", 0.0)), 0.0), reverse=True)
+    picked.sort(key=cmp_to_key(_final_rank_cmp))
     return picked, explore_ratio, band_size
 
 
@@ -561,6 +577,58 @@ def _movie_relevance_score(m: Dict[str, Any]) -> float:
     text_score = _clamp01(_safe_float(m.get("text_score", 0.0), 0.0))
     blended = (1.0 - RELEVANCE_FLOOR_TEXT_BLEND) * trait_score + RELEVANCE_FLOOR_TEXT_BLEND * text_score
     return max(trait_score, _clamp01(blended))
+
+
+def _popularity_tiebreak_value(m: Dict[str, Any]) -> Tuple[float, float]:
+    return (
+        _safe_float(m.get("popularity", 0.0), 0.0),
+        max(0.0, _safe_float(m.get("vote_count", 0.0), 0.0)),
+    )
+
+
+
+def _near_tie_prefers_more_popular(left: Dict[str, Any], right: Dict[str, Any]) -> bool:
+    left_rank = _safe_float(left.get("rank_score", left.get("match", 0.0)), 0.0)
+    right_rank = _safe_float(right.get("rank_score", right.get("match", 0.0)), 0.0)
+    left_fit = _movie_relevance_score(left)
+    right_fit = _movie_relevance_score(right)
+
+    rank_close = abs(left_rank - right_rank) <= FINAL_TIEBREAK_RANK_EPS
+    fit_close = abs(left_fit - right_fit) <= FINAL_TIEBREAK_FIT_EPS
+    if not (rank_close or fit_close):
+        return False
+
+    left_pop = _popularity_tiebreak_value(left)
+    right_pop = _popularity_tiebreak_value(right)
+    return left_pop > right_pop
+
+
+def _final_rank_cmp(left: Dict[str, Any], right: Dict[str, Any]) -> int:
+    if _near_tie_prefers_more_popular(left, right):
+        return -1
+    if _near_tie_prefers_more_popular(right, left):
+        return 1
+
+    left_rank = _safe_float(left.get("rank_score", left.get("match", 0.0)), 0.0)
+    right_rank = _safe_float(right.get("rank_score", right.get("match", 0.0)), 0.0)
+    if abs(left_rank - right_rank) > 1e-9:
+        return -1 if left_rank > right_rank else 1
+
+    left_fit = _movie_relevance_score(left)
+    right_fit = _movie_relevance_score(right)
+    if abs(left_fit - right_fit) > 1e-9:
+        return -1 if left_fit > right_fit else 1
+
+    left_title = str(left.get("title", "")).lower()
+    right_title = str(right.get("title", "")).lower()
+    if left_title != right_title:
+        return -1 if left_title < right_title else 1
+
+    left_id = str(left.get("id", ""))
+    right_id = str(right.get("id", ""))
+    if left_id != right_id:
+        return -1 if left_id < right_id else 1
+    return 0
 
 
 def _apply_relevance_floor(scored: List[Dict[str, Any]], result_count: int) -> Tuple[List[Dict[str, Any]], float, str]:
@@ -626,13 +694,10 @@ def _mmr_diversify(
     dissimilar_hot_min: int = 3,
     dissimilar_overlap_cap: int = 1,
     dissimilar_mmr_penalty_beta: float = 0.0,
-    relevance_floor: float | None = None,
-    diverse_tail_slots: int = 0,
+    relevance_floor: float | None = None
 ) -> List[Dict[str, Any]]:
     if not cands:
         return []
-
-    _ = diverse_tail_slots
 
     u = _vec_from_user(user_traits)
     enriched: List[Tuple[Dict[str, Any], List[float], float]] = []
@@ -700,6 +765,16 @@ def _mmr_diversify(
             mmr = lambda_eff * base + (1.0 - lambda_eff) * div - franchise_penalty - genre_penalty - dissimilar_penalty
             tie_title = str(m.get("title", ""))
             key = (mmr, base, tie_title)
+            if best_idx >= 0:
+                best_m = rest[best_idx][0]
+                best_mmr = best_key[0]
+                if (
+                    abs(mmr - best_mmr) <= FINAL_TIEBREAK_RANK_EPS
+                    and _near_tie_prefers_more_popular(m, best_m)
+                ):
+                    best_key = key
+                    best_idx = i
+                    continue
             if key > best_key:
                 best_key = key
                 best_idx = i
@@ -734,7 +809,6 @@ def _mmr_diversify(
         result.append(m_out)
 
     return result
-
 
 def _assign_display_matches(items: List[Dict[str, Any]]) -> None:
     if not items:
@@ -776,9 +850,9 @@ def recommend():
 
     active_rows = max(1, count_rows())
     result_count = RESULT_COUNT
-    candidate_limit = max(40, min(140, int(active_rows * 0.30)))
+    candidate_limit = max(CANDIDATE_LIMIT_MIN, min(CANDIDATE_LIMIT_MAX, int(active_rows * CANDIDATE_LIMIT_RATIO)))
     prefilter_n = max(candidate_limit, min(active_rows, int(active_rows * 0.85)))
-    rerank_pool_size = max(result_count * 8, min(96, int(candidate_limit * 0.72)))
+    rerank_pool_size = max(RERANK_POOL_MIN, min(RERANK_POOL_MAX, int(candidate_limit * RERANK_POOL_RATIO)))
 
     try:
         raw_cands = top_matches(
@@ -849,14 +923,7 @@ def recommend():
             result_count=result_count,
         )
 
-    scored.sort(
-        key=lambda x: (
-            -_safe_float(x.get("rank_score"), 0.0),
-            -_safe_float(x.get("match"), 0.0),
-            str(x.get("title", "")).lower(),
-            str(x.get("id", "")),
-        )
-    )
+    scored.sort(key=cmp_to_key(_final_rank_cmp))
     scored, relevance_floor, relevance_floor_source = _apply_relevance_floor(scored, result_count=result_count)
 
     seen = _get_recently_seen_ids(session_id, lookback_days=21)
@@ -876,7 +943,6 @@ def recommend():
     )
 
     genre_cap = max(3, MAX_PER_PRIMARY_GENRE) if close_mode else MAX_PER_PRIMARY_GENRE
-    diverse_tail_slots = FORCE_DIVERSE_TAIL_SLOTS
 
     reranked = _mmr_diversify(
         rerank_input,
@@ -892,7 +958,6 @@ def recommend():
         dissimilar_overlap_cap=DISSIMILAR_OVERLAP_CAP,
         dissimilar_mmr_penalty_beta=DISSIMILAR_MMR_PENALTY_BETA,
         relevance_floor=relevance_floor,
-        diverse_tail_slots=diverse_tail_slots,
     )
 
     _assign_display_matches(reranked)
@@ -971,7 +1036,6 @@ def recommend():
                 "explore_ratio": round(explore_ratio, 4),
                 "explore_scale": round(explore_scale, 3),
                 "close_mode": close_mode,
-                "diverse_tail_slots": diverse_tail_slots,
                 "relevance_floor": round(relevance_floor, 4),
                 "relevance_floor_source": relevance_floor_source,
                 "max_per_primary_genre": genre_cap,

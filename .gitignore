@@ -5,7 +5,6 @@ frontend/dist/
 # Python / backend
 __pycache__/
 *.pyc
-backend/app/bandit.db
 
 # Env and local secrets
 .env
@@ -15,3 +14,12 @@ backend/app/bandit.db
 # OS junk
 .DS_Store
 Thumbs.db
+
+# Local audit tooling / outputs
+.audit-venv*/
+backend/app/datasets/bandit.db
+backend/scripts/audit_*.json
+backend/scripts/compare_variants*.json
+backend/scripts/pipeline_breakdown_audit*.json
+backend/scripts/profile_summary_audit.json
+backend/scripts/catalog_variant_experiments_report.json

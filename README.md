@@ -25,8 +25,8 @@ $env:FLASK_APP = "app:create_app"
 # $env:TMDB_API_KEY = "<TMDB_V3_API_KEY>"
 $env:TMDB_REGION = "US"
 
-# Optional: active catalog cap (defaults to 500 most-popular movies)
-# $env:CATALOG_MAX_MOVIES = "500"
+# Optional: active catalog cap (defaults to 0 = uncapped active catalog)
+# $env:CATALOG_MAX_MOVIES = "0"
 
 .\.venv\Scripts\python.exe -m flask run -p 8000
 ```
@@ -48,9 +48,9 @@ docker compose up --build
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:8000`
 
-The backend container reads `CATALOG_MAX_MOVIES` from compose (default `500`):
-- `CATALOG_MAX_MOVIES=500` keeps recommendations inside the top 500 popular titles
-- Increase/decrease as needed
+The backend container reads `CATALOG_MAX_MOVIES` from compose (default `0`):
+- `CATALOG_MAX_MOVIES=0` keeps the active catalog uncapped
+- Set a positive value if you want to experiment with a smaller active cache
 
 ## API
 
@@ -69,5 +69,12 @@ Records feedback for online adjustment.
 ## Notes
 - Quiz now runs in 2 phases: core profile + adaptive follow-up questions.
 - Backend health reports both active catalog rows and total DB rows.
-- Default algorithm tag: `hybrid_cosine_text_feedback_mmr_v4_top500`.
+- Default algorithm tag: `hybrid_centered_cosine_text_feedback_mmr_v7_relevance_floor_freshness_overlap_guard`.
 - TMDb attribution: "This product uses the TMDB API but is not endorsed or certified by TMDB."
+
+## Recent Backend Tuning Notes
+I ran a set of offline ranking and coverage audits before changing the live recommender. The copy improvements stayed, and the near-tie popularity tiebreak stayed because it was low-risk and measured cleanly.
+
+I did not keep the tail-diversity experiment, the widened recall defaults, or the relaxed relevance-floor experiments as active behavior. They changed intermediate pools, but they did not produce a strong enough final recommendation win to justify shipping them.
+
+The default production path is still the full 2400-movie catalog. I kept the curated 1500 catalog and the audit scripts around for comparison work, but they are there for testing, not as the default runtime.

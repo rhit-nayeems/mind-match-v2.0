@@ -40,6 +40,11 @@ type ResultsData = {
   }>
 }
 
+type RecommendationReasonMovie = Pick<
+  ResultsData['recommendations'][number],
+  'id' | 'title' | 'year' | 'director' | 'genre' | 'traits'
+>
+
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
 
 const normalizeTrait = (v: any, fallback = 0.5) => {
@@ -53,60 +58,186 @@ const pct = (v?: number) => (v == null ? '-' : `${Math.round((v > 1 ? v : v * 10
 
 const withoutPeriods = (text: string) => text.replace(/\./g, '')
 
-const TRAIT_REASON_PHRASES: Record<TraitKey, string> = {
-  darkness: 'darker, moodier stories',
-  energy: 'movies with more momentum',
+const TRAIT_REASON_FRAGMENTS: Record<TraitKey, string[]> = {
+  darkness: ['a darker edge', 'moodier storytelling', 'more shadow and tension'],
+  energy: ['more drive', 'forward momentum', 'a bit more pace'],
+  mood: ['strong atmosphere', 'a more atmospheric feel', 'more mood than noise'],
+  depth: ['real emotional depth', 'something more thoughtful', 'character weight'],
+  optimism: ['some warmth', 'a warmer emotional tone', 'a hopeful streak'],
+  novelty: ['something less predictable', 'fresher ideas', 'a more off-center edge'],
+  comfort: ['a grounded, familiar feel', 'something more settled', 'a comforting sense of familiarity'],
+  intensity: ['stronger tension', 'heavier emotional stakes', 'more intensity'],
+  humor: ['some wit', 'a lighter touch', 'more humor'],
+}
+
+const TRAIT_REASON_DETAIL_FRAGMENTS: Record<TraitKey, string> = {
+  darkness: 'a darker edge',
+  energy: 'more drive',
   mood: 'strong atmosphere',
-  depth: 'emotional depth',
-  optimism: 'a warmer tone',
-  novelty: 'ideas that feel fresh',
-  comfort: 'something grounded and familiar',
-  intensity: 'stronger emotional stakes',
-  humor: 'a lighter, wittier touch',
+  depth: 'emotional weight',
+  optimism: 'some warmth',
+  novelty: 'a less predictable edge',
+  comfort: 'a grounded feel',
+  intensity: 'sharper tension',
+  humor: 'some wit',
 }
 
-const TRAIT_REASON_PAIR_OVERRIDES: Record<string, string> = {
-  'comfort|depth': 'Because you enjoy grounded stories with real emotional depth.',
-  'comfort|humor': 'Because you enjoy easygoing films with a lighter touch.',
-  'comfort|optimism': 'Because you enjoy warmer films that still feel grounded.',
-  'darkness|depth': 'Because you enjoy darker films with real emotional depth.',
-  'darkness|intensity': 'Because you enjoy darker stories with stronger emotional stakes.',
-  'darkness|mood': 'Because you respond to moodier films with strong atmosphere.',
-  'depth|mood': 'Because you respond to strong atmosphere and emotional depth.',
-  'depth|novelty': 'Because you like thoughtful films that still feel fresh.',
-  'energy|humor': 'Because you enjoy lively films with a lighter touch.',
-  'energy|novelty': 'Because you like films with more momentum and a less predictable edge.',
-  'humor|optimism': 'Because you like lighter films with warmth and wit.',
+const TRAIT_REASON_PAIR_FRAGMENTS: Record<string, string[]> = {
+  'comfort|depth': [
+    'something grounded with real emotional depth',
+    'grounded storytelling with emotional weight',
+    'something familiar but emotionally rich',
+  ],
+  'comfort|humor': [
+    'an easygoing tone with some wit',
+    'something light on its feet and easy to settle into',
+    'something comfortable with a lighter touch',
+  ],
+  'comfort|mood': [
+    'something grounded with a strong sense of atmosphere',
+    'a familiar tone with more mood in it',
+    'something settled but still atmospheric',
+  ],
+  'comfort|optimism': [
+    'warmth without losing that grounded feel',
+    'something hopeful and easy to settle into',
+    'a warmer tone that still feels familiar',
+  ],
+  'darkness|depth': [
+    'darker storytelling with real emotional depth',
+    'something dark but emotionally rich',
+    'shadowier material with real weight',
+  ],
+  'darkness|intensity': [
+    'a darker edge with stronger stakes',
+    'shadow and tension together',
+    'something darker with sharper intensity',
+  ],
+  'darkness|mood': [
+    'moodier storytelling with strong atmosphere',
+    'a darker atmosphere that really lingers',
+    'shadowier films with a strong sense of mood',
+  ],
+  'darkness|novelty': [
+    'a darker edge with fresher ideas',
+    'something shadowy that still feels less obvious',
+    'moodier material with a stranger edge',
+  ],
+  'depth|intensity': [
+    'emotional depth with real tension underneath',
+    'character weight and sharper stakes together',
+    'something thoughtful that still hits hard',
+  ],
+  'depth|mood': [
+    'strong atmosphere with emotional depth',
+    'something atmospheric and emotionally rich',
+    'mood and character weight together',
+  ],
+  'depth|novelty': [
+    'thoughtful ideas that still feel fresh',
+    'something intellectually alive and a little less obvious',
+    'emotional depth with a fresher edge',
+  ],
+  'energy|humor': [
+    'livelier pacing with some wit',
+    'momentum and a lighter touch together',
+    'something brisk with a sense of fun',
+  ],
+  'energy|intensity': [
+    'real momentum with stronger stakes',
+    'pace and tension working together',
+    'something propulsive with more bite',
+  ],
+  'energy|novelty': [
+    'momentum with a less predictable edge',
+    'pace without feeling too obvious',
+    'something propulsive and a little fresher',
+  ],
+  'humor|optimism': [
+    'warmth and wit together',
+    'something lighter with a genuinely warm tone',
+    'a warmer film with a playful side',
+  ],
+  'mood|novelty': [
+    'strong atmosphere with a less predictable edge',
+    'something immersive that still feels fresh',
+    'mood-first storytelling with stranger turns',
+  ],
 }
 
-function joinPhrases(parts: string[]) {
-  if (parts.length <= 1) return parts[0] ?? ''
-  if (parts.length == 2) return `${parts[0]} and ${parts[1]}`
-  return `${parts[0]}, ${parts[1]}, and ${parts[2]}`
+const GENRE_REASON_ADDONS: Record<string, string[]> = {
+  Action: ['with an action edge', 'through an action frame'],
+  Adventure: ['with an adventurous sweep', 'through an adventure story'],
+  Animation: ['in animated form'],
+  Comedy: ['through a comedy frame', 'with a comic streak'],
+  Crime: ['inside a crime story', 'through a crime lens'],
+  Drama: ['in a character-driven drama', 'through a dramatic lens'],
+  Family: ['in a family-friendly frame'],
+  Fantasy: ['with a fantasy bent', 'through a fantasy world'],
+  History: ['inside a historical story'],
+  Horror: ['with horror undertones', 'through a horror frame'],
+  Mystery: ['inside a mystery', 'with a mystery backbone'],
+  Romance: ['through a romantic angle', 'inside a romance'],
+  'Science Fiction': ['through a sci-fi lens', 'in a sci-fi frame'],
+  Thriller: ['with a thriller edge', 'through a thriller setup'],
+  War: ['inside a war story'],
+  Western: ['through a western setting'],
 }
 
-function stableReasonVariant(keys: TraitKey[]) {
-  return keys.join('|').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % 3
+function stableReasonSeed(parts: Array<string | number | null | undefined>) {
+  return parts
+    .filter((part): part is string | number => part !== null && part !== undefined && String(part).length > 0)
+    .join('|')
+    .split('')
+    .reduce((sum, char) => sum + char.charCodeAt(0), 0)
 }
 
-function buildFallbackRecommendationReason(keys: TraitKey[]) {
-  const phrases = keys.slice(0, 2).map((key) => TRAIT_REASON_PHRASES[key])
-  if (!phrases.length) return ''
+function pickStable<T>(items: T[], seed: number, offset = 0) {
+  if (!items.length) return undefined
+  return items[(seed + offset) % items.length]
+}
 
-  const phraseList = joinPhrases(phrases)
-  const templates = [
-    `Because you're drawn to ${phraseList}.`,
-    `This fits your taste for ${phraseList}.`,
-    `You tend to respond to ${phraseList}, and this leans that way.`,
-  ]
+function normalizeGenres(genres?: string[] | null) {
+  if (!Array.isArray(genres)) return []
+  return genres.map((genre) => String(genre ?? '').trim()).filter(Boolean)
+}
 
-  return templates[stableReasonVariant(keys)]
+function buildReasonCore(keys: TraitKey[], seed: number) {
+  const pairKey = keys.slice(0, 2).sort().join('|')
+  const pairOptions = pairKey ? TRAIT_REASON_PAIR_FRAGMENTS[pairKey] : undefined
+  const pairFragment = pairOptions?.length ? pickStable(pairOptions, seed) : undefined
+  if (pairFragment) return pairFragment
+
+  const primary = pickStable(TRAIT_REASON_FRAGMENTS[keys[0]] ?? [], seed) ?? 'what you usually respond to'
+  const secondary = keys[1]
+    ? pickStable(TRAIT_REASON_FRAGMENTS[keys[1]] ?? [], seed, 1)
+    : undefined
+
+  return secondary ? `${primary} with ${secondary}` : primary
+}
+
+function buildReasonDetail(keys: TraitKey[], seed: number) {
+  const thirdKey = keys[2]
+  if (!thirdKey) return ''
+  const detail = pickStable(TRAIT_REASON_FRAGMENTS[thirdKey] ?? [], seed, 2)
+  if (!detail) return ''
+  const options = [` with ${detail}`, `, plus ${detail}`, `, and ${detail}`]
+  return pickStable(options, seed, 3) ?? ''
+}
+
+function buildGenreAddon(movie?: RecommendationReasonMovie | null, seed = 0) {
+  const primaryGenre = normalizeGenres(movie?.genre)[0]
+  if (!primaryGenre) return ''
+  const options = GENRE_REASON_ADDONS[primaryGenre]
+  if (!options?.length) return ''
+  return ` ${pickStable(options, seed, 4) ?? options[0]}`
 }
 
 function buildRecommendationReason(
   userTraits: Record<TraitKey, number>,
-  movieTraits?: Record<TraitKey, number> | null
+  movie?: RecommendationReasonMovie | null
 ) {
+  const movieTraits = movie?.traits
   if (!movieTraits) return ''
 
   const ranked = TRAITS.map((key) => ({
@@ -116,20 +247,37 @@ function buildRecommendationReason(
     .filter((item) => item.score >= 0.08)
     .sort((a, b) => b.score - a.score)
 
-  const top = (ranked.length ? ranked : TRAITS.map((key) => ({
+  const fallbackRanked = TRAITS.map((key) => ({
     key,
     score: Math.min(clamp01(userTraits[key] ?? 0.5), clamp01(movieTraits[key] ?? 0.5)),
-  })).sort((a, b) => b.score - a.score)).slice(0, 3)
+  })).sort((a, b) => b.score - a.score)
 
+  const top = (ranked.length ? ranked : fallbackRanked).slice(0, 3)
   const keys = top.map((item) => item.key)
   if (!keys.length) return ''
 
-  const pairKey = keys.slice(0, 2).sort().join('|')
-  if (pairKey && TRAIT_REASON_PAIR_OVERRIDES[pairKey]) {
-    return TRAIT_REASON_PAIR_OVERRIDES[pairKey]
-  }
+  const seed = stableReasonSeed([
+    movie?.id,
+    movie?.title,
+    movie?.year,
+    movie?.director,
+    normalizeGenres(movie?.genre).join('|'),
+    keys.join('|'),
+  ])
+  const core = buildReasonCore(keys, seed)
+  const detailAddon = top[2]?.score >= 0.11 ? buildReasonDetail(keys, seed) : ''
+  const genreAddon = !detailAddon || seed % 3 === 0 ? buildGenreAddon(movie, seed) : ''
+  const addon = genreAddon || detailAddon
 
-  return buildFallbackRecommendationReason(keys)
+  const templates = [
+    `Because it leans into ${core}${addon}.`,
+    `Because it brings together ${core}${addon}.`,
+    `Because it matches your taste for ${core}${addon}.`,
+    `Because it gives you ${core}${addon}.`,
+    `Because it lands in that sweet spot of ${core}${addon}.`,
+  ]
+
+  return pickStable(templates, seed, 5) ?? templates[0]
 }
 
 function readSavedAnswers(): number[] | null {
@@ -353,8 +501,8 @@ export default function Results() {
     return out
   }, [selected?.traits])
   const recommendationReason = useMemo(
-    () => buildRecommendationReason(userOrdered, selectedTraits),
-    [userOrdered, selectedTraits]
+    () => buildRecommendationReason(userOrdered, selected ?? null),
+    [selected, userOrdered]
   )
 
   function buildEventFeatures(movie: ResultsData['recommendations'][number]) {

@@ -6,6 +6,7 @@ import json
 import math
 import os
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -29,8 +30,13 @@ _TRAIT_QUERY_HINTS: Dict[str, List[str]] = {
 }
 
 _HERE = Path(__file__).resolve().parent
+DEFAULT_CATALOG_VARIANT = "full2400"
+_CATALOG_VARIANT_DB_PATHS = {
+    "full2400": _HERE / "datasets" / "movies_core.db",
+    "curated1500": _HERE / "datasets" / "movies_curated1500.db",
+}
 _DEFAULT_DB_CANDIDATES = [
-    _HERE / "datasets" / "movies_core.db",
+    _CATALOG_VARIANT_DB_PATHS[DEFAULT_CATALOG_VARIANT],
     _HERE / "datasets" / "movies.db",
     _HERE / "data" / "movies.db",
 ]
@@ -45,15 +51,40 @@ _CACHE: Dict[str, Any] = {
 }
 
 
+def resolve_catalog_variant() -> str:
+    """Resolve the active catalog variant name from the environment."""
+    raw = (os.environ.get("CATALOG_VARIANT") or "").strip().lower()
+    if raw in _CATALOG_VARIANT_DB_PATHS:
+        return raw
+    return DEFAULT_CATALOG_VARIANT
+
+
+
+def resolve_active_catalog_variant(db_path: str | None = None) -> str:
+    """Map a resolved DB path back to a known catalog variant when possible."""
+    target = Path(db_path or resolve_db_path()).resolve(strict=False)
+    for name, candidate in _CATALOG_VARIANT_DB_PATHS.items():
+        if candidate.resolve(strict=False) == target:
+            return name
+    return "custom"
+
+
+
 def resolve_db_path() -> str:
     """Resolve the catalog DB path with env override and sensible local defaults."""
     env_path = os.environ.get("MOVIES_DB")
     if env_path:
         return env_path
+
+    variant = resolve_catalog_variant()
+    variant_path = _CATALOG_VARIANT_DB_PATHS[variant]
+    if variant != DEFAULT_CATALOG_VARIANT:
+        return str(variant_path)
+
     for candidate in _DEFAULT_DB_CANDIDATES:
         if candidate.exists():
             return str(candidate)
-    return str(_DEFAULT_DB_CANDIDATES[0])
+    return str(variant_path)
 
 
 def resolve_catalog_limit() -> int:
@@ -163,7 +194,7 @@ def _rebuild_cache_if_needed() -> None:
     ):
         return
 
-    with _connect() as conn:
+    with closing(_connect()) as conn:
         cur = conn.cursor()
         query = """
             SELECT tmdb_id, title, year, overview, poster_url, genres, keywords, director,
@@ -259,7 +290,7 @@ def count_rows() -> int:
 
 def count_total_rows() -> int:
     """Return the total number of movies present in the DB table."""
-    with _connect() as conn:
+    with closing(_connect()) as conn:
         cur = conn.cursor()
         cur.execute("SELECT COUNT(*) FROM movies")
         row = cur.fetchone()
