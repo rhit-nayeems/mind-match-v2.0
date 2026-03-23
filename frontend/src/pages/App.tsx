@@ -35,7 +35,7 @@ export default function App() {
 
         <main className="pb-12 pt-5 md:pt-6">
           <Outlet />
-          <footer className="mt-12 border-t border-cyan-200/12 pt-7 text-[11px] text-zinc-400/80">
+          <footer className="mt-12 border-t border-[#8187fc]/12 pt-7 text-[11px] text-zinc-400/80">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <p>(c) {new Date().getFullYear()} MindMatch All rights reserved</p>
               <a
@@ -51,7 +51,7 @@ export default function App() {
                 href="https://www.themoviedb.org/"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-cyan-100/70 transition-colors hover:text-cyan-50"
+                className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-[#8187fc]/70 transition-colors hover:text-[#8187fc]"
               >
                 <img src="/tmdb-logo.svg" alt="TMDB logo" className="h-5 w-5 rounded-sm" loading="lazy" />
                 <span className="text-[9px] uppercase tracking-[0.14em]">TMDB Data Source</span>

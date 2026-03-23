@@ -39,18 +39,18 @@ type Satellite = {
 
 const palette: Record<Tone, { stroke: string; glow: string; ring: string; core: string; halo: string }> = {
   cyan: {
-    stroke: 'rgba(125, 211, 252, 0.42)',
-    glow: 'rgba(34, 211, 238, 0.22)',
-    ring: 'rgba(165, 243, 252, 0.22)',
-    core: '#9eefff',
-    halo: 'rgba(34, 211, 238, 0.12)',
+    stroke: 'rgba(129, 135, 252, 0.42)',
+    glow: 'rgba(129, 135, 252, 0.22)',
+    ring: 'rgba(129, 135, 252, 0.22)',
+    core: '#8187fc',
+    halo: 'rgba(129, 135, 252, 0.12)',
   },
   blue: {
-    stroke: 'rgba(147, 197, 253, 0.38)',
-    glow: 'rgba(96, 165, 250, 0.18)',
-    ring: 'rgba(191, 219, 254, 0.2)',
-    core: '#c9e1ff',
-    halo: 'rgba(96, 165, 250, 0.1)',
+    stroke: 'rgba(129, 135, 252, 0.38)',
+    glow: 'rgba(129, 135, 252, 0.18)',
+    ring: 'rgba(129, 135, 252, 0.2)',
+    core: '#8187fc',
+    halo: 'rgba(129, 135, 252, 0.1)',
   },
   amber: {
     stroke: 'rgba(251, 191, 36, 0.32)',
@@ -190,20 +190,20 @@ function AmbientLights() {
         className="absolute inset-0 opacity-95"
         style={{
           background:
-            'radial-gradient(circle at 15% 12%, rgba(34,211,238,0.11), transparent 22%), radial-gradient(circle at 78% 10%, rgba(96,165,250,0.12), transparent 22%), radial-gradient(circle at 52% 88%, rgba(251,191,36,0.08), transparent 24%), linear-gradient(180deg, #040915 0%, #050b16 48%, #030711 100%)',
+            'radial-gradient(circle at 15% 12%, rgba(129,135,252,0.11), transparent 22%), radial-gradient(circle at 78% 10%, rgba(129,135,252,0.12), transparent 22%), radial-gradient(circle at 52% 88%, rgba(251,191,36,0.08), transparent 24%), linear-gradient(180deg, #040915 0%, #050b16 48%, #030711 100%)',
         }}
       />
       <div
         className="absolute left-[-12%] top-[-14%] h-[28rem] w-[28rem] rounded-full opacity-[0.42] blur-[56px]"
-        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(34,211,238,0.11), rgba(96,165,250,0.04) 40%, transparent 72%)' }}
+        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(129,135,252,0.11), rgba(129,135,252,0.04) 40%, transparent 72%)' }}
       />
       <div
         className="absolute right-[-10%] top-[12%] h-[26rem] w-[26rem] rounded-full opacity-[0.38] blur-[52px]"
-        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(96,165,250,0.11), rgba(34,211,238,0.04) 42%, transparent 72%)' }}
+        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(129,135,252,0.11), rgba(129,135,252,0.04) 42%, transparent 72%)' }}
       />
       <div
         className="absolute bottom-[-12%] left-1/2 h-[22rem] w-[34rem] -translate-x-1/2 rounded-full opacity-[0.42] blur-[56px]"
-        style={{ background: 'radial-gradient(circle at 50% 40%, rgba(34,211,238,0.11), rgba(251,191,36,0.08) 34%, rgba(96,165,250,0.04) 52%, transparent 76%)' }}
+        style={{ background: 'radial-gradient(circle at 50% 40%, rgba(129,135,252,0.11), rgba(251,191,36,0.08) 34%, rgba(129,135,252,0.04) 52%, transparent 76%)' }}
       />
     </div>
   )
@@ -217,7 +217,7 @@ function ScanBeam({ reducedMotion }: { reducedMotion: boolean }) {
       className="absolute inset-y-[-10%] left-[-34%] w-[26%] rotate-[10deg] blur-xl"
       style={{
         background:
-          'linear-gradient(90deg, transparent 0%, rgba(125,211,252,0.02) 18%, rgba(103,232,249,0.09) 50%, rgba(251,191,36,0.04) 78%, transparent 100%)',
+          'linear-gradient(90deg, transparent 0%, rgba(129,135,252,0.02) 18%, rgba(103,232,249,0.09) 50%, rgba(251,191,36,0.04) 78%, transparent 100%)',
         willChange: 'transform',
       }}
       initial={{ x: '0%' }}
@@ -238,12 +238,12 @@ function NeuralNetwork({ reducedMotion }: { reducedMotion: boolean }) {
       <defs>
         <radialGradient id="soma-cyan" cx="50%" cy="50%" r="70%">
           <stop offset="0%" stopColor="#f6feff" stopOpacity="0.95" />
-          <stop offset="40%" stopColor="#9cecff" stopOpacity="0.92" />
+          <stop offset="40%" stopColor="#8187fc" stopOpacity="0.92" />
           <stop offset="100%" stopColor="#103546" stopOpacity="0.14" />
         </radialGradient>
         <radialGradient id="soma-blue" cx="50%" cy="50%" r="70%">
           <stop offset="0%" stopColor="#f4f8ff" stopOpacity="0.94" />
-          <stop offset="42%" stopColor="#bfd7ff" stopOpacity="0.88" />
+          <stop offset="42%" stopColor="#8187fc" stopOpacity="0.88" />
           <stop offset="100%" stopColor="#12253f" stopOpacity="0.14" />
         </radialGradient>
         <radialGradient id="soma-amber" cx="50%" cy="50%" r="72%">
