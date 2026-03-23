@@ -34,7 +34,6 @@ LINUCB = LinUCB(d=27, alpha=0.6)
 MOVIE_PATH = Path(__file__).parent / "datasets" / "movies.json"
 TRAIT_ORDER = ["energy", "mood", "depth", "optimism", "novelty", "comfort", "intensity", "humor", "darkness"]
 INTERACTION_TYPES = {"click", "save", "finish", "dismiss"}
-ANALYTICS_RECOMMEND_MOVIE_ID = "__recommend__"
 ALGO_TAG = "hybrid_centered_cosine_text_feedback_mmr_v7_relevance_floor_freshness_overlap_guard"
 
 
@@ -981,24 +980,6 @@ def recommend():
             [str(m.get("id")) for m in enriched if m.get("id") is not None],
             lookback_minutes=SHOWN_EVENT_DEDUPE_MINUTES,
         )
-
-        # Analytics-only usage event for successful recommendation responses.
-        dbs.add(
-            Event(
-                session_id=session_id,
-                movie_id=ANALYTICS_RECOMMEND_MOVIE_ID,
-                type="recommend_served",
-                reward=0.0,
-                ts=now_dt,
-                features={
-                    "endpoint": "/recommend",
-                    "result_count": len(enriched),
-                    "retake_round": retake_round,
-                    "catalog_variant": resolve_active_catalog_variant(db_path),
-                },
-            )
-        )
-
         for m in enriched:
             if str(m.get("id")) in recently_logged_shown:
                 continue
