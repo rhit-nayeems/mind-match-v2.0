@@ -185,17 +185,17 @@ const satellites: Satellite[] = [
 function AmbientLights() {
   return (
     <div className="absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0 bg-[#040915]" />
+      <div className="absolute inset-0 bg-[#101739]" />
       <div
         className="absolute inset-0 opacity-95"
         style={{
           background:
-            'radial-gradient(circle at 15% 12%, rgba(129,135,252,0.11), transparent 22%), radial-gradient(circle at 78% 10%, rgba(129,135,252,0.12), transparent 22%), radial-gradient(circle at 52% 88%, rgba(251,191,36,0.08), transparent 24%), linear-gradient(180deg, #040915 0%, #050b16 48%, #030711 100%)',
+            'radial-gradient(circle at 15% 12%, rgba(129,135,252,0.18), transparent 24%), radial-gradient(circle at 78% 10%, rgba(129,135,252,0.18), transparent 24%), radial-gradient(circle at 52% 88%, rgba(251,191,36,0.11), transparent 26%), linear-gradient(180deg, #11183a 0%, #0f1632 48%, #0d1328 100%)',
         }}
       />
       <div
         className="absolute left-[-12%] top-[-14%] h-[28rem] w-[28rem] rounded-full opacity-[0.42] blur-[56px]"
-        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(129,135,252,0.11), rgba(129,135,252,0.04) 40%, transparent 72%)' }}
+        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(129,135,252,0.18), rgba(129,135,252,0.06) 40%, transparent 72%)' }}
       />
       <div
         className="absolute right-[-10%] top-[12%] h-[26rem] w-[26rem] rounded-full opacity-[0.38] blur-[52px]"
@@ -203,7 +203,7 @@ function AmbientLights() {
       />
       <div
         className="absolute bottom-[-12%] left-1/2 h-[22rem] w-[34rem] -translate-x-1/2 rounded-full opacity-[0.42] blur-[56px]"
-        style={{ background: 'radial-gradient(circle at 50% 40%, rgba(129,135,252,0.11), rgba(251,191,36,0.08) 34%, rgba(129,135,252,0.04) 52%, transparent 76%)' }}
+        style={{ background: 'radial-gradient(circle at 50% 40%, rgba(129,135,252,0.16), rgba(251,191,36,0.1) 34%, rgba(129,135,252,0.05) 52%, transparent 76%)' }}
       />
     </div>
   )
@@ -217,7 +217,7 @@ function ScanBeam({ reducedMotion }: { reducedMotion: boolean }) {
       className="absolute inset-y-[-10%] left-[-34%] w-[26%] rotate-[10deg] blur-xl"
       style={{
         background:
-          'linear-gradient(90deg, transparent 0%, rgba(129,135,252,0.02) 18%, rgba(103,232,249,0.09) 50%, rgba(251,191,36,0.04) 78%, transparent 100%)',
+          'linear-gradient(90deg, transparent 0%, rgba(129,135,252,0.04) 18%, rgba(129,135,252,0.12) 50%, rgba(251,191,36,0.06) 78%, transparent 100%)',
         willChange: 'transform',
       }}
       initial={{ x: '0%' }}
@@ -351,7 +351,7 @@ function ReadabilityVeil() {
       className="absolute inset-0"
       style={{
         background:
-          'radial-gradient(circle at 50% 42%, rgba(5,9,21,0) 0%, rgba(5,9,21,0.06) 52%, rgba(5,9,21,0.28) 82%, rgba(5,9,21,0.64) 100%)',
+          'radial-gradient(circle at 50% 42%, rgba(7,10,26,0) 0%, rgba(7,10,26,0.04) 56%, rgba(7,10,26,0.18) 84%, rgba(7,10,26,0.4) 100%)',
       }}
     />
   )

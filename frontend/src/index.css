@@ -2054,3 +2054,138 @@ body {
 .quiz-shell::before {
   content: none;
 }
+
+/* Brightness tuning */
+body {
+  background:
+    radial-gradient(circle at 14% 8%, rgba(129, 135, 252, 0.2), transparent 28%),
+    radial-gradient(circle at 86% 12%, rgba(129, 135, 252, 0.16), transparent 26%),
+    radial-gradient(circle at 50% 104%, rgba(251, 191, 36, 0.12), transparent 28%),
+    linear-gradient(180deg, #11183a 0%, #101730 48%, #101726 100%);
+  background-attachment: scroll;
+}
+
+.topbar-surface {
+  background:
+    linear-gradient(105deg, rgba(129, 135, 252, 0.17), rgba(255, 255, 255, 0.05) 34%, rgba(129, 135, 252, 0.12) 70%, rgba(251, 191, 36, 0.07)),
+    rgba(255, 255, 255, 0.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 18px 38px rgba(8, 12, 30, 0.22),
+    0 0 0 1px rgba(129, 135, 252, 0.12),
+    0 0 42px rgba(129, 135, 252, 0.08);
+}
+
+.topbar-surface::before {
+  opacity: 0.56;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04), transparent),
+    radial-gradient(circle at 18% 50%, rgba(129, 135, 252, 0.2), transparent 42%);
+}
+
+.topbar-brand-orbit {
+  background:
+    linear-gradient(145deg, rgba(129, 135, 252, 0.22), rgba(255, 255, 255, 0.06) 38%, rgba(18, 26, 44, 0.16) 58%, rgba(129, 135, 252, 0.18));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 14px 24px rgba(8, 12, 30, 0.18),
+    0 0 0 1px rgba(129, 135, 252, 0.12),
+    0 0 28px rgba(129, 135, 252, 0.08);
+}
+
+.landing-page::before,
+.quiz-page::before,
+.results-page::before {
+  opacity: 0.58;
+  background: radial-gradient(circle at 38% 36%, rgba(129, 135, 252, 0.22), rgba(194, 198, 255, 0.08) 42%, transparent 76%);
+}
+
+.landing-page::after,
+.quiz-page::after,
+.results-page::after {
+  opacity: 0.8;
+  background: radial-gradient(circle at 50% 42%, rgba(129, 135, 252, 0.12), rgba(251, 191, 36, 0.1) 36%, rgba(255, 255, 255, 0.03) 52%, transparent 76%);
+}
+
+.landing-hero,
+.quiz-shell,
+.results-shell {
+  background:
+    linear-gradient(140deg, rgba(129, 135, 252, 0.16), rgba(255, 255, 255, 0.04) 34%, rgba(129, 135, 252, 0.16) 68%, rgba(251, 191, 36, 0.09)),
+    rgba(18, 24, 46, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 24px 56px rgba(6, 10, 25, 0.26),
+    0 0 0 1px rgba(129, 135, 252, 0.12),
+    0 0 64px rgba(129, 135, 252, 0.1);
+}
+
+.landing-preview,
+.landing-feature-card,
+.quiz-nav-tray,
+.quiz-question-card,
+.result-card,
+.results-compare-card,
+.results-loading-card {
+  border-color: rgba(129, 135, 252, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 18px 34px rgba(8, 12, 30, 0.18),
+    0 0 28px rgba(129, 135, 252, 0.07);
+}
+
+.quiz-question-card {
+  background:
+    linear-gradient(180deg, rgba(38, 50, 82, 0.72), rgba(255, 255, 255, 0.08)),
+    rgba(17, 25, 42, 0.52);
+}
+
+.result-card {
+  background:
+    linear-gradient(180deg, rgba(33, 45, 76, 0.62), rgba(255, 255, 255, 0.06)),
+    rgba(255, 255, 255, 0.055);
+}
+
+.result-card-active {
+  background:
+    linear-gradient(180deg, rgba(42, 58, 95, 0.78), rgba(255, 255, 255, 0.08)),
+    rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0 0 1px rgba(129, 135, 252, 0.24),
+    0 20px 38px rgba(8, 12, 30, 0.2),
+    0 0 34px rgba(129, 135, 252, 0.12);
+}
+
+.results-compare-card {
+  background:
+    linear-gradient(180deg, rgba(24, 32, 56, 0.88), rgba(20, 28, 46, 0.92) 56%, rgba(37, 31, 20, 0.82)),
+    rgba(255, 255, 255, 0.055);
+}
+
+.results-reason-card {
+  background:
+    linear-gradient(180deg, rgba(129, 135, 252, 0.12), rgba(255, 255, 255, 0.08)),
+    rgba(0, 0, 0, 0.18);
+}
+
+.results-radar-wrap {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(129, 135, 252, 0.12), transparent 62%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+}
+
+@media (max-width: 767px) {
+  body {
+    background:
+      radial-gradient(circle at 14% 10%, rgba(129, 135, 252, 0.18), transparent 30%),
+      radial-gradient(circle at 84% 14%, rgba(129, 135, 252, 0.14), transparent 28%),
+      linear-gradient(180deg, #111739 0%, #10162d 100%);
+  }
+
+  .quiz-question-card {
+    background:
+      linear-gradient(180deg, rgba(42, 56, 92, 0.74), rgba(255, 255, 255, 0.08)),
+      rgba(18, 26, 44, 0.56);
+  }
+}
