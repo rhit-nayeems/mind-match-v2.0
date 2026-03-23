@@ -448,7 +448,7 @@ export default function Results() {
               particleCount: 22,
               spread: 48,
               origin: { y: 0.72 },
-              colors: ['#8187fc', '#8187fc', '#fbbf24'],
+              colors: ['#67e8f9', '#93c5fd', '#fbbf24'],
               scalar: 0.66,
               ticks: 120,
               disableForReducedMotion: true,
@@ -666,7 +666,7 @@ export default function Results() {
                                       return next
                                     })
                                   }}
-                                  className="result-inline-link mt-1 text-xs font-medium underline decoration-[#8187fc]/45 underline-offset-2 hover:text-[#8187fc]"
+                                  className="result-inline-link mt-1 text-xs font-medium underline decoration-cyan-200/45 underline-offset-2 hover:text-cyan-100"
                                 >
                                   {synopsisExpanded ? 'Show less' : 'Read more'}
                                 </button>
@@ -679,7 +679,7 @@ export default function Results() {
                               {m.genre.slice(0, 3).map((g, idx) => (
                                 <span
                                   key={`${m.id}-${g}-${idx}`}
-                                  className="result-genre-chip rounded-full px-2 py-0.5 text-xs text-[#8187fc]/90"
+                                  className="result-genre-chip rounded-full px-2 py-0.5 text-xs text-cyan-50/90"
                                 >
                                   {g}
                                 </span>
@@ -690,7 +690,7 @@ export default function Results() {
                           <div className="mt-3">
                             <div className="flex items-center justify-between text-xs text-zinc-200/85">
                               <span>match</span>
-                              <span className="font-semibold text-[#8187fc]">{pct(m.fitScore ?? m.match)}</span>
+                              <span className="font-semibold text-cyan-50">{pct(m.fitScore ?? m.match)}</span>
                             </div>
                             <div className="result-match-track mt-1 h-2 overflow-hidden rounded-full border">
                               <div
@@ -726,7 +726,7 @@ export default function Results() {
 
               <div className="results-legend mt-3 flex flex-wrap items-center gap-4 text-xs text-zinc-200/85">
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#8187fc]" aria-hidden />
+                  <span className="h-2.5 w-2.5 rounded-full bg-cyan-300" aria-hidden />
                   Your profile
                 </span>
                 <span className="inline-flex items-center gap-1.5">
@@ -800,9 +800,9 @@ function InlineRadar({
   const pointsUser = toPoints(spokes, user, rMax, cx, cy)
   const pointsMovie = movie ? toPoints(spokes, movie, rMax, cx, cy) : null
 
-  const ringStroke = 'rgba(129,135,252,0.16)'
-  const spokeStroke = 'rgba(129,135,252,0.11)'
-  const userFill = 'rgba(129,135,252,0.16)'
+  const ringStroke = 'rgba(125,211,252,0.16)'
+  const spokeStroke = 'rgba(165,243,252,0.11)'
+  const userFill = 'rgba(34,211,238,0.16)'
   const userStroke = 'rgba(103,232,249,0.96)'
   const movieFill = 'rgba(251,191,36,0.14)'
   const movieStroke = 'rgba(251,191,36,0.94)'

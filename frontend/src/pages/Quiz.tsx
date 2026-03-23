@@ -468,8 +468,8 @@ export default function Quiz() {
                   className={[
                     "quiz-choice block w-full cursor-pointer select-none rounded-xl border px-3 py-2 text-left leading-snug outline-none whitespace-normal sm:w-auto",
                     checked ? "quiz-choice-selected" : "quiz-choice-idle",
-                    "focus-visible:ring-2 focus-visible:ring-[#8187fc]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
-                    "peer-focus-visible:ring-2 peer-focus-visible:ring-[#8187fc]/80 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-black",
+                    "focus-visible:ring-2 focus-visible:ring-cyan-200/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
+                    "peer-focus-visible:ring-2 peer-focus-visible:ring-cyan-200/80 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-black",
                   ].join(" ")}
                 >
                   {withoutPeriods(c.label)}
@@ -494,7 +494,7 @@ export default function Quiz() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: shouldReduceMotion ? 0 : 1, y: shouldReduceMotion ? 0 : "-100%", transition: overlayTransition }}
           >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(129,135,252,0.18),transparent_46%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_46%)]" />
             <div className="relative flex min-h-screen items-center justify-center">
               <motion.div
                 className="quiz-overlay-card mx-auto w-full max-w-xl rounded-[28px] border border-white/10 px-6 py-8 text-center shadow-[0_24px_80px_rgba(2,6,23,0.45)] sm:px-10 sm:py-10"
@@ -561,7 +561,7 @@ export default function Quiz() {
                   {currentTasteQs.length > 0 && (
                     <section className="quiz-question-section space-y-4">
                       <div>
-                        <h2 className="quiz-section-title text-sm font-semibold uppercase tracking-[0.16em] text-[#8187fc]/90">Your Movie Taste</h2>
+                        <h2 className="quiz-section-title text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/90">Your Movie Taste</h2>
                         <p className="quiz-section-note mt-1 text-xs text-zinc-400">What you usually enjoy</p>
                       </div>
                       <div className="space-y-4">
@@ -573,7 +573,7 @@ export default function Quiz() {
                   {currentVibeQs.length > 0 && (
                     <section className="quiz-question-section space-y-4">
                       <div>
-                        <h2 className="quiz-section-title text-sm font-semibold uppercase tracking-[0.16em] text-[#8187fc]/90">How You Feel Right Now</h2>
+                        <h2 className="quiz-section-title text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/90">How You Feel Right Now</h2>
                         <p className="quiz-section-note mt-1 text-xs text-zinc-400">What fits this moment</p>
                       </div>
                       <div className="space-y-4">

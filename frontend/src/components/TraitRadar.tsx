@@ -9,7 +9,7 @@ export default function TraitRadar({ user, movie }: { user: Record<string, numbe
         <RadarChart data={data} outerRadius={80}>
           <PolarGrid />
           <PolarAngleAxis dataKey="trait" />
-          <Radar name="You" dataKey="you" stroke="#8187fc" fill="#8187fc" fillOpacity={0.3} />
+          <Radar name="You" dataKey="you" stroke="#60a5fa" fill="#60a5fa" fillOpacity={0.3} />
           <Radar name="Film" dataKey="film" stroke="#34d399" fill="#34d399" fillOpacity={0.3} />
         </RadarChart>
       </ResponsiveContainer>

@@ -56,7 +56,7 @@ export default function Landing() {
 
           <div className="surface-soft landing-preview grid min-w-0 h-fit content-start gap-3 self-start p-3 md:self-center">
             <div className="landing-preview-card rounded-xl p-3">
-              <div className="code-label text-[#8187fc]/90">sample profile preview</div>
+              <div className="code-label text-cyan-50/90">sample profile preview</div>
               <div className="mt-2.5 grid grid-cols-3 gap-1.5 text-xs text-zinc-200">
                 {previewMetrics.map((metric, i) => {
                   const targetWidth = `${50 + ((i * 11) % 38)}%`
@@ -82,7 +82,7 @@ export default function Landing() {
               </div>
             </div>
             <div className="landing-signal-card rounded-xl p-3">
-              <div className="code-label text-[#8187fc]/90">signal path</div>
+              <div className="code-label text-cyan-50/90">signal path</div>
               <div className="mt-2 overflow-x-auto">
                 <p className="text-sm leading-relaxed text-zinc-100 whitespace-normal break-words">
                   quiz vectors -&gt; weighted similarity -&gt; diversity rerank -&gt; curated top matches
