@@ -138,6 +138,15 @@ def init_app(app):
         RETRIEVER = None
 
 
+@bp.get("/ping")
+def ping():
+    return {
+        "status": "ok",
+        "alive": True,
+        "algo": ALGO_TAG,
+    }
+
+
 @bp.get("/health")
 def health():
     db_path = resolve_db_path()
@@ -1105,4 +1114,6 @@ def event():
         dbs.close()
 
     return {"ok": True}
+
+
 
