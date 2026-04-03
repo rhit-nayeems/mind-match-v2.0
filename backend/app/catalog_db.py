@@ -41,6 +41,8 @@ _DEFAULT_DB_CANDIDATES = [
     _HERE / "data" / "movies.db",
 ]
 
+# Process-local snapshot of the active catalog. Request-time retrieval reads from here so the app
+# only pays the SQLite decode and TF-IDF build cost when the catalog source or cap changes.
 _CACHE: Dict[str, Any] = {
     "db_path": None,
     "mtime": None,
@@ -194,6 +196,9 @@ def _rebuild_cache_if_needed() -> None:
     ):
         return
 
+    # Rebuild the retrieval snapshot only when the active DB path, file mtime, or row cap changes.
+    # Both the structured records and the TF-IDF matrix come from this same row set so trait and
+    # text retrieval always score the exact same active catalog.
     with closing(_connect()) as conn:
         cur = conn.cursor()
         query = """
@@ -241,6 +246,7 @@ def _rebuild_cache_if_needed() -> None:
         docs.append(rec["doc"] or rec["title"] or "movie")
         records.append(rec)
 
+    # Fit the text index once per snapshot so request-time retrieval only transforms the query.
     if docs:
         vectorizer = TfidfVectorizer(max_features=20000, ngram_range=(1, 2), stop_words="english")
         matrix = vectorizer.fit_transform(docs)

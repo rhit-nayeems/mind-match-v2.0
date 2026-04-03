@@ -233,6 +233,8 @@ function buildGenreAddon(movie?: RecommendationReasonMovie | null, seed = 0) {
   return ` ${pickStable(options, seed, 4) ?? options[0]}`
 }
 
+// Explanation copy is derived from overlapping top traits, then seeded from stable movie metadata
+// so the same recommendation does not get a different reason on each render.
 function buildRecommendationReason(
   userTraits: Record<TraitKey, number>,
   movie?: RecommendationReasonMovie | null
@@ -301,6 +303,8 @@ function readSavedContext(): any {
   }
 }
 
+// Retakes accumulate recently shown IDs so later quiz rounds can explicitly ask the backend to
+// avoid resurfacing the same movies.
 const RESULT_HISTORY_KEY = 'mm_result_history_ids'
 const PENDING_RETAKE_KEY = 'mm_pending_retake'
 const RESULT_HISTORY_MAX = 24
@@ -361,6 +365,7 @@ export default function Results() {
   )
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [expandedSynopsisIds, setExpandedSynopsisIds] = useState<Set<string>>(new Set())
+  // Avoid duplicate click events when the user revisits the same card during one results session.
   const clickedIdsRef = useRef<Set<string>>(new Set())
   const isLoading = !data
 
@@ -512,6 +517,8 @@ export default function Results() {
     }
   }
 
+  // The current UI only emits click events. The backend supports save, finish, and dismiss too,
+  // but those signals are not surfaced in this version of the frontend.
   async function sendFeedback(type: 'click', movie: ResultsData['recommendations'][number]) {
     await postEvent(
       {
@@ -879,8 +886,4 @@ function toPoints(
     })
     .join(' ')
 }
-
-
-
-
 

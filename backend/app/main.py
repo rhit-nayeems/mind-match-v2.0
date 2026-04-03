@@ -138,6 +138,8 @@ def init_app(app):
         RETRIEVER = None
 
 
+# Keep automated liveness checks on /ping. /health intentionally inspects catalog readiness and may
+# warm the catalog cache, which is too expensive for low-memory Render health probes.
 @bp.get("/ping")
 def ping():
     return {
@@ -156,6 +158,8 @@ def health():
     total_rows = None
     import_error = None
     active_limit = resolve_catalog_limit()
+    # This endpoint is for diagnostics, not cheap liveness. count_rows() builds the active catalog
+    # cache on first access so callers can confirm the retrieval snapshot is ready.
     if path_exists:
         try:
             rows = count_rows()
@@ -444,6 +448,8 @@ def _get_dissimilar_exposure_counts(
 
     return out
 
+# Higher quiz confidence shifts ranking toward stable trait fit and slightly away from text hints.
+# Feedback keeps a small fixed share so sparse engagement can still break close ties.
 def _blend_weights(overall_conf: float) -> Dict[str, float]:
     conf = _clamp01(overall_conf)
     trait_w = 0.68 + 0.22 * conf
@@ -857,6 +863,8 @@ def recommend():
     if not os.path.exists(db_path):
         return jsonify({"error": f"Catalog not ready. Expected DB at: {db_path}"}), 503
 
+    # Scale candidate and rerank pool sizes with the active catalog so the same pipeline works for
+    # both the full catalog and smaller experimental variants.
     active_rows = max(1, count_rows())
     result_count = RESULT_COUNT
     candidate_limit = max(CANDIDATE_LIMIT_MIN, min(CANDIDATE_LIMIT_MAX, int(active_rows * CANDIDATE_LIMIT_RATIO)))
@@ -980,6 +988,8 @@ def recommend():
                 pass
         enriched.append(m)
 
+    # Persist only the final shown set after reranking so freshness and exposure penalties reflect
+    # what the user actually saw, not the wider pre-rerank candidate pool.
     dbs = None
     try:
         dbs = SessionLocal()
@@ -1114,6 +1124,4 @@ def event():
         dbs.close()
 
     return {"ok": True}
-
-
 

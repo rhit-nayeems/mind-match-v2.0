@@ -50,6 +50,8 @@ export type TraitContext = {
 export const DEFAULT_CORE_PER_GROUP = 5;
 export const DEFAULT_ADAPTIVE_PER_GROUP = 4;
 
+// The blended profile stays anchored in long-term taste. "Today" answers can steer the request
+// without fully overriding the personality signal.
 const PERSONALITY_WEIGHT = 0.68;
 const TODAY_WEIGHT = 0.32;
 const SCALE = 0.5;
@@ -292,6 +294,8 @@ export const QUESTION_BANK: Question[] = [
 // Backward-compatible default question list; runtime quiz uses buildCoreQuizQuestions().
 export const QUESTIONS: Question[] = [...PERSONALITY_CORE_POOL, ...TODAY_CORE_POOL];
 
+// Core selection tries to cover the full trait space early so the adaptive phase can spend its
+// smaller budget clarifying weak signals instead of discovering basic coverage gaps.
 function selectCoreQuestions(pool: Question[], count: number, excludeIds?: Set<string>): Question[] {
   const excluded = excludeIds ?? new Set<string>();
   const preferred = shuffle(pool.filter((q) => !excluded.has(q.id)));
@@ -388,6 +392,8 @@ export function buildAdaptiveQuizQuestions(
   const answeredQuestions = asked.filter((q) => Boolean(responses[q.id]));
   const answeredCoverage = traitCoverageCounts(answeredQuestions);
 
+  // Adaptive follow-ups target traits that are still noisy: low confidence, ambiguous midpoint
+  // values, or traits supported by too few answered questions so far.
   const traitNeed = makeTraitVector(0);
   for (const k of TRAIT_KEYS) {
     const conf = provisional.confidence.per_trait[k];
@@ -505,6 +511,8 @@ export function answersToTraitContext(responses: Responses, questionSet?: Questi
   const personalityClarity = vectorClarity(personality);
   const moodClarity = vectorClarity(mood);
 
+  // Confidence is a heuristic signal-quality score, not a calibrated probability. The backend uses
+  // it to tune blend weights and exploration pressure.
   const overallConfidence = clamp01(0.35 * overallRatio + 0.65 * overallClarity);
   const personalityConfidence = clamp01(0.4 * personalityRatio + 0.6 * personalityClarity);
   const moodConfidence = clamp01(0.4 * moodRatio + 0.6 * moodClarity);
@@ -535,9 +543,4 @@ export function answersToTraitContext(responses: Responses, questionSet?: Questi
 export function answersToTraitVector(responses: Responses, questionSet?: Question[]): number[] {
   return answersToTraitContext(responses, questionSet).blendedArray;
 }
-
-
-
-
-
 

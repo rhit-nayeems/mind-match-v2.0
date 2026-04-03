@@ -13,6 +13,8 @@ import {
 } from "../data/questions";
 
 const PAGE_SIZE_PER_GROUP = 2;
+// Bump this whenever persisted quiz state becomes incompatible with the current question bank or
+// results payload shape.
 const APP_STATE_VERSION = "2026-03-02-2";
 const VERSION_KEY = "mm_version";
 const RECENT_QIDS_KEY = "mm_recent_question_ids";
@@ -140,6 +142,8 @@ export default function Quiz() {
   const navigate = useNavigate();
   const loc = useLocation() as any;
 
+  // Generate a few candidate core quizzes and keep the one that overlaps least with recent local
+  // history. That reduces repeat questions without hard-coding a single fixed quiz order.
   const [coreQuestions] = useState<Question[]>(() => {
     const recent = new Set(readRecentQuestionIds());
     const opts = { personalityCount: DEFAULT_CORE_PER_GROUP, todayCount: DEFAULT_CORE_PER_GROUP, excludeIds: recent };
@@ -300,6 +304,8 @@ export default function Quiz() {
     setPage((p) => Math.min(totalPages - 1, p + 1));
   }
 
+  // Adaptive follow-ups only start after the broad core pass. They try to clarify uncertain traits
+  // while still avoiding recently seen questions when possible.
   function startAdaptivePhase() {
     const recent = new Set(readRecentQuestionIds());
 
@@ -347,6 +353,8 @@ export default function Quiz() {
       const traitContext = answersToTraitContext(responses, quizQuestions);
       const vector = traitContext.blendedArray;
       const pendingRetake = readPendingRetake();
+      // Persist the exact payload /results will send to the backend so refreshes do not lose the
+      // blended profile or any pending retake avoidance state.
       const requestContext: any = {
         personality_traits: traitContext.personality,
         mood_traits: traitContext.mood,
@@ -626,5 +634,4 @@ export default function Quiz() {
     </>
   );
 }
-
 
